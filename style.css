@@ -363,7 +363,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .app-switcher-track {
   display: flex;
   width: max-content;
-  animation: marquee 33.45s linear infinite; /* 20 cards: same speed as 19 in 32s */
+  animation: marquee 32s linear infinite;
 }
 
 .app-switcher-marquee:hover .app-switcher-track,
