@@ -1,0 +1,777 @@
+{
+  "group": "ecosia-qwant-searxng",
+  "generated": "2026-10-10",
+  "scope": "Search-engine result pages treated as canonical: keep only parameters that change which results are shown.",
+  "method": "Read-only. Primary sources: Ecosia iOS browser and live Ecosia web bundle; Qwant live front-end bundle and Qwant API filter definitions; SearXNG source (webadapter.py, webapp.py, preferences.py, templates). Cross-checked against openserp, SearXNG's Qwant engine, Firefox search-config-v2, OpenSearch descriptions, ClearURLs and AdGuard TrackParamFilter (neither has Ecosia or SearXNG rules; AdGuard only covers lite.qwant.com/redirect/).",
+  "engines": [
+    {
+      "engine": "Ecosia",
+      "hosts": [
+        "www.ecosia.org",
+        "ecosia.org"
+      ],
+      "paths": [
+        "/search",
+        "/images",
+        "/news",
+        "/videos",
+        "/shopping"
+      ],
+      "functional": [
+        {
+          "name": "q",
+          "meaning": "Search query (all verticals).",
+          "source": "https://github.com/ecosia/ios-browser/blob/main/firefox-ios/Ecosia/Core/URL+Extensions.swift"
+        },
+        {
+          "name": "p",
+          "meaning": "Result page, zero-based (p=1 is the second page). Verified: the pagination component builds links as {...this.$route.query, p} and the results page reads page = parseInt(query.p) || 0.",
+          "source": "https://github.com/ecosia/ios-browser/blob/main/firefox-ios/Ecosia/Core/URL+Extensions.swift ; https://github.com/karust/openserp/blob/HEAD/ecosia/url.go ; https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "freshness",
+          "meaning": "Time filter: day, week, month.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://github.com/karust/openserp/blob/HEAD/ecosia/url.go ; https://support.ecosia.org/article/447-search-features",
+          "condition": "Any vertical. The image filter list hard-codes day, week, month; Ecosia help confirms a Time filter on Web ('depending on your search result provider'), Images, News and Videos."
+        },
+        {
+          "name": "size",
+          "meaning": "Image size: small, medium, large, wallpaper.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js",
+          "condition": "/images"
+        },
+        {
+          "name": "color",
+          "meaning": "Image colour: colorOnly, monochrome, red, orange, yellow, green, teal, blue, purple, pink, brown, black, gray, white.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js",
+          "condition": "/images"
+        },
+        {
+          "name": "imageType",
+          "meaning": "Image type: photo, clipart, line, animatedgif, transparent. Case-sensitive camelCase name.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://github.com/karust/openserp/blob/HEAD/ecosia/url.go",
+          "condition": "/images"
+        },
+        {
+          "name": "aspect",
+          "meaning": "Image layout: square, wide, tall (the UI calls it 'Layouts').",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://github.com/karust/openserp/blob/HEAD/ecosia/testdata/images_results.html",
+          "condition": "/images"
+        },
+        {
+          "name": "license",
+          "meaning": "Image usage rights: share, shareCommercially, modify, modifyCommercially, public.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js",
+          "condition": "/images"
+        },
+        {
+          "name": "videoLength",
+          "meaning": "Video duration filter. Name taken from the search form's list of filter parameters that Ecosia carries over to a new search; value set not seen. [inferred: name verified in Ecosia code, vertical and values inferred] Ecosia help says the News and Videos tabs offer Time plus 'other options provided by the underlying news or video provider'. Kept: plausibly result-changing and harmless.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://support.ecosia.org/article/447-search-features",
+          "condition": "/videos"
+        },
+        {
+          "name": "resolution",
+          "meaning": "Video resolution filter. Same evidence as videoLength. [inferred: name verified in Ecosia code, vertical and values inferred] Ecosia help says the News and Videos tabs offer Time plus 'other options provided by the underlying news or video provider'. Kept: plausibly result-changing and harmless.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://support.ecosia.org/article/447-search-features",
+          "condition": "/videos"
+        },
+        {
+          "name": "offset",
+          "meaning": "Item offset used with p by the images infinite-scroll feed: getLastPageUrl() copies location.href, sets offset and p, deletes expansionOf, and fetches that URL. It is not written back to the address bar, so it rarely appears in shared links. Kept as harmless. [inferred: server use not observed]",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js",
+          "condition": "/images, only alongside p"
+        },
+        {
+          "name": "forceMarket",
+          "meaning": "Internal override of the search market, carried over by the search form like the filters. [inferred: name verified, behaviour inferred from name] Verified only that the search form carries it over (hidden() list); not observed changing results because live SERPs are behind the Cloudflare firewall from this network.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js",
+          "condition": "Internal QA parameter; kept only because it changes results"
+        },
+        {
+          "name": "forceProvider",
+          "meaning": "Internal override of the result provider, carried over by the search form like the filters. [inferred: name verified, behaviour inferred from name] Verified only that the search form carries it over (hidden() list); not observed changing results because live SERPs are behind the Cloudflare firewall from this network.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js",
+          "condition": "Internal QA parameter; kept only because it changes results"
+        }
+      ],
+      "nonfunctional": [
+        {
+          "name": "tt",
+          "meaning": "Type tag: partner/distribution attribution code (Firefox uses mzl, 813cf1dd, 16eeffc4; Ecosia iOS app sends iosapp; Ecosia validates mzl|mzl2|16eeffc4|813cf1dd|42b8ae98|d188c5da|e8eb07a6|dccf112d|vivaldi).",
+          "source": "https://github.com/ecosia/ios-browser/blob/main/firefox-ios/Ecosia/Core/URL+Extensions.swift ; https://github.com/mozilla-firefox/firefox/blob/main/services/settings/dumps/main/search-config-v2.json ; https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "tts",
+          "meaning": "Secondary type tag for Safari/partner attribution (st_asaf_ipad|iphone|ipod|macos, st_tempest_a).",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "addon",
+          "meaning": "Install/entry point attribution: opensearch, default_chrome, brave, chrome, edge, firefox. Tracked as plt_name in Snowplow.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://www.ecosia.org/opensearch.xml ; https://github.com/ecosia/chromium-android-browser/blob/ecosia-129.0.6668.112-squashed/components/search_engines/prepopulated_engines.json"
+        },
+        {
+          "name": "addonversion",
+          "meaning": "Extension version for attribution (plt_v in Snowplow).",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://www.ecosia.org/static/images/assets/chunks/chunk-Bbtlr4qS.js"
+        },
+        {
+          "name": "method",
+          "meaning": "Entry point/form code: index (homepage form), topbar, chromedefaultnewtab, ecosiabrowsernewtab, ecosiabrowsertopbar. Ecosia's own pagination links keep method=index, but it does not change results. Verified in the bundle only as an entry-point regex (chromedefaultnewtab, ecosiabrowsernewtab, ecosiabrowsertopbar) for partner attribution.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://github.com/karust/openserp/blob/HEAD/ecosia/url.go ; https://github.com/karust/openserp/blob/HEAD/ecosia/testdata/search_results.html"
+        },
+        {
+          "name": "sfs",
+          "meaning": "Attribution parameter (chunk constant VT='sfs'). It sits in the list Qg = [q, addon, sfs, sfn, _sp, addonversion] that Ecosia forwards to AI-search and shopping hand-off links, i.e. with the attribution fields, and in the search form's carry-over list. Meaning undocumented. [inferred]",
+          "source": "https://www.ecosia.org/static/images/assets/chunks/chunk-Bbtlr4qS.js ; https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "sfn",
+          "meaning": "Companion of sfs in the same lists (chunk constant GT='sfn'). [inferred]",
+          "source": "https://www.ecosia.org/static/images/assets/chunks/chunk-Bbtlr4qS.js ; https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "_sp",
+          "meaning": "Snowplow analytics user id (UUID; null UUID when anonymised). Tracking.",
+          "source": "https://github.com/ecosia/ios-browser/blob/main/firefox-ios/Ecosia/Core/URL+Extensions.swift ; https://www.ecosia.org/static/images/assets/chunks/chunk-Bbtlr4qS.js"
+        },
+        {
+          "name": "test",
+          "meaning": "test=automation marks automated test traffic.",
+          "source": "https://github.com/ecosia/ios-browser/blob/main/firefox-ios/Ecosia/Core/URL+Extensions.swift"
+        },
+        {
+          "name": "ar",
+          "meaning": "ar=1 auto-redirect: lets the backend route the query to AI search or the standard SERP. Routing hint, not a result filter. Verified: the search form adds {ar: 1} (allowRoutingQueryParam) only when a feature toggle is on; removing it keeps the standard SERP for the same q.",
+          "source": "https://github.com/ecosia/ios-browser/blob/main/firefox-ios/Ecosia/Core/URL+Extensions.swift ; https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "sr",
+          "meaning": "sr=1 is appended to every vertical tab link in a captured SERP, including the Web tab itself (/search?q=...&sr=1). Not in the search form's carry-over list and not read anywhere in the 2026 bundle. Treated as a navigation marker. [inferred]",
+          "source": "https://github.com/karust/openserp/blob/HEAD/ecosia/testdata/search_results.html"
+        },
+        {
+          "name": "origin",
+          "meaning": "Source page of an AI-chat hand-off (origin=search, origin=images).",
+          "source": "https://github.com/karust/openserp/blob/HEAD/ecosia/testdata/search_results.html ; https://github.com/karust/openserp/blob/HEAD/ecosia/testdata/images_results.html ; https://www.ecosia.org/static/images/assets/chunks/chunk-Bbtlr4qS.js"
+        },
+        {
+          "name": "expansion",
+          "meaning": "URL-encoded JSON for the selected related-query chip on /images. Verified: getExpansionUrl() sets q to the chip text itself, adds expansion and originalQuery, and the page only parses expansion to highlight the chip (this.selected). q decides the results.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://github.com/karust/openserp/blob/HEAD/ecosia/testdata/images_results.html"
+        },
+        {
+          "name": "expansionOf",
+          "meaning": "Chip state that Ecosia itself deletes when paginating.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "originalQuery",
+          "meaning": "The query before a chip was chosen. Verified: shown in the search box instead of q and used to build the chip's 'deselect' link ({q: originalQuery}); results come from q.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "mocked",
+          "meaning": "Internal QA switch that loads mocked result fixtures.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "canary",
+          "meaning": "Internal canary/deployment flag carried by the search form. [inferred]",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "feature-<flag>",
+          "meaning": "Unleash feature-toggle override: any parameter whose name starts with 'feature-' (chunk constant qc='feature-'; uC() keeps such keys and the search form carries them over). Internal QA switch, like mocked and canary. [inferred: effect depends on the flag]",
+          "source": "https://www.ecosia.org/static/images/assets/chunks/chunk-Bbtlr4qS.js ; https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "ab-<test>",
+          "meaning": "A/B test override: nt() keeps any key matching /ab-.*/ (and feature-.*, test) when it rebuilds links. Experiment assignment, not a result filter. [inferred]",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "disableConsent",
+          "meaning": "Suppresses the cookie notice.",
+          "source": "https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js"
+        },
+        {
+          "name": "ref",
+          "meaning": "Not observed in any Ecosia source; listed because the ClearURLs global referralMarketing rule strips ref/ref_ everywhere. [not observed for Ecosia]",
+          "source": "https://rules2.clearurls.xyz/data.minify.json"
+        },
+        {
+          "name": "__cf_chl_tk",
+          "meaning": "Cloudflare challenge token added by the Ecosia firewall interstitial (also __cf_chl_f_tk, __cf_chl_rt_tk). Observed live 2026-10-10.",
+          "source": "https://www.ecosia.org/search?q=bergen&addon=opensearch (observed 2026-10-10)"
+        }
+      ],
+      "notes": "VERIFIED 2026-10-10 against the live Ecosia bundles (src_pages_images.DQLfWBII.js, chunk-Bbtlr4qS.js), the Ecosia iOS source, openserp url.go and its captured SERP, and the Ecosia help article. Every functional name is confirmed in Ecosia code; aliases in the search form list were resolved (Hi=sfs, Gi=sfn, qe=addon, Ot=addonversion, ji=_sp, pr=q). Region, SafeSearch and language confirmed as ECFG cookie keys (mc, f, l), not URL parameters. Changes: /shopping source corrected; feature-<flag> and ab-<test> added as non-functional; meanings of p, offset, expansion, originalQuery, sr, sfs, sfn tightened. Live SERPs still return 403 from this network, so forceMarket, forceProvider, videoLength and resolution remain code-verified names with inferred behaviour. Primary evidence is Ecosia's own code: the iOS browser (EcosiaQueryItemName: ar, p, q, test, tt, _sp) and the live web bundle fetched 2026-10-10, whose search form keeps exactly these parameters on a new search: freshness, resolution, videoLength, size, color, imageType, aspect, license, plus canary, mocked, forceProvider, sfs, sfn, forceMarket, tt, tts, addon, addonversion. Image filter values are hard-coded in that bundle. openserp (active Go scraper, 2026-09) independently confirms method=index, q, freshness, p and imageType. Bundle file names are content-hashed and will rotate; the parameter names were stable across python-ecosia-images (2019: size, color, imageType, freshness, license) and the 2026 bundle. Recommended rule: allowlist q, p, freshness everywhere; add size, color, imageType, aspect, license, offset on /images; videoLength, resolution on /videos; keep forceMarket/forceProvider if present; drop everything else. Parameter names are case-sensitive (imageType, videoLength). PATHS: Verticals /search, /images, /news and /videos come from Ecosia's own iOS browser (EcosiaSearchVertical enum). /shopping is listed in Ecosia help (https://support.ecosia.org/article/447-search-features, #s shortcut) and in the 2026 bundle's tab list ({id:'shopping', path:'/shopping', queryRequired:true}) and path map ('/search', '/images', '/news', '/videos', '/shopping'); the captured openserp SERP has no shopping tab, so the earlier 'captured SERP' citation was wrong. /ai-chat also takes q (plus origin=) but is an AI chat page, not a result page; treat it as q-only if handled at all. Staging hosts ecosia-staging.xyz and ecosia-dev.xyz exist in Ecosia's Android code and should be ignored. SETTINGS: Search region (market), SafeSearch and interface language are NOT URL parameters on Ecosia: they live in the ECFG cookie (mc = market, f = adult filter, l = language, c = country). The region filter writes the cookie and reloads the same URL minus p. A cleaned Ecosia link therefore cannot preserve region or SafeSearch; only forceMarket (internal) touches the market via the URL. Sources: https://github.com/ecosia/ios-browser/blob/main/firefox-ios/Ecosia/Core/Cookie/MainCookieHandler.swift ; https://www.ecosia.org/static/images/assets/chunks/chunk-Bbtlr4qS.js ; https://www.ecosia.org/static/images/assets/entries/src_pages_images.DQLfWBII.js ; https://github.com/karust/openserp/blob/HEAD/ecosia/url.go. TESTS: videoLength=short is an illustrative value; the rule keys on the parameter name only. feature-new-serp in test 3 is an illustrative flag name; the rule keys on the feature- prefix.",
+      "tests": [
+        {
+          "dirty": "https://www.ecosia.org/search?method=index&q=bergen+weather&p=1&tt=mzl&addon=opensearch",
+          "clean": "https://www.ecosia.org/search?q=bergen+weather&p=1"
+        },
+        {
+          "dirty": "https://www.ecosia.org/images?q=Burr%20Oak&expansion=%257B%2522text%2522%253A%2522Burr%2520Oak%2522%257D&size=large&color=green&imageType=photo&aspect=wide&license=public&freshness=week&addon=chrome&addonversion=5.2.0&_sp=00000000-0000-0000-0000-000000000000",
+          "clean": "https://www.ecosia.org/images?q=Burr%20Oak&size=large&color=green&imageType=photo&aspect=wide&license=public&freshness=week"
+        },
+        {
+          "dirty": "https://www.ecosia.org/videos?q=fjord+cruise&sr=1&videoLength=short&freshness=month&tts=st_asaf_iphone&sfs=1&sfn=widget&ar=1&test=automation&disableConsent=1&feature-new-serp=true",
+          "clean": "https://www.ecosia.org/videos?q=fjord+cruise&videoLength=short&freshness=month"
+        }
+      ]
+    },
+    {
+      "engine": "Qwant",
+      "hosts": [
+        "www.qwant.com",
+        "qwant.com",
+        "lite.qwant.com",
+        "www.qwantjunior.com",
+        "qwantjunior.com"
+      ],
+      "paths": [
+        "/"
+      ],
+      "functional": [
+        {
+          "name": "q",
+          "meaning": "Search query.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/opensearch.xml"
+        },
+        {
+          "name": "t",
+          "meaning": "Result tab/vertical: web, images, news, videos, shopping, chat (also social, maps, home in the tab enum).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "o",
+          "meaning": "Opened item AND page index, 'pageIndex:itemId' (image cards link to o=floor(count/pageSize):id). Verified: the server render fetches page = parseInt(o.split(':')[0]) and the client starts its infinite list at that page, then opens the item in the viewer. It is the only URL-borne pagination on Qwant, so removing it loads page one and closes the viewer. Qwant clears it whenever a filter changes.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://www.qwantjunior.com/assets/client-DUx20Bf4.js",
+          "condition": "t=web, images, news, videos (all infinite-list verticals); mainly seen on t=images"
+        },
+        {
+          "name": "locale",
+          "meaning": "Search region and content language, language_COUNTRY (en_GB, fr_FR; default fr_FR). Forwarded to the API for every vertical. Verified: builders send locale = query.locale || setting; the settings hook derives the setting from sr and r when locale is absent.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://github.com/searxng/searxng/blob/master/searx/engines/qwant.py"
+        },
+        {
+          "name": "l",
+          "meaning": "Interface language (two letters, e.g. en). Read from the URL before cookie or account settings. Verified as a URL-first setting (settings key LANGUAGE = l). It is not forwarded to the search API, so it changes interface text only; kept because the spec counts interface language.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://github.com/searxng/searxng/blob/2b03a61832/searx/engines/qwant.py"
+        },
+        {
+          "name": "sr",
+          "meaning": "Legacy search-region language. If locale is absent the client builds locale = sr + '_' + r (fr and gb are special-cased).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "Legacy; only meaningful together with r"
+        },
+        {
+          "name": "r",
+          "meaning": "Legacy region (country) code, combined with sr as above.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "Legacy; only meaningful together with sr"
+        },
+        {
+          "name": "s",
+          "meaning": "SafeSearch: 0 off, 1 moderate (default), 2 strict. Verified: every request builder sends safesearch = query.s || stored setting, and the settings hook reads s from the URL before cookie or account. This is the SafeSearch parameter that works in a link.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "freshness",
+          "meaning": "Time filter: all, hour, day, week, month (values observed in the API filter definitions).",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://api.qwant.com/v3/search/news?q=bergen&count=10&locale=en_GB&offset=0&device=desktop&tgp=2&safesearch=1",
+          "condition": "t=web, images or news"
+        },
+        {
+          "name": "order",
+          "meaning": "Sort order: relevance, date (news); relevance, view, date (videos); also shopping.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://api.qwant.com/v3/search/news?q=bergen&count=10&locale=en_GB&offset=0&device=desktop&tgp=2&safesearch=1 ; https://api.qwant.com/v3/search/videos?q=bergen&count=10&locale=en_GB&offset=0&device=desktop&tgp=2&safesearch=1",
+          "condition": "t=news, videos or shopping"
+        },
+        {
+          "name": "source",
+          "meaning": "Source filter: a publisher domain for news (e.g. sportsmole.co.uk), youtube or dailymotion for videos, also offered on images.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://api.qwant.com/v3/search/news?q=bergen&count=10&locale=en_GB&offset=0&device=desktop&tgp=2&safesearch=1 ; https://api.qwant.com/v3/search/videos?q=bergen&count=10&locale=en_GB&offset=0&device=desktop&tgp=2&safesearch=1",
+          "condition": "t=news, videos or images"
+        },
+        {
+          "name": "size",
+          "meaning": "Image size filter (values come from the API).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "t=images"
+        },
+        {
+          "name": "color",
+          "meaning": "Image colour filter (values come from the API).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "t=images"
+        },
+        {
+          "name": "imagetype",
+          "meaning": "Image type filter, all lower case (values come from the API).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "t=images"
+        },
+        {
+          "name": "license",
+          "meaning": "Image licence filter (values come from the API).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "t=images"
+        },
+        {
+          "name": "u",
+          "meaning": "News 'universe' parameter, forwarded to the news API only. [inferred: forwarded to the API, meaning undocumented]",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "t=news"
+        },
+        {
+          "name": "filters",
+          "meaning": "Shopping filters.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "t=shopping"
+        },
+        {
+          "name": "filter[...]",
+          "meaning": "Any parameter whose name starts with filter[ is forwarded to the API by the shared copier Go() regardless of vertical; used by shopping facets.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "Mainly t=shopping (forwarded on every vertical)"
+        },
+        {
+          "name": "page",
+          "meaning": "Shopping pagination; forwarded from the URL on the first shopping request.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "t=shopping"
+        },
+        {
+          "name": "guid",
+          "meaning": "Shopping product/offer identifier forwarded to the shopping API. [inferred]",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "t=shopping"
+        },
+        {
+          "name": "age",
+          "meaning": "Qwant Junior age band (JUNIOR_AGE). Verified: web allow-list on www.qwantjunior.com (same allow-lists as www).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://www.qwantjunior.com/assets/client-DUx20Bf4.js",
+          "condition": "qwantjunior.com, t=web"
+        },
+        {
+          "name": "category",
+          "meaning": "Result category chip filter in Qwant Alpha (also forwarded to the API). [inferred]",
+          "source": "https://www.qwant.com/assets/AlphaApp-DhxlmW3C.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js",
+          "condition": "Qwant Alpha experience"
+        }
+      ],
+      "nonfunctional": [
+        {
+          "name": "client",
+          "meaning": "Partner/distribution code: opensearch, brz-moz (Firefox), ff_android, ff_ios, firefoxqwant, brz-murena, brz-huawei*, ext-*.",
+          "source": "https://www.qwant.com/opensearch.xml ; https://github.com/mozilla-firefox/firefox/blob/main/services/settings/dumps/main/search-config-v2.json ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "tgp",
+          "meaning": "A/B test group (1 to 4). Confirmed overwritten by the builder from the test-group cookie/state.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://github.com/searxng/searxng/blob/master/searx/engines/qwant.py ; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+        },
+        {
+          "name": "origin",
+          "meaning": "Where the search started. Verified: forwarded to the API in the base list and read for analytics; Qwant's own link builder strips it by default (ignoredParams: [origin]).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "distribution",
+          "meaning": "Distribution/partner code forwarded with every API call.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "cl",
+          "meaning": "Client label, also stored as a cookie; forwarded for attribution. [inferred]",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "f",
+          "meaning": "Sticky partner parameter kept by the link builder alongside client and cl. [inferred]",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "chrome_dse_attribution",
+          "meaning": "Chrome default-search choice-screen attribution.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "fs",
+          "meaning": "First opener from the mobile app.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "cw_creative",
+          "meaning": "C-Wire advertising creative id.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "cw_features",
+          "meaning": "C-Wire advertising feature flags.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "campaign",
+          "meaning": "Qwant Alpha campaign tag.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/AlphaApp-DhxlmW3C.js"
+        },
+        {
+          "name": "entry_point",
+          "meaning": "Telemetry for how an AI chat query was entered.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "widget",
+          "meaning": "Widget entry point.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "survey",
+          "meaning": "Survey campaign marker.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "externalsource",
+          "meaning": "Lilo external source marker.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "site",
+          "meaning": "Brand front-end identifier, not a site: restriction. Verified: the client sets it to the constant 'lilo' (constants module: l='lilo') when Lilo search is enabled, and the chat endpoint sends site=qwant or site=lilo. Use site: inside q to restrict to a domain.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://www.qwant.com/assets/constants-CbI7B85z.js"
+        },
+        {
+          "name": "sticky",
+          "meaning": "Forwarded to the API with the partner and test parameters; no result-filter role found. [inferred]",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "device",
+          "meaning": "Device class (desktop, smartphone). Confirmed IGNORED from the page URL: the builder overwrites it with the detected device (_.set('device', ...)).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://github.com/searxng/searxng/blob/master/searx/engines/qwant.py"
+        },
+        {
+          "name": "count",
+          "meaning": "Page size. Confirmed overwritten by the builder (_.set('count', ...)); never read from the page URL.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "nocache",
+          "meaning": "Debug: bypass cache.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/AlphaApp-DhxlmW3C.js"
+        },
+        {
+          "name": "_feature",
+          "meaning": "Debug feature flag.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/AlphaApp-DhxlmW3C.js"
+        },
+        {
+          "name": "eval",
+          "meaning": "Evaluation mode. Verified: eval=true only adds data-testid attributes to result blocks.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "llm",
+          "meaning": "Show or hide the AI answer panel (also a setting).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "llm_force",
+          "meaning": "Force the AI answer panel.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/assets/client-MPjKH0Vn.js"
+        },
+        {
+          "name": "video",
+          "meaning": "Listed in the parameter enum (VIDEO: 'video'); no reader found in the client or account bundles. [inferred: player state]",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "drawer",
+          "meaning": "UI drawer state (settings, cookies-management); also bottomMenu, lateralBar, suggestOpen, deleted.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwant.com/?q=bergen&t=web (observed 2026-10-10)"
+        },
+        {
+          "name": "account",
+          "meaning": "Account-deletion flag.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "home",
+          "meaning": "Home page variant setting.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "homecard",
+          "meaning": "Home page card marker.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "hometab",
+          "meaning": "Home page tab setting.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "theme",
+          "meaning": "Colour theme setting.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "hc",
+          "meaning": "Setting: show trends on the home page (0/1).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "hti",
+          "meaning": "Setting: show sponsored content on the home page (0/1).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "hb",
+          "meaning": "Setting: show bookmarks on the home page (0/1).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "b",
+          "meaning": "Setting: open results in a new tab (0/1).",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "omnibar",
+          "meaning": "Omnibar setting.",
+          "source": "https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js"
+        },
+        {
+          "name": "cachekey, serp_position, position, ad, uri, query",
+          "meaning": "Parameters of the lite.qwant.com/redirect/ click-out endpoint (not a result page); AdGuard strips them there, together with t, tgp and locale.",
+          "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+        },
+        {
+          "name": "safesearch",
+          "meaning": "SafeSearch under its API name. Confirmed IGNORED on result-page URLs: the web allow-list copies it, but every request builder then overwrites it with _.set('safesearch', query.s || storedSetting) (client and server render alike, and in the shopping builder u.set(z.SAFE_SEARCH, n.s || a)). The settings key for SafeSearch is s, not safesearch. To carry SafeSearch in a link, s is the parameter that counts.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://www.qwantjunior.com/assets/client-DUx20Bf4.js"
+        },
+        {
+          "name": "offset",
+          "meaning": "Result offset. Confirmed IGNORED on result-page URLs: the web allow-list copies it, then the builder overwrites it with _.set('offset', page*count + ...), where page comes from o (or 0). URL pagination on Qwant is carried by o, not offset.",
+          "source": "https://www.qwant.com/assets/client-MPjKH0Vn.js ; https://www.qwantjunior.com/assets/client-DUx20Bf4.js"
+        },
+        {
+          "name": "p",
+          "meaning": "Former Qwant Lite page number (SearXNG's old web-lite engine sent locale, l, s, p). Confirmed dead: lite.qwant.com now answers 302 to www.qwant.com with the same query string (tested 2026-10-10 with Firefox, Chrome, Lynx and curl agents), and the www client neither lists p in its parameter enum nor forwards it.",
+          "source": "https://github.com/searxng/searxng/blob/2b03a61832/searx/engines/qwant.py ; https://www.qwant.com/assets/AccountProvider-C_3BYZXz.js ; https://lite.qwant.com/?q=bergen&t=web&p=2 (302, observed 2026-10-10)"
+        }
+      ],
+      "notes": "VERIFIED 2026-10-10 against client-MPjKH0Vn.js, AccountProvider-C_3BYZXz.js and constants-CbI7B85z.js on www.qwant.com, plus client-DUx20Bf4.js served on www.qwantjunior.com the same day (different hash, identical allow-lists and overwrites). Corrections: safesearch, offset and p moved to non-functional (overwritten or dead); o moved to functional (it carries the page index the server render loads). Primary evidence is Qwant's own front-end code fetched 2026-10-10: the URL-parameter enum (q, t, o, sticky, l, locale, video, count, offset, device, u, source, origin, client, cl, f, tgp, chrome_dse_attribution, fs, imagetype, license, size, color, filters, guid, safesearch, s, freshness, age, order, home, homecard, eval, category, nocache, _feature, campaign, account, llm, llm_force, sr, r, cw_creative, cw_features, externalsource, site, distribution, survey, entry_point) and the per-vertical allow-lists that decide which URL parameters reach the API: base [q, tgp, locale, origin, distribution]; images [t, color, freshness, imagetype, license, size, source]; news [t, u, source, freshness, order]; videos [t, order, source]; shopping [t, order, filters, guid, page, filter[...]]; web [offset, device, safesearch, freshness, age]. After copying, every builder overwrites count, offset (from o), device, tgp and safesearch (from s or the stored setting), so those URL values never reach the API. The settings hook reads each setting (theme, hc, hti, hb, b, s, l, locale, home, hometab, cl, omnibar, llm) from the URL first. Filter value lists are delivered by the API (result.filters) and change by vertical and market; the web and images API returned DataDome 403 from this network, so their value lists were not captured. Bundle file names are content-hashed and will rotate. Recommended rule (verified): keep q, t, o, locale, l, s, sr+r, freshness, order, source, size, color, imagetype, license, u, filters, filter[...], page, guid, age, category; drop the rest, including safesearch, offset, device, count and p, which Qwant's own code overwrites or no longer reads. PATHS: Every Qwant vertical is served from the root path; the vertical is chosen by t. lite.qwant.com/?q=bergen&t=web redirected to www.qwant.com/?q=bergen&t=web when tested on 2026-10-10, and SearXNG dropped its Qwant Lite engine on 2026-05-25, so lite links are legacy (lite used locale, l, s, p; lite now answers 302 to www with the same query string, verified 2026-10-10). lite.qwant.com/redirect/ is a click-out redirector, not a result page. www.qwantjunior.com is listed in Firefox's search config. qwant.com/maps/ is a separate map app and out of scope. TESTS: Image filter values in test 2 are illustrative (Qwant serves them from the API); the rule keys on names. Test 1 now also shows safesearch, offset and device being dropped (Qwant overwrites them). Test 2 keeps o because it carries the page index and the opened image.",
+      "tests": [
+        {
+          "dirty": "https://www.qwant.com/?q=bergen+weather&client=brz-moz&t=web&tgp=3&origin=homepage&safesearch=0&offset=20&device=smartphone",
+          "clean": "https://www.qwant.com/?q=bergen+weather&t=web"
+        },
+        {
+          "dirty": "https://www.qwant.com/?t=images&q=fjord&size=large&color=blue&imagetype=photo&license=public&freshness=week&o=0%3Aabc123&client=opensearch&hc=0&hti=0&b=1&theme=1",
+          "clean": "https://www.qwant.com/?t=images&q=fjord&size=large&color=blue&imagetype=photo&license=public&freshness=week&o=0%3Aabc123"
+        },
+        {
+          "dirty": "https://www.qwant.com/?q=norway+election&t=news&locale=en_GB&l=en&s=2&order=date&freshness=day&source=sportsmole.co.uk&cl=xyz&distribution=partner&chrome_dse_attribution=1&drawer=settings&llm=false",
+          "clean": "https://www.qwant.com/?q=norway+election&t=news&locale=en_GB&l=en&s=2&order=date&freshness=day&source=sportsmole.co.uk"
+        }
+      ]
+    },
+    {
+      "engine": "SearXNG",
+      "hosts": [
+        "* (any host: self-hosted; 94 public instances on searx.space as of 2026-10-10)"
+      ],
+      "paths": [
+        "/search",
+        "/",
+        "<base_url prefix>/search",
+        "<base_url prefix>/"
+      ],
+      "functional": [
+        {
+          "name": "q",
+          "meaning": "Search query. Carries SearXNG bang and modifier syntax (!engine, !!bang, :language, <timeout) inside the value. Required: without q, /search renders the start page (HTML) or answers 400 'No query' (json, csv, rss).",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://docs.searxng.org/dev/search_api.html"
+        },
+        {
+          "name": "pageno",
+          "meaning": "Page number, one-based integer (default 1). Non-digit or < 1 raises a parameter error.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://docs.searxng.org/dev/search_api.html ; https://github.com/searxng/searxng/blob/master/searx/templates/simple/elements/search_url.html"
+        },
+        {
+          "name": "categories",
+          "meaning": "Comma-separated category list (general, images, videos, news, map, music, it, science, files, social media, plus any instance-defined category).",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://docs.searxng.org/dev/search_api.html"
+        },
+        {
+          "name": "category_<name>",
+          "meaning": "Alternative per-category switch used by the HTML forms (category_images=1; value 'off' removes it). Names can contain spaces (category_social+media).",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://github.com/searxng/searxng/blob/master/searx/templates/simple/simple_search.html"
+        },
+        {
+          "name": "engines",
+          "meaning": "Comma-separated explicit engine list; combined with any categories given.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py"
+        },
+        {
+          "name": "language",
+          "meaning": "Search language: all, auto, or a code such as en or en-GB.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://docs.searxng.org/dev/search_api.html"
+        },
+        {
+          "name": "safesearch",
+          "meaning": "0 none, 1 moderate, 2 strict.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://docs.searxng.org/dev/search_api.html"
+        },
+        {
+          "name": "time_range",
+          "meaning": "day, week, month, year ('' or None means none). Verified in parse_time_range; the API doc lists only day, month, year. Any other value raises a parameter error.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://docs.searxng.org/dev/search_api.html"
+        },
+        {
+          "name": "timeout_limit",
+          "meaning": "Per-search engine timeout in seconds; changes which engines answer in time. SearXNG includes it in its own 'Search URL' box.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://github.com/searxng/searxng/blob/master/searx/templates/simple/elements/search_url.html"
+        },
+        {
+          "name": "format",
+          "meaning": "Output format: html (default), json, csv, rss. Changes the returned resource (feed or API) rather than the result set; non-html formats return 403 unless enabled.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webapp.py ; https://docs.searxng.org/dev/search_api.html"
+        },
+        {
+          "name": "engine_data-<engine>-<key>",
+          "meaning": "Engine pagination state (cursors/next-page tokens) echoed by the results form, used by e.g. piped, youtube_noapi, pinterest, deviantart.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webadapter.py ; https://github.com/searxng/searxng/blob/master/searx/templates/simple/results.html ; https://github.com/searxng/searxng/blob/master/searx/engines/piped.py",
+          "condition": "Only matters with pageno > 1"
+        },
+        {
+          "name": "enabled_engines",
+          "meaning": "Preference override from GET/POST: engines to re-enable, as engine__category pairs (e.g. google__general). Verified in Preferences.parse_dict: it is read only inside the disabled_engines branch, so on its own it does nothing.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webapp.py ; https://github.com/searxng/searxng/blob/master/searx/preferences.py",
+          "condition": "Effective only together with disabled_engines, and only when no preferences= blob is present; rare in shared links"
+        },
+        {
+          "name": "disabled_engines",
+          "meaning": "Preference override from GET/POST: engines to disable, as engine__category pairs (e.g. bing__general); changes which engines answer.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webapp.py ; https://github.com/searxng/searxng/blob/master/searx/preferences.py",
+          "condition": "Ignored when a preferences= blob is present (parse_dict is skipped); rare in shared links"
+        },
+        {
+          "name": "locale",
+          "meaning": "Interface (UI translation) language. Does not change results; kept only because interface language counts as functional in this spec.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py",
+          "condition": "Interface only; ignored when a preferences= blob is present. Drop if CheckLink decides UI language is not canonical"
+        }
+      ],
+      "nonfunctional": [
+        {
+          "name": "theme",
+          "meaning": "UI theme (simple). The HTML search form always adds it, so it appears in most copied SearXNG URLs. Verified: a theme preference only; an unknown value adds an 'Invalid settings' notice but the search still runs.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py ; https://github.com/searxng/searxng/blob/master/searx/templates/simple/simple_search.html ; https://docs.searxng.org/dev/search_api.html"
+        },
+        {
+          "name": "preferences",
+          "meaning": "Base64 zlib blob of the sharer's whole preference set. [judgement] It CAN change results: it carries the sharer's engine selection and default categories, language and SafeSearch, and while it is present SearXNG skips parse_dict(form), so locale, enabled_engines, disabled_engines and tokens in the same URL are ignored. Removed anyway because it also carries access tokens and personal settings; the explicit search parameters (q, categories, language, safesearch, time_range, pageno, engines) are read directly from the form and still apply.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/webapp.py ; https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "tokens",
+          "meaning": "Access tokens that unlock private engines. [judgement] It can change results (private engines join the search) but it is a secret: always remove.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "enabled_plugins",
+          "meaning": "Plugin toggles (answers, URL rewriting); personal settings. [judgement: some plugins alter answers, not the engine result set]",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "disabled_plugins",
+          "meaning": "As enabled_plugins. [judgement]",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "autocomplete",
+          "meaning": "Autocomplete backend.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "favicon_resolver",
+          "meaning": "Favicon source.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "image_proxy",
+          "meaning": "Proxy result images.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "method",
+          "meaning": "Form submission method preference (GET/POST).",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "results_on_new_tab",
+          "meaning": "Open results in a new tab.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "doi_resolver",
+          "meaning": "DOI link resolver for the open-access rewrite plugin. Verified: a non-empty value switches on the oa_doi_rewrite plugin, which rewrites DOI result links; the result set is unchanged. [judgement]",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "simple_style",
+          "meaning": "Light/dark/black style of the simple theme.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "center_alignment",
+          "meaning": "Layout preference.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "query_in_title",
+          "meaning": "Put the query in the page title.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "search_on_category_select",
+          "meaning": "Search immediately on category click.",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "hotkeys",
+          "meaning": "Keyboard shortcut scheme (default, vim).",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        },
+        {
+          "name": "url_formatting",
+          "meaning": "How result URLs are displayed (pretty, full, host).",
+          "source": "https://github.com/searxng/searxng/blob/master/searx/preferences.py"
+        }
+      ],
+      "notes": "VERIFIED 2026-10-10 against searx/webadapter.py, webapp.py, preferences.py and the simple-theme templates on master, the Search API doc, and a live query on a private instance (/ with q answers 308 to /search with the same query string; the results form carries q, category_general, language, time_range, safesearch, theme, pageno). Corrections: enabled_engines works only with disabled_engines, values are engine__category pairs; preferences= suppresses every other preference key in the URL; preferences and tokens are flagged as privacy removals that can change results. SearXNG merges GET and POST into one form, applies every recognised preference key from it, then builds the search from q, pageno, safesearch, time_range, timeout_limit, language, categories/category_*, engines and engine_data-*. Its own canonical 'Search URL' box (search_url.html) is q, language, time_range, safesearch, pageno (only when > 1), categories, timeout_limit, which matches this allowlist; CheckLink may additionally drop empty values (time_range= is emitted empty by SearXNG itself). Unknown parameters are ignored by SearXNG, so utm_* and similar are safe to strip. Source code read at commit f4822b3 (2026-10-09); the private instance used for the checks runs 9f042d2 (2026.10.9). PATHS: Both / and /search accept GET and POST; / with a q parameter answers 308 to /search with the same query string (verified on a private instance on 2026-10-10). An instance can live under a path prefix (settings server.base_url), so match a path ending in /search, or the instance root, rather than an exact path. Hosts are arbitrary, so detection must combine path and parameters (see detection). DETECTION: Treat a URL as a SearXNG result page when q is present, the path is /search or the root (optionally under a prefix), and at least one SearXNG-specific parameter is present: pageno, time_range, category_<name>, engine_data-<engine>-<key>, timeout_limit, engines, or categories together with language or safesearch. pageno and category_* are the strongest single signals (Google uses start, Bing first, DuckDuckGo s). On a known host, q alone is enough. Known hosts: a private instance used for the checks (its names are left out of this copy), plus the searx.space list https://searx.space/data/instances.json. Caution: categories, language, safesearch, format and theme are generic names used by other sites; do not fire on them alone. TESTS: Test 2 keeps the root path (CheckLink removes parameters, it does not rewrite /?q= to /search). Test 3 uses a searx.space instance to show host-agnostic detection (pageno is absent, but format plus q on /search on a listed host qualifies; on an unknown host the rule needs a stronger signal). TEST 3 caveat: in the dirty URL locale=pt is ignored because preferences= is present; after cleaning, locale=pt takes effect (interface language only).",
+      "tests": [
+        {
+          "dirty": "https://searx.example.org/search?q=bergen+weather&categories=general&language=en-GB&time_range=week&safesearch=1&pageno=2&theme=simple",
+          "clean": "https://searx.example.org/search?q=bergen+weather&categories=general&language=en-GB&time_range=week&safesearch=1&pageno=2"
+        },
+        {
+          "dirty": "https://searx.example.org/?q=%21yt+fjord&category_videos=1&engines=youtube,piped&engine_data-piped-nextpage=abc123&pageno=2&image_proxy=1&results_on_new_tab=1&center_alignment=1",
+          "clean": "https://searx.example.org/?q=%21yt+fjord&category_videos=1&engines=youtube,piped&engine_data-piped-nextpage=abc123&pageno=2"
+        },
+        {
+          "dirty": "https://baresearch.org/search?q=privacy&format=rss&preferences=eJwrSS0uAQAEXQHB&tokens=secret123&enabled_plugins=Hash_plugin&locale=pt&utm_source=newsletter",
+          "clean": "https://baresearch.org/search?q=privacy&format=rss&locale=pt"
+        }
+      ]
+    }
+  ],
+  "verified": "2026-10-10"
+}

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 7.0 and 7.1 have no adaptive icons; this is the same mark on the same dark round tile.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#FF0C0A12" android:pathData="M0,54 A54,54 0 1,0 108,54 A54,54 0 1,0 0,54 Z" />
+    <group
+        android:scaleX="1.3057"
+        android:scaleY="1.3057"
+        android:translateX="10.91"
+        android:translateY="10.91">
+        <!-- favicon.svg, shape for shape, in its order: the handle, then the lens over its
+             inner end, then the link under the glass. -->
+        <path
+            android:strokeWidth="8"
+            android:strokeLineCap="round"
+            android:pathData="M43,43 L56,56">
+            <aapt:attr name="android:strokeColor">
+                <gradient android:type="linear" android:startX="42" android:startY="42" android:endX="59" android:endY="59">
+                    <item android:offset="0" android:color="#FFE879F9" />
+                    <item android:offset="1" android:color="#FF9333EA" />
+                </gradient>
+            </aapt:attr>
+        </path>
+        <path
+            android:fillColor="#FF1B1226"
+            android:strokeWidth="5"
+            android:pathData="M8.5,28 A19.5,19.5 0 1,0 47.5,28 A19.5,19.5 0 1,0 8.5,28 Z">
+            <aapt:attr name="android:strokeColor">
+                <gradient android:type="linear" android:startX="8" android:startY="8" android:endX="48" android:endY="48">
+                    <item android:offset="0" android:color="#FFF0ABFC" />
+                    <item android:offset="1" android:color="#FFA855F7" />
+                </gradient>
+            </aapt:attr>
+        </path>
+        <path
+            android:strokeWidth="4"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M24,22 H20 A6,6 0 0,0 20,34 H24 M32,22 H36 A6,6 0 0,1 36,34 H32 M24,28 H32">
+            <aapt:attr name="android:strokeColor">
+                <gradient android:type="linear" android:startX="12" android:startY="20" android:endX="44" android:endY="36">
+                    <item android:offset="0" android:color="#FFFFFFFF" />
+                    <item android:offset="1" android:color="#FFF0ABFC" />
+                </gradient>
+            </aapt:attr>
+        </path>
+    </group>
+</vector>

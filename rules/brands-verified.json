@@ -1,0 +1,2138 @@
+{
+  "checked": "2026-10-11",
+  "method": "node tools/brands.mjs --verify: a DNS lookup (A, AAAA or NS, through the public resolvers 1.1.1.1 and 9.9.9.9) and an HTTPS request (certificate checked, through the same resolvers, keeping cookies across redirects) to https://<domain>/, or https://www.<domain>/ when that fails, or the probe host rules/brands.json names for a bare name with no page of its own; following redirects; passing when the final host is the brand's own (under one of its domains or platforms, or one of its marks under another ending).",
+  "brands_version": "1.1.0",
+  "domains": {
+    "google.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://google.com/",
+      "status": 200,
+      "final": "https://www.google.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "gmail.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://gmail.com/",
+      "status": 200,
+      "final": "https://accounts.google.com/v3/signin/identifier?continue=https://mail.google.com/mail/u/0/&emr=1&followup=https://mail.google.com/mail/u/0/&osid=1&passive=1209600&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1391800142:1791684672004925",
+      "ok": true,
+      "how": "https"
+    },
+    "googlemail.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://googlemail.com/",
+      "status": 200,
+      "final": "https://accounts.google.com/v3/signin/identifier?continue=https://mail.google.com/mail/u/0/&emr=1&followup=https://mail.google.com/mail/u/0/&osid=1&passive=1209600&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1037627699:1791684672560988",
+      "ok": true,
+      "how": "https"
+    },
+    "gstatic.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://gstatic.com/",
+      "status": 404,
+      "final": "https://www.gstatic.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "googleusercontent.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://googleusercontent.com/",
+      "status": 404,
+      "final": "https://googleusercontent.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "google-analytics.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://www.google-analytics.com/",
+      "status": 200,
+      "final": "https://marketingplatform.google.com/about/analytics/",
+      "ok": true,
+      "how": "https"
+    },
+    "googletagmanager.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://googletagmanager.com/",
+      "status": 404,
+      "final": "https://googletagmanager.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "googleadservices.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://googleadservices.com/",
+      "status": 404,
+      "final": "https://googleadservices.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "goo.gl": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://goo.gl/",
+      "status": 400,
+      "final": "https://goo.gl/",
+      "ok": true,
+      "how": "https"
+    },
+    "g.co": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://g.co/",
+      "status": 200,
+      "final": "https://g.co/",
+      "ok": true,
+      "how": "https"
+    },
+    "blogger.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://blogger.com/",
+      "status": 200,
+      "final": "https://www.blogger.com/about/?bpli=1",
+      "ok": true,
+      "how": "https"
+    },
+    "android.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://android.com/",
+      "status": 200,
+      "final": "https://www.android.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "googlevideo.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://www.googlevideo.com/",
+      "status": 404,
+      "final": "https://www.googlevideo.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "search.app": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://search.app/",
+      "status": 200,
+      "final": "https://search.app/",
+      "ok": true,
+      "how": "https"
+    },
+    "googleapis.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://googleapis.com/",
+      "status": 404,
+      "final": "https://googleapis.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "withgoogle.com": {
+      "brand": "Google",
+      "dns": "4",
+      "tried": "https://withgoogle.com/",
+      "status": 200,
+      "final": "https://www.google.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "youtube.com": {
+      "brand": "YouTube",
+      "dns": "4",
+      "tried": "https://youtube.com/",
+      "status": 200,
+      "final": "https://www.youtube.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "youtu.be": {
+      "brand": "YouTube",
+      "dns": "4",
+      "tried": "https://youtu.be/",
+      "status": 200,
+      "final": "https://www.youtube.com/?feature=youtu.be",
+      "ok": true,
+      "how": "https"
+    },
+    "youtube-nocookie.com": {
+      "brand": "YouTube",
+      "dns": "4",
+      "tried": "https://www.youtube-nocookie.com/",
+      "status": 404,
+      "final": "https://www.youtube-nocookie.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "youtubekids.com": {
+      "brand": "YouTube",
+      "dns": "4",
+      "tried": "https://youtubekids.com/",
+      "status": 200,
+      "final": "https://www.youtubekids.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "apple.com": {
+      "brand": "Apple",
+      "dns": "4",
+      "tried": "https://apple.com/",
+      "status": 200,
+      "final": "https://www.apple.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "icloud.com": {
+      "brand": "Apple",
+      "dns": "4",
+      "tried": "https://icloud.com/",
+      "status": 200,
+      "final": "https://www.icloud.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "me.com": {
+      "brand": "Apple",
+      "dns": "4",
+      "tried": "https://me.com/",
+      "status": 200,
+      "final": "https://www.icloud.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "mac.com": {
+      "brand": "Apple",
+      "dns": "4",
+      "tried": "https://mac.com/",
+      "status": 200,
+      "final": "https://www.apple.com/mac/",
+      "ok": true,
+      "how": "https"
+    },
+    "mzstatic.com": {
+      "brand": "Apple",
+      "dns": "4",
+      "tried": "https://mzstatic.com/",
+      "status": 200,
+      "final": "https://www.apple.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "apple.news": {
+      "brand": "Apple",
+      "dns": "4",
+      "tried": "https://apple.news/",
+      "status": 200,
+      "final": "https://apple.news/",
+      "ok": true,
+      "how": "https"
+    },
+    "itunes.com": {
+      "brand": "Apple",
+      "dns": "4",
+      "tried": "https://itunes.com/",
+      "status": 200,
+      "final": "https://www.apple.com/itunes/?cid=OAS-US-DOMAINS-itunes.com",
+      "ok": true,
+      "how": "https"
+    },
+    "microsoft.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://microsoft.com/",
+      "status": 200,
+      "final": "https://www.microsoft.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "microsoftonline.com": {
+      "brand": "Microsoft",
+      "dns": "Ns",
+      "tried": "https://login.microsoftonline.com/",
+      "status": 200,
+      "final": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=4765445b-32c6-49b0-83e6-1d93765276ca&redirect_uri=https%3A%2F%2Fwww.office.com%2Flandingv2&response_type=code%20id_token&scope=openid%20profile%20https%3A%2F%2Fwww.office.com%2Fv2%2FOfficeHome.All&response_mode=form_post&nonce=639272814825209441.MDM3YWI5MjYtZTkzOS00MTQ4LWFjOWYtYzcwMjJkOGFjNmEzMzk0OGI3MGYtOWI2Zi00NzVhLThmNTEtMTdmYjQwNGU1Y2I1&ui_locales=en-US&mkt=en-US&client-request-id=8741e2cc-d705-415e-a13b-e51e7636b952&siwa=1&siwg=1&state=oQUmDETDoOmTzp5vJ28z1yhD4gQt9_kKhKjeTPsSs54ADSYgMcKWdsXKW-FkpUdvgQt2RhFur3VZ20QelaPwkpLC6KkN-Ter03brsRRFC9X7lksBaLqD5dnzGp3LeDRNyus2PqqJX3-vC9f0f7Oq11ru2SZnxV_MaxG0NlKofl9KKKnGU7iVcy6f-D1XvZ6f57AASjT12a2d8Y3nW7s_3E2JahutBPxwSB7L6QOZVNmGpSonhiy-jjdJxEYEIdK6jbzab-h-iJUwMdePjUqTwJZ5ystSd49mQoJORqjiDv0h4-uJcDPyCNNr0M2OjkWMdSw21ME5v5407OipWtc46Nna3UzQH1ZrTN4T4wCEHi6oZI6XJkJzywOz6p3QlJ4M887UZeeu7MrEL9i-i_LNmuAHePvvQS4D4ebHgfdiCajfylqIULSnWfF5DkWsUwLq&x-client-SKU=ID_NET8_0&x-client-ver=8.16.0.0",
+      "ok": true,
+      "how": "https"
+    },
+    "live.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://live.com/",
+      "status": 417,
+      "final": "https://outlook.live.com/mail/",
+      "ok": true,
+      "how": "https"
+    },
+    "outlook.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://outlook.com/",
+      "status": 417,
+      "final": "https://outlook.com/mail/",
+      "ok": true,
+      "how": "https"
+    },
+    "office.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://office.com/",
+      "status": 200,
+      "final": "https://m365.cloud.microsoft/",
+      "ok": true,
+      "how": "https"
+    },
+    "office365.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://office365.com/",
+      "status": 403,
+      "final": "https://office365.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "microsoft365.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://microsoft365.com/",
+      "status": 200,
+      "final": "https://m365.cloud.microsoft/",
+      "ok": true,
+      "how": "https"
+    },
+    "sharepoint.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://sharepoint.com/",
+      "status": 200,
+      "final": "https://www.microsoft.com/nb-no/microsoft-365/sharepoint/collaboration?ms.officeurl=sharepoint",
+      "ok": true,
+      "how": "https"
+    },
+    "onedrive.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://onedrive.com/",
+      "status": 200,
+      "final": "https://www.microsoft.com/nb-no/microsoft-365/onedrive/online-cloud-storage",
+      "ok": true,
+      "how": "https"
+    },
+    "hotmail.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://hotmail.com/",
+      "status": 417,
+      "final": "https://outlook.live.com/mail/",
+      "ok": true,
+      "how": "https"
+    },
+    "msn.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://msn.com/",
+      "status": 200,
+      "final": "https://www.msn.com/nb-no",
+      "ok": true,
+      "how": "https"
+    },
+    "bing.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://bing.com/",
+      "status": 200,
+      "final": "https://www.bing.com/?toWww=1&redig=8DEEB2AB21C24599A9A7D5C87E13CD1C",
+      "ok": true,
+      "how": "https"
+    },
+    "xbox.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://xbox.com/",
+      "status": 200,
+      "final": "https://www.xbox.com/nb-NO/",
+      "ok": true,
+      "how": "https"
+    },
+    "skype.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://skype.com/",
+      "status": 200,
+      "final": "https://teams.live.com/free?source=skype",
+      "ok": true,
+      "how": "https"
+    },
+    "windows.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://windows.com/",
+      "status": 200,
+      "final": "https://www.microsoft.com/en-us/windows/",
+      "ok": true,
+      "how": "https"
+    },
+    "azure.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://azure.com/",
+      "status": 200,
+      "final": "https://azure.microsoft.com/en-us",
+      "ok": true,
+      "how": "https"
+    },
+    "cloud.microsoft": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://cloud.microsoft/",
+      "status": 200,
+      "final": "https://m365.cloud.microsoft/",
+      "ok": true,
+      "how": "https"
+    },
+    "visualstudio.com": {
+      "brand": "Microsoft",
+      "dns": "4",
+      "tried": "https://visualstudio.com/",
+      "status": 200,
+      "final": "https://visualstudio.microsoft.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "linkedin.com": {
+      "brand": "LinkedIn",
+      "dns": "4",
+      "tried": "https://linkedin.com/",
+      "status": 200,
+      "final": "https://www.linkedin.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "lnkd.in": {
+      "brand": "LinkedIn",
+      "dns": "4",
+      "tried": "https://lnkd.in/",
+      "status": 200,
+      "final": "https://www.linkedin.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "facebook.com": {
+      "brand": "Facebook",
+      "dns": "4",
+      "tried": "https://facebook.com/",
+      "status": 400,
+      "final": "https://www.facebook.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "fb.com": {
+      "brand": "Facebook",
+      "dns": "4",
+      "tried": "https://fb.com/",
+      "status": 400,
+      "final": "https://fb.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "fb.me": {
+      "brand": "Facebook",
+      "dns": "4",
+      "tried": "https://fb.me/",
+      "status": 400,
+      "final": "https://fb.me/",
+      "ok": true,
+      "how": "https"
+    },
+    "fb.watch": {
+      "brand": "Facebook",
+      "dns": "4",
+      "tried": "https://fb.watch/",
+      "status": 400,
+      "final": "https://fb.watch/",
+      "ok": true,
+      "how": "https"
+    },
+    "fbcdn.net": {
+      "brand": "Facebook",
+      "dns": "4",
+      "tried": "https://fbcdn.net/",
+      "status": 400,
+      "final": "https://www.facebook.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "fbsbx.com": {
+      "brand": "Facebook",
+      "dns": "4",
+      "tried": "https://fbsbx.com/",
+      "status": 404,
+      "final": "https://fbsbx.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "facebookmail.com": {
+      "brand": "Facebook",
+      "dns": "4",
+      "tried": "https://facebookmail.com/",
+      "status": 400,
+      "final": "https://www.facebook.com/help/1634546593478660",
+      "ok": true,
+      "how": "https"
+    },
+    "meta.com": {
+      "brand": "Facebook",
+      "dns": "4",
+      "tried": "https://meta.com/",
+      "status": 400,
+      "final": "https://www.meta.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "instagram.com": {
+      "brand": "Instagram",
+      "dns": "4",
+      "tried": "https://instagram.com/",
+      "status": 200,
+      "final": "https://www.instagram.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "instagr.am": {
+      "brand": "Instagram",
+      "dns": "4",
+      "tried": "https://instagr.am/",
+      "status": 200,
+      "final": "https://www.instagram.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "ig.me": {
+      "brand": "Instagram",
+      "dns": "4",
+      "tried": "https://ig.me/",
+      "status": 200,
+      "final": "https://www.instagram.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "whatsapp.com": {
+      "brand": "WhatsApp",
+      "dns": "4",
+      "tried": "https://whatsapp.com/",
+      "status": 400,
+      "final": "https://www.whatsapp.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "whatsapp.net": {
+      "brand": "WhatsApp",
+      "dns": "4",
+      "tried": "https://whatsapp.net/",
+      "status": 400,
+      "final": "https://www.whatsapp.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "wa.me": {
+      "brand": "WhatsApp",
+      "dns": "4",
+      "tried": "https://wa.me/",
+      "status": 400,
+      "final": "https://api.whatsapp.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "messenger.com": {
+      "brand": "Messenger",
+      "dns": "4",
+      "tried": "https://messenger.com/",
+      "status": 200,
+      "final": "https://www.messenger.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "m.me": {
+      "brand": "Messenger",
+      "dns": "4",
+      "tried": "https://m.me/",
+      "status": 400,
+      "final": "https://m.me/",
+      "ok": true,
+      "how": "https"
+    },
+    "threads.com": {
+      "brand": "Threads",
+      "dns": "4",
+      "tried": "https://threads.com/",
+      "status": 200,
+      "final": "https://www.threads.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "threads.net": {
+      "brand": "Threads",
+      "dns": "4",
+      "tried": "https://threads.net/",
+      "status": 200,
+      "final": "https://www.threads.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "x.com": {
+      "brand": "X (Twitter)",
+      "dns": "4",
+      "tried": "https://x.com/",
+      "status": 200,
+      "final": "https://x.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "twitter.com": {
+      "brand": "X (Twitter)",
+      "dns": "4",
+      "tried": "https://twitter.com/",
+      "status": 200,
+      "final": "https://x.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "t.co": {
+      "brand": "X (Twitter)",
+      "dns": "4",
+      "tried": "https://t.co/",
+      "status": 200,
+      "final": "https://t.co/",
+      "ok": true,
+      "how": "https"
+    },
+    "tiktok.com": {
+      "brand": "TikTok",
+      "dns": "4",
+      "tried": "https://tiktok.com/",
+      "status": 200,
+      "final": "https://www.tiktok.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "tiktokv.com": {
+      "brand": "TikTok",
+      "dns": "4",
+      "tried": "https://tiktokv.com/",
+      "status": 404,
+      "final": "https://tiktokv.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "snapchat.com": {
+      "brand": "Snapchat",
+      "dns": "4",
+      "tried": "https://snapchat.com/",
+      "status": 200,
+      "final": "https://www.snapchat.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "snap.com": {
+      "brand": "Snapchat",
+      "dns": "4",
+      "tried": "https://snap.com/",
+      "status": 200,
+      "final": "https://www.snap.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "reddit.com": {
+      "brand": "Reddit",
+      "dns": "4",
+      "tried": "https://reddit.com/",
+      "status": 200,
+      "final": "https://www.reddit.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "redd.it": {
+      "brand": "Reddit",
+      "dns": "4",
+      "tried": "https://redd.it/",
+      "status": 200,
+      "final": "https://www.reddit.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "redditstatic.com": {
+      "brand": "Reddit",
+      "dns": "Ns",
+      "tried": "https://www.redditstatic.com/",
+      "status": 404,
+      "final": "https://www.redditstatic.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "redditmedia.com": {
+      "brand": "Reddit",
+      "dns": "4",
+      "tried": "https://redditmedia.com/",
+      "status": 200,
+      "final": "https://www.reddit.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "pinterest.com": {
+      "brand": "Pinterest",
+      "dns": "4",
+      "tried": "https://pinterest.com/",
+      "status": 200,
+      "final": "https://www.pinterest.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "pin.it": {
+      "brand": "Pinterest",
+      "dns": "4",
+      "tried": "https://pin.it/",
+      "status": 200,
+      "final": "https://www.pinterest.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "pinimg.com": {
+      "brand": "Pinterest",
+      "dns": "4",
+      "tried": "https://pinimg.com/",
+      "status": 200,
+      "final": "https://www.pinterest.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "telegram.org": {
+      "brand": "Telegram",
+      "dns": "4",
+      "tried": "https://telegram.org/",
+      "status": 200,
+      "final": "https://telegram.org/",
+      "ok": true,
+      "how": "https"
+    },
+    "t.me": {
+      "brand": "Telegram",
+      "dns": "4",
+      "tried": "https://t.me/",
+      "status": 200,
+      "final": "https://telegram.org/",
+      "ok": true,
+      "how": "https"
+    },
+    "telegram.me": {
+      "brand": "Telegram",
+      "dns": "4",
+      "tried": "https://telegram.me/",
+      "status": 200,
+      "final": "https://telegram.org/",
+      "ok": true,
+      "how": "https"
+    },
+    "telesco.pe": {
+      "brand": "Telegram",
+      "dns": "4",
+      "tried": "https://telesco.pe/",
+      "status": 200,
+      "final": "https://telesco.pe/",
+      "ok": true,
+      "how": "https"
+    },
+    "discord.com": {
+      "brand": "Discord",
+      "dns": "4",
+      "tried": "https://discord.com/",
+      "status": 200,
+      "final": "https://discord.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "discord.gg": {
+      "brand": "Discord",
+      "dns": "4",
+      "tried": "https://discord.gg/",
+      "status": 200,
+      "final": "https://discord.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "discordapp.com": {
+      "brand": "Discord",
+      "dns": "4",
+      "tried": "https://discordapp.com/",
+      "status": 200,
+      "final": "https://discord.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "discord.media": {
+      "brand": "Discord",
+      "dns": "4",
+      "tried": "https://discord.media/",
+      "status": 520,
+      "final": "https://discord.media/",
+      "ok": true,
+      "how": "https"
+    },
+    "spotify.com": {
+      "brand": "Spotify",
+      "dns": "4",
+      "tried": "https://spotify.com/",
+      "status": 200,
+      "final": "https://open.spotify.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "spotify.link": {
+      "brand": "Spotify",
+      "dns": "4",
+      "tried": "https://spotify.link/",
+      "status": 200,
+      "final": "https://open.spotify.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "scdn.co": {
+      "brand": "Spotify",
+      "dns": "Ns",
+      "tried": "https://www.scdn.co/",
+      "status": 403,
+      "final": "https://www.scdn.co/",
+      "ok": true,
+      "how": "https"
+    },
+    "spotifycdn.com": {
+      "brand": "Spotify",
+      "dns": "Ns",
+      "tried": "https://www.spotifycdn.com/",
+      "status": 403,
+      "final": "https://www.spotifycdn.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "netflix.com": {
+      "brand": "Netflix",
+      "dns": "4",
+      "tried": "https://netflix.com/",
+      "status": 200,
+      "final": "https://www.netflix.com/no-en/",
+      "ok": true,
+      "how": "https"
+    },
+    "netflix.net": {
+      "brand": "Netflix",
+      "dns": "4",
+      "tried": "https://netflix.net/",
+      "status": 200,
+      "final": "https://www.netflix.com/no-en/",
+      "ok": true,
+      "how": "https"
+    },
+    "twitch.tv": {
+      "brand": "Twitch",
+      "dns": "4",
+      "tried": "https://twitch.tv/",
+      "status": 200,
+      "final": "https://www.twitch.tv/",
+      "ok": true,
+      "how": "https"
+    },
+    "soundcloud.com": {
+      "brand": "SoundCloud",
+      "dns": "4",
+      "tried": "https://soundcloud.com/",
+      "status": 200,
+      "final": "https://soundcloud.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "sndcdn.com": {
+      "brand": "SoundCloud",
+      "dns": "4",
+      "tried": "https://sndcdn.com/",
+      "status": 200,
+      "final": "https://soundcloud.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "deezer.com": {
+      "brand": "Deezer",
+      "dns": "4",
+      "tried": "https://deezer.com/",
+      "status": 200,
+      "final": "https://www.deezer.com/en/",
+      "ok": true,
+      "how": "https"
+    },
+    "dzcdn.net": {
+      "brand": "Deezer",
+      "dns": "4",
+      "tried": "https://www.dzcdn.net/",
+      "status": 200,
+      "final": "https://www.deezer.com/en/",
+      "ok": true,
+      "how": "https"
+    },
+    "disneyplus.com": {
+      "brand": "Disney+",
+      "dns": "4",
+      "tried": "https://disneyplus.com/",
+      "status": 200,
+      "final": "https://www.disneyplus.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "disney.com": {
+      "brand": "Disney+",
+      "dns": "4",
+      "tried": "https://disney.com/",
+      "status": 200,
+      "final": "https://www.disney.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "go.com": {
+      "brand": "Disney+",
+      "dns": "4",
+      "tried": "https://go.com/",
+      "status": 200,
+      "final": "https://www.go.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "hbomax.com": {
+      "brand": "HBO Max",
+      "dns": "4",
+      "tried": "https://hbomax.com/",
+      "status": 200,
+      "final": "https://www.hbomax.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "max.com": {
+      "brand": "HBO Max",
+      "dns": "4",
+      "tried": "https://max.com/",
+      "status": 200,
+      "final": "https://www.hbomax.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "hbo.com": {
+      "brand": "HBO Max",
+      "dns": "4",
+      "tried": "https://hbo.com/",
+      "status": 200,
+      "final": "https://www.hbo.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "amazon.com": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://amazon.com/",
+      "status": 202,
+      "final": "https://www.amazon.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "amzn.to": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://amzn.to/",
+      "status": 200,
+      "final": "http://www.amazon.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "amzn.eu": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://amzn.eu/",
+      "status": 404,
+      "final": "https://www.amazon.co.uk/gp/amazon-eu.html",
+      "ok": true,
+      "how": "https"
+    },
+    "a.co": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://a.co/",
+      "status": 200,
+      "final": "http://www.amazon.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "primevideo.com": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://primevideo.com/",
+      "status": 202,
+      "final": "https://www.amazon.co.uk/ax/sso/redirect?mode=eager&return_url=https%3A%2F%2Fwww.primevideo.com%2Foffers%2Fnonprimehomepage%3Fref_%3Ddv_web_force_root%26_ssoLoop%3D1&signin_url=https%3A%2F%2Fwww.amazon.co.uk%2Fap%2Fsignin%3Fopenid.identity%3Dhttp%253A%252F%252Fspecs.openid.net%252Fauth%252F2.0%252Fidentifier_select%26openid.assoc_handle%3Damzn_prime_video_sso_gb%26countryCode%3DNO%26siteState%3D261-6379080-7383368%26language%3Den_US%26openid.claimed_id%3Dhttp%253A%252F%252Fspecs.openid.net%252Fauth%252F2.0%252Fidentifier_select%26pageId%3Damzn_prime_video_eea%26openid.ns%3Dhttp%253A%252F%252Fspecs.openid.net%252Fauth%252F2.0%26openid.return_to%3Dhttps%253A%252F%252Feu.primevideo.com%252Fauth%252Freturn%253F_t%253D1dg7_Cc04kIObM6QYGFA0JgDkkBrlnXl33q12v49ThjkFJAAAAAQAAAABqyvCOcmF3AAAAAPgWC9WfHH8iB-olH_E9xQ%2526ref_%253Dav_auth_xdsso_ss%2526location%253D%25252Foffers%25252Fnonprimehomepage%25253Fxdsso%25253D1%252526ref_%25253Datv_auth_red_aft%2526_ssoLoop%253D1%26openid.mode%3Dcheckid_immediate%26openid.pape.max_auth_age%3D31536000",
+      "ok": true,
+      "how": "https"
+    },
+    "amazonaws.com": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://amazonaws.com/",
+      "status": 200,
+      "final": "https://aws.amazon.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "media-amazon.com": {
+      "brand": "Amazon",
+      "dns": "Ns",
+      "tried": "https://m.media-amazon.com/",
+      "status": 200,
+      "final": "https://m.media-amazon.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "aboutamazon.com": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://aboutamazon.com/",
+      "status": 200,
+      "final": "https://www.aboutamazon.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "audible.com": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://audible.com/",
+      "status": 200,
+      "final": "https://www.audible.co.uk/?ref=Adbl_ip_rdr_from_US&source_code=AUK30DFT1BkWS0826159058&ipRedirectFrom=US&ipRedirectOriginalURL=",
+      "ok": true,
+      "how": "https"
+    },
+    "imdb.com": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://imdb.com/",
+      "status": 202,
+      "final": "https://www.imdb.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "zappos.com": {
+      "brand": "Amazon",
+      "dns": "4",
+      "tried": "https://zappos.com/",
+      "status": 200,
+      "final": "https://www.zappos.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "ebay.com": {
+      "brand": "eBay",
+      "dns": "4",
+      "tried": "https://ebay.com/",
+      "status": 403,
+      "final": "https://www.ebay.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "ebaystatic.com": {
+      "brand": "eBay",
+      "dns": "Ns",
+      "tried": "https://ir.ebaystatic.com/",
+      "status": 502,
+      "final": "https://ir.ebaystatic.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "ebayimg.com": {
+      "brand": "eBay",
+      "dns": "Ns",
+      "tried": "https://i.ebayimg.com/",
+      "status": 404,
+      "final": "https://i.ebayimg.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "ebay.us": {
+      "brand": "eBay",
+      "dns": "4",
+      "tried": "https://ebay.us/",
+      "status": 400,
+      "final": "https://ebay.us/",
+      "ok": true,
+      "how": "https"
+    },
+    "ebayinc.com": {
+      "brand": "eBay",
+      "dns": "4",
+      "tried": "https://ebayinc.com/",
+      "status": 403,
+      "final": "https://www.ebayinc.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "aliexpress.com": {
+      "brand": "AliExpress",
+      "dns": "4",
+      "tried": "https://aliexpress.com/",
+      "status": 200,
+      "final": "https://aliexpress.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "aliexpress.us": {
+      "brand": "AliExpress",
+      "dns": "4",
+      "tried": "https://aliexpress.us/",
+      "status": 200,
+      "final": "https://www.aliexpress.us/",
+      "ok": true,
+      "how": "https"
+    },
+    "alibaba.com": {
+      "brand": "AliExpress",
+      "dns": "4",
+      "tried": "https://alibaba.com/",
+      "status": 200,
+      "final": "https://www.alibaba.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "temu.com": {
+      "brand": "Temu",
+      "dns": "4",
+      "tried": "https://temu.com/",
+      "status": 200,
+      "final": "https://www.temu.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "shein.com": {
+      "brand": "Shein",
+      "dns": "4",
+      "tried": "https://shein.com/",
+      "status": 200,
+      "final": "https://eur.shein.com/?cdn_rsite=ak&ref=www&rep=dir&ret=eur",
+      "ok": true,
+      "how": "https"
+    },
+    "ltwebstatic.com": {
+      "brand": "Shein",
+      "dns": "4",
+      "tried": "https://ltwebstatic.com/",
+      "status": 404,
+      "final": "https://ltwebstatic.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "etsy.com": {
+      "brand": "Etsy",
+      "dns": "4",
+      "tried": "https://etsy.com/",
+      "status": 403,
+      "final": "https://www.etsy.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "etsy.me": {
+      "brand": "Etsy",
+      "dns": "4",
+      "tried": "https://etsy.me/",
+      "status": 403,
+      "final": "http://www.etsy.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "zalando.com": {
+      "brand": "Zalando",
+      "dns": "4",
+      "tried": "https://zalando.com/",
+      "status": 200,
+      "final": "https://www.zalando.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "zalando-lounge.com": {
+      "brand": "Zalando",
+      "dns": "4",
+      "tried": "https://zalando-lounge.com/",
+      "status": 200,
+      "final": "https://www.zalando-lounge.com/selectcountry",
+      "ok": true,
+      "how": "https"
+    },
+    "booking.com": {
+      "brand": "Booking.com",
+      "dns": "4",
+      "tried": "https://booking.com/",
+      "status": 202,
+      "final": "https://www.booking.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "bstatic.com": {
+      "brand": "Booking.com",
+      "dns": "4",
+      "tried": "https://bstatic.com/",
+      "status": 404,
+      "final": "https://bstatic.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "airbnb.com": {
+      "brand": "Airbnb",
+      "dns": "4",
+      "tried": "https://airbnb.com/",
+      "status": 200,
+      "final": "https://www.airbnb.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "wayfair.com": {
+      "brand": "Wayfair",
+      "dns": "4",
+      "tried": "https://wayfair.com/",
+      "status": 429,
+      "final": "https://www.wayfair.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "wish.com": {
+      "brand": "Wish",
+      "dns": "4",
+      "tried": "https://wish.com/",
+      "status": 200,
+      "final": "https://www.wish.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "yandex.com": {
+      "brand": "Yandex",
+      "dns": "4",
+      "tried": "https://yandex.com/",
+      "status": 200,
+      "final": "https://yandex.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "yandex.ru": {
+      "brand": "Yandex",
+      "dns": "4",
+      "tried": "https://yandex.ru/",
+      "status": 200,
+      "final": "https://sso.passport.yandex.ru/push?uuid=7a5d80c8-3c48-4e88-83fa-095da5f6998c&retpath=https%3A%2F%2Fdzen.ru%2F%3Fyredirect%3Dtrue%26is_autologin_ya%3Dtrue",
+      "ok": true,
+      "how": "https"
+    },
+    "yandex.net": {
+      "brand": "Yandex",
+      "dns": "4",
+      "tried": "https://yandex.net/",
+      "status": 200,
+      "final": "https://ya.ru/?nr=1&redirect_ts=1791684834.00000",
+      "ok": true,
+      "how": "https"
+    },
+    "ya.ru": {
+      "brand": "Yandex",
+      "dns": "4",
+      "tried": "https://ya.ru/",
+      "status": 200,
+      "final": "https://ya.ru/",
+      "ok": true,
+      "how": "https"
+    },
+    "yastatic.net": {
+      "brand": "Yandex",
+      "dns": "4",
+      "tried": "https://yastatic.net/",
+      "status": 504,
+      "final": "https://yandex.ru/dev/jslibs",
+      "ok": true,
+      "how": "https"
+    },
+    "adobe.com": {
+      "brand": "Adobe",
+      "dns": "4",
+      "tried": "https://adobe.com/",
+      "status": 403,
+      "final": "https://www.adobe.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "adobelogin.com": {
+      "brand": "Adobe",
+      "dns": "4",
+      "tried": "https://ims-na1.adobelogin.com/",
+      "status": 200,
+      "final": "https://ims-na1.adobelogin.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "adobe.io": {
+      "brand": "Adobe",
+      "dns": "4",
+      "tried": "https://adobe.io/",
+      "status": 200,
+      "final": "https://developer.adobe.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "typekit.net": {
+      "brand": "Adobe",
+      "dns": "4",
+      "tried": "https://use.typekit.net/",
+      "status": 200,
+      "final": "https://fonts.adobe.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "adobesign.com": {
+      "brand": "Adobe",
+      "dns": "4",
+      "tried": "https://adobesign.com/",
+      "status": 403,
+      "final": "https://www.adobe.com/sign.html?fromES=true",
+      "ok": true,
+      "how": "https"
+    },
+    "acrobat.com": {
+      "brand": "Adobe",
+      "dns": "4",
+      "tried": "https://acrobat.com/",
+      "status": 200,
+      "final": "https://acrobat.adobe.com/?x_api_client_id=acrobat_com",
+      "ok": true,
+      "how": "https"
+    },
+    "tidal.com": {
+      "brand": "Tidal",
+      "dns": "4",
+      "tried": "https://tidal.com/",
+      "status": 403,
+      "final": "https://tidal.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "steampowered.com": {
+      "brand": "Steam",
+      "dns": "4",
+      "tried": "https://steampowered.com/",
+      "status": 200,
+      "final": "https://store.steampowered.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "steamcommunity.com": {
+      "brand": "Steam",
+      "dns": "4",
+      "tried": "https://steamcommunity.com/",
+      "status": 200,
+      "final": "https://steamcommunity.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "s.team": {
+      "brand": "Steam",
+      "dns": "4",
+      "tried": "https://s.team/",
+      "status": 200,
+      "final": "https://store.steampowered.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "duckduckgo.com": {
+      "brand": "DuckDuckGo",
+      "dns": "4",
+      "tried": "https://duckduckgo.com/",
+      "status": 200,
+      "final": "https://duckduckgo.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "duck.com": {
+      "brand": "DuckDuckGo",
+      "dns": "4",
+      "tried": "https://duck.com/",
+      "status": 200,
+      "final": "https://duckduckgo.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "yahoo.com": {
+      "brand": "Yahoo",
+      "dns": "4",
+      "tried": "https://yahoo.com/",
+      "status": 200,
+      "final": "https://www.yahoo.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "yimg.com": {
+      "brand": "Yahoo",
+      "dns": "4",
+      "tried": "https://yimg.com/",
+      "status": 200,
+      "final": "https://yimg.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "yahoo.net": {
+      "brand": "Yahoo",
+      "dns": "4",
+      "tried": "https://yahoo.net/",
+      "status": 200,
+      "final": "https://www.yahoo.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "baidu.com": {
+      "brand": "Baidu",
+      "dns": "4",
+      "tried": "https://baidu.com/",
+      "status": 200,
+      "final": "https://www.baidu.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "naver.com": {
+      "brand": "Naver",
+      "dns": "4",
+      "tried": "https://naver.com/",
+      "status": 200,
+      "final": "https://www.naver.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "naver.net": {
+      "brand": "Naver",
+      "dns": "4",
+      "tried": "https://naver.net/",
+      "status": 200,
+      "final": "https://www.naver.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "ecosia.org": {
+      "brand": "Ecosia",
+      "dns": "4",
+      "tried": "https://ecosia.org/",
+      "status": 403,
+      "final": "https://www.ecosia.org/",
+      "ok": true,
+      "how": "https"
+    },
+    "qwant.com": {
+      "brand": "Qwant",
+      "dns": "4",
+      "tried": "https://qwant.com/",
+      "status": 200,
+      "final": "https://www.qwant.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "startpage.com": {
+      "brand": "Startpage",
+      "dns": "4",
+      "tried": "https://startpage.com/",
+      "status": 200,
+      "final": "https://www.startpage.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "brave.com": {
+      "brand": "Brave",
+      "dns": "4",
+      "tried": "https://brave.com/",
+      "status": 200,
+      "final": "https://brave.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "elkjop.no": {
+      "brand": "Elkjøp",
+      "dns": "4",
+      "tried": "https://elkjop.no/",
+      "status": 403,
+      "final": "https://www.elkjop.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "elgiganten.se": {
+      "brand": "Elkjøp",
+      "dns": "4",
+      "tried": "https://elgiganten.se/",
+      "status": 403,
+      "final": "https://www.elgiganten.se/",
+      "ok": true,
+      "how": "https"
+    },
+    "elgiganten.dk": {
+      "brand": "Elkjøp",
+      "dns": "4",
+      "tried": "https://elgiganten.dk/",
+      "status": 403,
+      "final": "https://www.elgiganten.dk/",
+      "ok": true,
+      "how": "https"
+    },
+    "gigantti.fi": {
+      "brand": "Elkjøp",
+      "dns": "4",
+      "tried": "https://gigantti.fi/",
+      "status": 403,
+      "final": "https://www.gigantti.fi/",
+      "ok": true,
+      "how": "https"
+    },
+    "finn.no": {
+      "brand": "FINN",
+      "dns": "4",
+      "tried": "https://finn.no/",
+      "status": 200,
+      "final": "https://www.finn.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "paypal.com": {
+      "brand": "PayPal",
+      "dns": "4",
+      "tried": "https://paypal.com/",
+      "status": 200,
+      "final": "https://www.paypal.com/no/home",
+      "ok": true,
+      "how": "https"
+    },
+    "paypal.me": {
+      "brand": "PayPal",
+      "dns": "4",
+      "tried": "https://paypal.me/",
+      "status": 200,
+      "final": "https://www.paypal.com/paypalme/",
+      "ok": true,
+      "how": "https"
+    },
+    "paypalobjects.com": {
+      "brand": "PayPal",
+      "dns": "4",
+      "tried": "https://paypalobjects.com/",
+      "status": 403,
+      "final": "https://www.paypalobjects.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "vipps.no": {
+      "brand": "Vipps",
+      "dns": "4",
+      "tried": "https://vipps.no/",
+      "status": 200,
+      "final": "https://vipps.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "vippsmobilepay.com": {
+      "brand": "Vipps",
+      "dns": "4",
+      "tried": "https://vippsmobilepay.com/",
+      "status": 200,
+      "final": "https://vippsmobilepay.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "mobilepay.dk": {
+      "brand": "Vipps",
+      "dns": "4",
+      "tried": "https://mobilepay.dk/",
+      "status": 200,
+      "final": "https://mobilepay.dk/",
+      "ok": true,
+      "how": "https"
+    },
+    "mobilepay.fi": {
+      "brand": "Vipps",
+      "dns": "4",
+      "tried": "https://mobilepay.fi/",
+      "status": 200,
+      "final": "https://mobilepay.fi/",
+      "ok": true,
+      "how": "https"
+    },
+    "klarna.com": {
+      "brand": "Klarna",
+      "dns": "4",
+      "tried": "https://klarna.com/",
+      "status": 200,
+      "final": "https://www.klarna.com/no/?grs=%2F&grr=empty",
+      "ok": true,
+      "how": "https"
+    },
+    "revolut.com": {
+      "brand": "Revolut",
+      "dns": "4",
+      "tried": "https://revolut.com/",
+      "status": 403,
+      "final": "https://www.revolut.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "dnb.no": {
+      "brand": "DNB",
+      "dns": "4",
+      "tried": "https://dnb.no/",
+      "status": 200,
+      "final": "https://www.dnb.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "nordea.no": {
+      "brand": "Nordea",
+      "dns": "4",
+      "tried": "https://nordea.no/",
+      "status": 200,
+      "final": "https://www.nordea.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "nordea.com": {
+      "brand": "Nordea",
+      "dns": "4",
+      "tried": "https://nordea.com/",
+      "status": 200,
+      "final": "https://www.nordea.com/en",
+      "ok": true,
+      "how": "https"
+    },
+    "sparebank1.no": {
+      "brand": "SpareBank 1",
+      "dns": "4",
+      "tried": "https://sparebank1.no/",
+      "status": 200,
+      "final": "https://www.sparebank1.no/nb/bank.html?baseURI=sparebank1.no&sb1-redir-referrer=",
+      "ok": true,
+      "how": "https"
+    },
+    "bankid.no": {
+      "brand": "BankID",
+      "dns": "4",
+      "tried": "https://bankid.no/",
+      "status": 200,
+      "final": "https://bankid.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "idporten.no": {
+      "brand": "ID-porten",
+      "dns": "4",
+      "tried": "https://idporten.no/",
+      "status": 404,
+      "final": "https://idporten.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "nav.no": {
+      "brand": "NAV",
+      "dns": "4",
+      "tried": "https://nav.no/",
+      "status": 200,
+      "final": "https://www.nav.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "altinn.no": {
+      "brand": "Altinn",
+      "dns": "4",
+      "tried": "https://altinn.no/",
+      "status": 200,
+      "final": "https://info.altinn.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "skatteetaten.no": {
+      "brand": "Skatteetaten",
+      "dns": "4",
+      "tried": "https://skatteetaten.no/",
+      "status": 200,
+      "final": "https://www.skatteetaten.no/person/",
+      "ok": true,
+      "how": "https"
+    },
+    "helsenorge.no": {
+      "brand": "Helsenorge",
+      "dns": "4",
+      "tried": "https://helsenorge.no/",
+      "status": 200,
+      "final": "https://www.helsenorge.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "norsk-tipping.no": {
+      "brand": "Norsk Tipping",
+      "dns": "4",
+      "tried": "https://norsk-tipping.no/",
+      "status": 200,
+      "final": "https://www.norsk-tipping.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "posten.no": {
+      "brand": "Posten",
+      "dns": "4",
+      "tried": "https://posten.no/",
+      "status": 200,
+      "final": "https://www.posten.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "bring.no": {
+      "brand": "Bring",
+      "dns": "4",
+      "tried": "https://bring.no/",
+      "status": 200,
+      "final": "https://www.bring.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "bring.com": {
+      "brand": "Bring",
+      "dns": "4",
+      "tried": "https://bring.com/",
+      "status": 200,
+      "final": "https://www.bring.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "mybring.com": {
+      "brand": "Bring",
+      "dns": "4",
+      "tried": "https://mybring.com/",
+      "status": 200,
+      "final": "https://www.mybring.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "postnord.no": {
+      "brand": "PostNord",
+      "dns": "4",
+      "tried": "https://postnord.no/",
+      "status": 403,
+      "final": "https://www.postnord.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "postnord.com": {
+      "brand": "PostNord",
+      "dns": "4",
+      "tried": "https://postnord.com/",
+      "status": 200,
+      "final": "https://www.postnord.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "dhl.com": {
+      "brand": "DHL",
+      "dns": "4",
+      "tried": "https://dhl.com/",
+      "status": 200,
+      "final": "https://www.dhl.com/no-no/home.html?locale=true",
+      "ok": true,
+      "how": "https"
+    },
+    "fedex.com": {
+      "brand": "FedEx",
+      "dns": "4",
+      "tried": "https://fedex.com/",
+      "status": 200,
+      "final": "https://www.fedex.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "telenor.no": {
+      "brand": "Telenor",
+      "dns": "4",
+      "tried": "https://telenor.no/",
+      "status": 200,
+      "final": "https://www.telenor.no/privat/",
+      "ok": true,
+      "how": "https"
+    },
+    "telenor.com": {
+      "brand": "Telenor",
+      "dns": "4",
+      "tried": "https://telenor.com/",
+      "status": 200,
+      "final": "https://www.telenor.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "telia.no": {
+      "brand": "Telia",
+      "dns": "4",
+      "tried": "https://telia.no/",
+      "status": 200,
+      "final": "https://www.telia.no/",
+      "ok": true,
+      "how": "https"
+    },
+    "telia.com": {
+      "brand": "Telia",
+      "dns": "4",
+      "tried": "https://telia.com/",
+      "status": 200,
+      "final": "https://www.telia.se/",
+      "ok": true,
+      "how": "https"
+    },
+    "ctt.pt": {
+      "brand": "CTT",
+      "dns": "4",
+      "tried": "https://ctt.pt/",
+      "status": 200,
+      "final": "https://www.ctt.pt/particulares/index",
+      "ok": true,
+      "how": "https"
+    },
+    "cgd.pt": {
+      "brand": "Caixa Geral de Depósitos",
+      "dns": "4",
+      "tried": "https://cgd.pt/",
+      "status": 200,
+      "final": "https://www.cgd.pt/Particulares/Pages/Particulares_v2.aspx",
+      "ok": true,
+      "how": "https"
+    },
+    "millenniumbcp.pt": {
+      "brand": "Millennium bcp",
+      "dns": "4",
+      "tried": "https://millenniumbcp.pt/",
+      "status": 200,
+      "final": "https://www.millenniumbcp.pt/",
+      "ok": true,
+      "how": "https"
+    },
+    "mbway.pt": {
+      "brand": "MB WAY",
+      "dns": "4",
+      "tried": "https://mbway.pt/",
+      "status": 200,
+      "final": "https://www.mbway.pt/",
+      "ok": true,
+      "how": "https"
+    },
+    "portaldasfinancas.gov.pt": {
+      "brand": "Portal das Finanças",
+      "dns": "Ns",
+      "tried": "https://www.portaldasfinancas.gov.pt/",
+      "status": 200,
+      "final": "https://www.portaldasfinancas.gov.pt/at/html/index.html",
+      "ok": true,
+      "how": "https"
+    },
+    "seg-social.pt": {
+      "brand": "Segurança Social",
+      "dns": "4",
+      "tried": "https://www.seg-social.pt/",
+      "status": 200,
+      "final": "https://www.seg-social.pt/ptss/pssd/home?dswid=9167",
+      "ok": true,
+      "how": "https"
+    },
+    "correios.com.br": {
+      "brand": "Correios",
+      "dns": "4",
+      "tried": "https://correios.com.br/",
+      "status": 200,
+      "final": "https://www.correios.com.br/",
+      "ok": true,
+      "how": "https"
+    },
+    "caixa.gov.br": {
+      "brand": "Caixa",
+      "dns": "4",
+      "tried": "https://www.caixa.gov.br/",
+      "status": 200,
+      "final": "https://www.caixa.gov.br/Paginas/home-caixa.aspx",
+      "ok": true,
+      "how": "https"
+    },
+    "bb.com.br": {
+      "brand": "Banco do Brasil",
+      "dns": "4",
+      "tried": "https://bb.com.br/",
+      "status": 200,
+      "final": "https://bb.com.br/",
+      "ok": true,
+      "how": "https"
+    },
+    "itau.com.br": {
+      "brand": "Itaú",
+      "dns": "4",
+      "tried": "https://itau.com.br/",
+      "status": 403,
+      "final": "https://itau.com.br/",
+      "ok": true,
+      "how": "https"
+    },
+    "bradesco.com.br": {
+      "brand": "Bradesco",
+      "dns": "4",
+      "tried": "https://bradesco.com.br/",
+      "status": 200,
+      "final": "https://banco.bradesco/",
+      "ok": true,
+      "how": "https"
+    },
+    "nubank.com.br": {
+      "brand": "Nubank",
+      "dns": "4",
+      "tried": "https://nubank.com.br/",
+      "status": 200,
+      "final": "https://nubank.com.br/",
+      "ok": true,
+      "how": "https"
+    },
+    "mercadolivre.com.br": {
+      "brand": "Mercado Livre",
+      "dns": "4",
+      "tried": "https://mercadolivre.com.br/",
+      "status": 200,
+      "final": "https://www.mercadolivre.com.br/",
+      "ok": true,
+      "how": "https"
+    },
+    "mercadolibre.com": {
+      "brand": "Mercado Livre",
+      "dns": "4",
+      "tried": "https://mercadolibre.com/",
+      "status": 200,
+      "final": "https://mercadolibre.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "mercadopago.com.br": {
+      "brand": "Mercado Livre",
+      "dns": "4",
+      "tried": "https://mercadopago.com.br/",
+      "status": 200,
+      "final": "https://www.mercadopago.com.br/",
+      "ok": true,
+      "how": "https"
+    },
+    "metamask.io": {
+      "brand": "MetaMask",
+      "dns": "4",
+      "tried": "https://metamask.io/",
+      "status": 200,
+      "final": "https://metamask.io/",
+      "ok": true,
+      "how": "https"
+    },
+    "ledger.com": {
+      "brand": "Ledger",
+      "dns": "4",
+      "tried": "https://ledger.com/",
+      "status": 200,
+      "final": "https://www.ledger.com/?hp_variant=g5.hero.d",
+      "ok": true,
+      "how": "https"
+    },
+    "trezor.io": {
+      "brand": "Trezor",
+      "dns": "4",
+      "tried": "https://trezor.io/",
+      "status": 200,
+      "final": "https://trezor.io/",
+      "ok": true,
+      "how": "https"
+    },
+    "coinbase.com": {
+      "brand": "Coinbase",
+      "dns": "4",
+      "tried": "https://coinbase.com/",
+      "status": 403,
+      "final": "https://www.coinbase.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "binance.com": {
+      "brand": "Binance",
+      "dns": "4",
+      "tried": "https://binance.com/",
+      "status": 202,
+      "final": "https://www.binance.com/",
+      "ok": true,
+      "how": "https"
+    },
+    "icloud-content.com": {
+      "brand": "Apple",
+      "dns": "4",
+      "tried": "https://icloud-content.com/",
+      "status": 200,
+      "final": "https://developer.apple.com/icloud/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "cdn-apple.com": {
+      "brand": "Apple",
+      "dns": "Ns",
+      "tried": "https://appleid.cdn-apple.com/",
+      "status": 200,
+      "final": "https://account.apple.com/?z=8761452229298751311",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "microsoftonline-p.com": {
+      "brand": "Microsoft",
+      "dns": "Ns",
+      "tried": "https://login.microsoftonline-p.com/",
+      "status": 200,
+      "final": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=4765445b-32c6-49b0-83e6-1d93765276ca&redirect_uri=https%3A%2F%2Fwww.office.com%2Flandingv2&response_type=code%20id_token&scope=openid%20profile%20https%3A%2F%2Fwww.office.com%2Fv2%2FOfficeHome.All&response_mode=form_post&nonce=639272934400111282.YzMzYWM0MWItNjE5MS00MGQ1LTgyODYtNzE0ZmE5OWI5OWIxNGY4YTRhZmYtYzJhOS00M2EwLTg2ZDEtOTMxNjRjMDA0YzQz&ui_locales=en-US&mkt=en-US&client-request-id=922a7327-08b9-46c0-b7fe-ad6b5a47a2ea&siwa=1&siwg=1&state=EaJvSZb7b2-aX2QJU5F1hAGlOtu6_pmOFaYrttNYxL5TyimVX_Zmw25CPzJgoAqbL1-AUELMSTzqKsjpxwZVlx_M8m1V9koInGHiu8kqL_-f7TR_lnUqjE0dtacdoKK3KgQRAyZJ38W7X6IwtIqgkRiZ2iW0PDS6KyC-ptVoo5AZvFHIfjdZt6FtYgDVAvrVWzLFR2KKwVeLmWK2wOS4tdaO29CIB6iwwxvOvoLWnsUdgkRGwMPnfQzm_n9AYpOGV_0dcwfh7K6X27j8SJAXOVdjN7YYuhvBAPSZ_NhM_iMY5AjB__EAqwsFJ2QjtLq07VxidV8rGb67JNvz7owd65aqoAc_tYPM7DHu6yC3V1bbhg4QyBejjA47J6RpLmm9jDxIl6kH85ZcSluKxth5cw43yPbGO-j2vPYvKaVqjUsSKsd-UagcxT3vjljxZagn&x-client-SKU=ID_NET8_0&x-client-ver=8.16.0.0",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "s-microsoft.com": {
+      "brand": "Microsoft",
+      "dns": "Ns",
+      "tried": "https://c.s-microsoft.com/",
+      "status": 200,
+      "final": "https://www.microsoft.com/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "linkedin-ei.com": {
+      "brand": "LinkedIn",
+      "dns": "4",
+      "tried": "https://linkedin-ei.com/",
+      "status": 999,
+      "final": "https://linkedin-ei.com/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "instagram-press.com": {
+      "brand": "Instagram",
+      "dns": "4",
+      "tried": "https://instagram-press.com/",
+      "status": 400,
+      "final": "https://about.instagram.com/blog/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "telegra.ph": {
+      "brand": "Telegram",
+      "dns": "4",
+      "tried": "https://telegra.ph/",
+      "status": 200,
+      "final": "https://telegra.ph/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "cdn-telegram.org": {
+      "brand": "Telegram",
+      "dns": "Ns",
+      "tried": "https://cdn4.cdn-telegram.org/",
+      "status": 200,
+      "final": "https://telegram.org/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "disney-plus.net": {
+      "brand": "Disney+",
+      "dns": "Ns",
+      "tried": "https://prod-static.disney-plus.net/",
+      "status": 200,
+      "final": "https://prod-static.disney-plus.net/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "payments-amazon.com": {
+      "brand": "Amazon",
+      "dns": "Ns",
+      "tried": "https://static-eu.payments-amazon.com/",
+      "status": 200,
+      "final": "https://static-eu.payments-amazon.com/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "zalando-lounge.no": {
+      "brand": "Zalando",
+      "dns": "4",
+      "tried": "https://zalando-lounge.no/",
+      "status": 200,
+      "final": "https://www.zalando-lounge.no/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "zalando-lounge.de": {
+      "brand": "Zalando",
+      "dns": "4",
+      "tried": "https://zalando-lounge.de/",
+      "status": 200,
+      "final": "https://www.zalando-lounge.de/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "zalando-prive.it": {
+      "brand": "Zalando",
+      "dns": "4",
+      "tried": "https://zalando-prive.it/",
+      "status": 200,
+      "final": "https://www.zalando-prive.it/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "paypal-corp.com": {
+      "brand": "PayPal",
+      "dns": "Ns",
+      "tried": "https://newsroom.paypal-corp.com/",
+      "status": 200,
+      "final": "https://newsroom.paypal-corp.com/",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "paypal-status.com": {
+      "brand": "PayPal",
+      "dns": "4",
+      "tried": "https://paypal-status.com/",
+      "status": 200,
+      "final": "https://paypal-status.com/product/production",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    },
+    "ledgerwallet.com": {
+      "brand": "Ledger",
+      "dns": "4",
+      "tried": "https://ledgerwallet.com/",
+      "status": 200,
+      "final": "https://www.ledger.com/?hp_variant=g5.hero.o",
+      "ok": true,
+      "how": "https",
+      "checked": "2026-10-11"
+    }
+  }
+}

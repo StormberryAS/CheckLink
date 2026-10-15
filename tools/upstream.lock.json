@@ -1,0 +1,1318 @@
+{
+  "schema": 1,
+  "name": "CheckLink upstream lock",
+  "generated": "2026-10-11",
+  "how_to_read": [
+    "vendored: bytes (or data compiled from them) ship in the app. Each records its exact version, source address, size, sha256 (and the npm sha512 integrity for packages), licence, and how it was checked against the registry or upstream.",
+    "node tools/vendor.mjs --check proves the files in the repository still match this lock, offline; node --test tests/ runs it.",
+    "commit pins the exact upstream revision; for rule sources, the revision whose file matches the copy read on 2026-10-10 (matched by git blob hash unless notes say otherwise).",
+    "role: vendored = bytes ship in the app; derived = the app ships data Stormberry wrote from it; seed or checked-against = rule facts compared against it; facts-only = read to check facts, nothing copied (GPL and LGPL sources stay in this group).",
+    "upstream_changed_since_pin: true means the file had newer commits than the pin when it was read; the rule-update report should diff them.",
+    "Nothing here is fetched at build or run time. The rule sources and search research entries were recorded by the research pass of 2026-10-10 and are carried over unchanged.",
+    "search_research_files: the research summaries in rules/research/, each with the sha256 of the archive file it was copied from and of the copy, and what was taken out of it."
+  ],
+  "vendored": [
+    {
+      "id": "zxing-wasm",
+      "role": "vendored",
+      "what": "QR and barcode decoder: zxing-cpp compiled to WebAssembly, reader build only, run in a Web Worker (src/qr-worker.js)",
+      "version": "3.1.4",
+      "published": "2026-09-10T15:01:01.511Z",
+      "release_age_rule": "14 days (spec section 4). 3.1.4 is the newest release that meets it on 2026-10-11. 3.1.5 (published 2026-10-06, with upstream decoding and security fixes) meets it from 2026-10-20: swap with node tools/vendor.mjs --zxing <tarball> and update this entry.",
+      "registry": "https://registry.npmjs.org/zxing-wasm",
+      "tarball": "https://registry.npmjs.org/zxing-wasm/-/zxing-wasm-3.1.4.tgz",
+      "integrity": "sha512-1+v8p7sauddySVNG+ye7GD/0TS95BG2ycdkrC+EnBrFBFkHeIghzUt2yVjtx3NucJeNrQnhT8yGAIz60Vx9o0w==",
+      "integrity_checked": "2026-10-11: the tarball was downloaded from the registry and its sha512 equals the registry's dist.integrity above",
+      "tarball_bytes": 1657890,
+      "tarball_sha256": "2416232a155533bdcfa098a22ec9087734b34640ffa2a7add90bc36e145f6da0",
+      "provenance": "https://registry.npmjs.org/-/npm/v1/attestations/zxing-wasm@3.1.4 (SLSA v1): built from commit ba54ad0bba3f2e230c0f0a503d8d71065ef39c30, the commit the tag v3.1.4 points to; the attestation names the ref as refs/heads/main at that commit, not the tag itself",
+      "repo": "https://github.com/Sec-ant/zxing-wasm",
+      "git_tag": "v3.1.4",
+      "git_tag_commit": "ba54ad0bba3f2e230c0f0a503d8d71065ef39c30",
+      "zxing_cpp_commit": "0b2d9a8fc81f420f369928c24331091ff0525976",
+      "licence": "MIT (wrapper and its JavaScript); the .wasm also contains zxing-cpp and the zxing-wasm C++ binding (Apache-2.0), libzueci (BSD-3-Clause), stb_image (MIT or Unlicense) and the Emscripten runtime: Emscripten (MIT or NCSA), musl libc (MIT), LLVM libc++, libc++abi and compiler-rt (Apache-2.0 WITH LLVM-exception). Texts in licences/.",
+      "dir": "vendor/zxing-wasm-3.1.4",
+      "reader": "vendor/zxing-wasm-3.1.4/es/reader/index.js",
+      "taken_unmodified": {
+        "package/dist/es/reader/index.js": "vendor/zxing-wasm-3.1.4/es/reader/index.js",
+        "package/dist/es/share.js": "vendor/zxing-wasm-3.1.4/es/share.js",
+        "package/LICENSE": "vendor/zxing-wasm-3.1.4/LICENSE"
+      },
+      "tarball_files": {
+        "package/dist/es/reader/index.js": "d90c69a827aff3b7c8c8ca310efebe91671ef076f7a0ec83722bfc542814f484",
+        "package/dist/es/share.js": "08868fb770b0a4e4b9eb3d717015cd5fbf3ceb06492d4cb2d2dd2739db11890f",
+        "package/dist/reader/zxing_reader.wasm": "e8af31edb56d0522f4de74495839385ef019ba8bc90d38e5ecb2f18795d86fb2",
+        "package/LICENSE": "fb506e4ade12d7a9efa67c9d76a9a28c8e15d347ca49a69e48e29b40b34ad2ab",
+        "package/package.json": "d993d4cd59ee6a70a359447ad57e94903bd0a4f033f8775182c730538442c5dd"
+      },
+      "wasm": {
+        "from": "package/dist/reader/zxing_reader.wasm",
+        "module": "vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js",
+        "bytes": 953527,
+        "sha256": "e8af31edb56d0522f4de74495839385ef019ba8bc90d38e5ecb2f18795d86fb2",
+        "how": "base64 inside an ES module (export default '<base64>'), handed to the decoder as wasmBinary; the vendored reader carries the same hash as ZXING_WASM_SHA256"
+      },
+      "files": {
+        "vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js": "45c61d4b73a777aef83d9eb879fd9418b92a477fd73678aa3553c837c22c2d62",
+        "vendor/zxing-wasm-3.1.4/LICENSE": "fb506e4ade12d7a9efa67c9d76a9a28c8e15d347ca49a69e48e29b40b34ad2ab",
+        "vendor/zxing-wasm-3.1.4/es/share.js": "08868fb770b0a4e4b9eb3d717015cd5fbf3ceb06492d4cb2d2dd2739db11890f",
+        "vendor/zxing-wasm-3.1.4/es/reader/index.js": "d90c69a827aff3b7c8c8ca310efebe91671ef076f7a0ec83722bfc542814f484"
+      },
+      "notes": [
+        "dist/es/reader/index.js imports only ../share.js. share.js holds the default locateFile, which builds https://fastly.jsdelivr.net/npm/zxing-wasm@3.1.4/dist/... addresses; CheckLink passes wasmBinary and its own locateFile, so that default is never used, and src/qr-worker.js removes fetch, XMLHttpRequest, WebSocket and EventSource from the worker before the decoder loads.",
+        "Runtime dependencies listed by npm (type-fest, @types/emscripten) are TypeScript types only; nothing from them ships.",
+        "stb_image is fetched by zxing-cpp's CMake (FetchContent of https://github.com/nothings/stb, no commit pinned), so the exact stb commit inside the .wasm is not recorded upstream; its licence block was taken from stb_image.h at commit 013ac3beddff3dbffafd5177e7972067cd2b5083 (the latest change to that file, 2024-05-31).",
+        "Deploy-time change, not made here: the page's meta policy gains 'wasm-unsafe-eval' in script-src and worker-src 'self'; a worker takes its policy only from its own response headers, so check.stormberry.as also needs a host-scoped Cloudflare response-header rule (action Set) whose Content-Security-Policy allows 'wasm-unsafe-eval'. tests/serve.py sends the recommended header; NOTICE gives it in full."
+      ],
+      "next_candidate": {
+        "version": "3.1.5",
+        "published": "2026-10-06T02:13:09.328Z",
+        "meets_age_rule_from": "2026-10-20",
+        "tarball": "https://registry.npmjs.org/zxing-wasm/-/zxing-wasm-3.1.5.tgz",
+        "integrity": "sha512-jmxXvTCR/qZxMz2XwR6V+nL2BlDTD1aux7ZWSH9BV77TG9u4k0VyHba/NCCHBHJ60Wg6VV0QL/SMlJczKhJI4w==",
+        "integrity_checked": "2026-10-11: equal to the registry’s dist.integrity for zxing-wasm@3.1.5 (recorded by the online check of 2026-10-10 and read again from https://registry.npmjs.org/zxing-wasm/3.1.5)",
+        "tarball_sha256": "81e1cd4b01c98b35a30a3f1d16ef38bf338d6e3ada2a0591bd69595a94a07443",
+        "git_tag_commit": "b7dcf63aefc7b94fb97ba09e9b1fb213d9399f54",
+        "zxing_cpp_commit": "2ecec3f5be0ee803f6e14a5a2c7028c0cfe525b4",
+        "provenance": "https://registry.npmjs.org/-/npm/v1/attestations/zxing-wasm@3.1.5 (SLSA v1)",
+        "release_note": "Update ZXing-C++ and refresh dependencies, including upstream decoding and security fixes.",
+        "tarball_files": {
+          "package/dist/es/reader/index.js": "3c364d8477404a513d7c0629b1cf9e63ae11e01f9746146d3574f8b10a122320",
+          "package/dist/es/share.js": "68b09047a19c17ba74c0bf7e0a4341e77d46b36ae1cae4bdcca31d0c6757f3f2",
+          "package/dist/reader/zxing_reader.wasm": "aecc1876de036c62c8419f67a5e1a16b1698a325bcd190aa84810d516e263931"
+        },
+        "not_vendored": "Not in the repository: swap it in with node tools/vendor.mjs --zxing <tarball> once the age rule is met, then move these values into the entry above."
+      }
+    },
+    {
+      "id": "qrcodegen",
+      "role": "vendored (converted once to plain JavaScript)",
+      "what": "QR code encoder: makes the QR code of the clean link (stage 4b, decision QR-4 of 2026-10-11); src/qr-make.js draws it and writes the PNG itself",
+      "name": "QR Code generator library (TypeScript), Project Nayuki",
+      "repo": "https://github.com/nayuki/QR-Code-generator",
+      "source": "https://raw.githubusercontent.com/nayuki/QR-Code-generator/8329a7108fc22be3e1eec0a9f9318978579e3621/typescript-javascript/qrcodegen.ts",
+      "commit": "8329a7108fc22be3e1eec0a9f9318978579e3621",
+      "commit_date": "2024-09-01T01:43:33Z",
+      "tag": "none: an untagged commit. The latest tag, v1.8.0 (commit 720f62bddb7226106071d4728c292cb1df519ceb, 2022-04-17), is older, and the file changed twice after it (942f4319a6ba913dbc6775d8e665ccf18f401d83 on 2022-09-13 and 8329a7108fc22be3e1eec0a9f9318978579e3621 on 2024-09-01)",
+      "upstream_check": "2026-10-11, through the GitHub API: 8329a7108fc22be3e1eec0a9f9318978579e3621 is the latest commit that touched typescript-javascript/qrcodegen.ts; downloaded at that commit and at master 3c6d0b3cefb4e049dc337e82237c9644399716a8 (2026-08-31), the same bytes, git blob c4191ac0b5f8a24d87fd9340ceaa2d3b07d0231a",
+      "release_age_rule": "14 days (spec section 4): the file has not changed since 2024-09-01",
+      "bytes": 41022,
+      "sha256": "1dc03fb5a10e0e2318ea162755bbdb9977ca6ce52cff959e9c9b6deafdccda9c",
+      "git_blob": "c4191ac0b5f8a24d87fd9340ceaa2d3b07d0231a",
+      "licence": "MIT, stated in the file header and in Readme.markdown (License section, read at the same commit, sha256 ce147b6a8c66c868bb5a60a133a7569eca089102114a5e1f9a7486e62f8ac438); the repository has no LICENSE file, so GitHub reports no licence. Text in licences/QR-Code-generator-MIT.txt",
+      "path": "third_party/qrcodegen/qrcodegen.ts",
+      "converted": "vendor/qrcodegen-8329a71/qrcodegen.js",
+      "converted_bytes": 46239,
+      "converted_sha256": "96af83ff3b019e7748644a4716043056dfae820ff46e1d78f01692af0ec0e29a",
+      "conversion": {
+        "how": "node tools/vendor.mjs --qrcodegen <typescript-5.9.3.tgz>: the compiler from the tarball (checked against the integrity below) runs ts.transpileModule on the pinned file with compiler_options, which takes the types out and turns each namespace into a function, as upstream's build.sh does with tsc --strict --target ES6. tools/vendor.mjs puts its own header before the output and one line, export default qrcodegen;, after it. Nothing else changes. node tools/vendor.mjs --check proves the header, the output (output_sha256) and the export line without the compiler.",
+        "compiler_options": {
+          "target": "ES2015",
+          "strict": true,
+          "newLine": "lf",
+          "removeComments": false
+        },
+        "output_bytes": 45362,
+        "output_sha256": "79f419f267ce5a80d97f8099e0a789a4ecc4697b5348d86371a1f3b2a75d6e03",
+        "tool": {
+          "package": "typescript",
+          "version": "5.9.3",
+          "published": "2025-09-30T21:19:38.784Z",
+          "registry": "https://registry.npmjs.org/typescript",
+          "tarball": "https://registry.npmjs.org/typescript/-/typescript-5.9.3.tgz",
+          "integrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==",
+          "integrity_checked": "2026-10-11: the tarball was downloaded from the registry and its sha512 equals the registry's dist.integrity above",
+          "tarball_bytes": 4377468,
+          "tarball_sha256": "10e108c9cf7d5f2879053dff18515fb405abf2ccef63eaaf017d9c571687a1d3",
+          "licence": "Apache-2.0",
+          "ships": false,
+          "why_this_version": "a build tool, run once by a person; nothing from it ships. 5.9.3 is the last 5.x release, more than a year past the 14-day rule; npm's latest on 2026-10-11 is 7.0.2"
+        }
+      },
+      "notes": [
+        "No official npm package exists, so the file is pinned by commit, like the word lists and the domain list.",
+        "The encoder writes text as UTF-8 bytes (byte mode) when it is not all digits or capitals. CheckLink writes the host in its xn-- form first, so only a path or query with letters outside English goes in as UTF-8, and then with the ECI marker 26 (UTF-8) in front (src/qr-make.js makeQr): without it, ZBar 0.23.93 read 2 of 4 such codes as Shift JIS or GBK on 11 October 2026. Plain ASCII never carries the marker.",
+        "third_party/ is not published; the converted file in vendor/ ships with the website and the app, in a folder named with the commit, so a new commit is a new address and the file carries no ?v= stamp."
+      ]
+    },
+    {
+      "id": "public-suffix-list",
+      "role": "vendored (compiled into src/psl.js)",
+      "what": "Public Suffix List: decides the registrable domain (the part of a host name its owner registered) for the Goes to line, the bold part of the link, the warnings, and the provider patterns such as amazon.* (replaces the 28-name private-suffix stopgap in rules/extra-rules.json)",
+      "path": "third_party/publicsuffix/public_suffix_list.dat",
+      "generated": "src/psl.js",
+      "version": "2026-10-07_07-28-19_UTC",
+      "commit": "3929462652695bad04f0a27afb600974014a3c8b",
+      "source": "https://publicsuffix.org/list/public_suffix_list.dat",
+      "retrieved": "2026-10-11",
+      "bytes": 335478,
+      "sha256": "ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612",
+      "upstream_check": "2026-10-11: the publicsuffix.org copy equals https://raw.githubusercontent.com/publicsuffix/list/3929462652695bad04f0a27afb600974014a3c8b/public_suffix_list.dat (sha256 2919eb9803c91a3f73a507cc6fedc934de005543c22c4016f72e3343de5dd6e7) plus the three stamp lines (VERSION, COMMIT, blank); 3929462 was the latest commit touching the file on 2026-10-11.",
+      "rules": {
+        "icann": 6949,
+        "private": 3387
+      },
+      "licence": "MPL-2.0 (licences/Public-Suffix-List-MPL-2.0.txt; the header is kept in src/psl.js)",
+      "refresh": "Download only from https://publicsuffix.org/list/public_suffix_list.dat into third_party/publicsuffix/, update this entry, run node tools/vendor.mjs; node tools/vendor.mjs --release fails when the copy is more than 90 days old."
+    },
+    {
+      "id": "bip39-english",
+      "role": "vendored (compiled into src/bip39.js)",
+      "source": "https://raw.githubusercontent.com/bitcoin/bips/ce1862ac6bcffa1dd20aad858380e51e66e949ea/bip-0039/english.txt",
+      "commit": "ce1862ac6bcffa1dd20aad858380e51e66e949ea",
+      "commit_date": "2014-02-07T19:43:04Z",
+      "lines": 2048,
+      "sha256": "2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda",
+      "licence": "MIT: bip-0039.mediawiki says License: MIT (checked at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4 on 2026-10-11); text in licences/BIP-0039-MIT.txt",
+      "what": "BIP-39 English word list, used only to recognise a wallet recovery phrase in a code so it can be hidden",
+      "path": "third_party/bip39/english.txt",
+      "generated": "src/bip39.js",
+      "retrieved": "2026-10-11",
+      "upstream_check": "2026-10-11: ce1862ac6bcffa1dd20aad858380e51e66e949ea is the only commit that touched bip-0039/english.txt; downloaded at that commit, sha256 as below"
+    },
+    {
+      "id": "recovery-word-lists",
+      "role": "vendored (compiled into src/wordlists.js)",
+      "what": "Word lists of the recovery phrases CheckLink recognises besides BIP-39 English: BIP-39 Spanish, Portuguese, French, Italian, Czech, Japanese, Korean and Chinese (simplified and traditional), Monero in all 13 of its languages (English, the old English list, Chinese (simplified), Dutch, Esperanto, French, German, Italian, Japanese, Lojban, Portuguese, Russian and Spanish) and SLIP-39. Used only to recognise a recovery phrase in a code so it can be hidden.",
+      "generated": "src/wordlists.js",
+      "retrieved": "2026-10-11",
+      "not_included": "Every BIP-39 and Monero language is included. Not recognised: Monero seeds typed with only the first letters of each word (Monero accepts them), and Monero’s newer Polyseed phrases (src/mnemonics/polyseed), which use the BIP-39 lists with 16 words.",
+      "lists": [
+        {
+          "name": "bip39-spanish",
+          "export": "BIP39_LISTS",
+          "key": "spanish",
+          "format": "lines",
+          "what": "BIP-39 Spanish word list (2,048 words)",
+          "path": "third_party/bip39/spanish.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/25f10b9f7bf844ebd98dc9ca6556228c3c34c44b/bip-0039/spanish.txt",
+          "commit": "25f10b9f7bf844ebd98dc9ca6556228c3c34c44b",
+          "words": 2048,
+          "bytes": 13996,
+          "sha256": "46846a5a0139d1e3cb77293e521c2865f7bcdb82c44e8d0a06a2cd0ecba48c0b",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "upstream_check": "2026-10-11: 25f10b9f7bf844ebd98dc9ca6556228c3c34c44b is the latest commit that touched bip-0039/spanish.txt (GitHub commits API); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "bip39-portuguese",
+          "export": "BIP39_LISTS",
+          "key": "portuguese",
+          "format": "lines",
+          "what": "BIP-39 Portuguese word list (2,048 words)",
+          "path": "third_party/bip39/portuguese.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/d353c54154bac64a88eb18cf2d47d15ead083de4/bip-0039/portuguese.txt",
+          "commit": "d353c54154bac64a88eb18cf2d47d15ead083de4",
+          "words": 2048,
+          "bytes": 15671,
+          "sha256": "2685e9c194c82ae67e10ba59d9ea5345a23dc093e92276fc5361f6667d79cd3f",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "upstream_check": "2026-10-11: d353c54154bac64a88eb18cf2d47d15ead083de4 is the latest commit that touched bip-0039/portuguese.txt (GitHub commits API); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "bip39-french",
+          "export": "BIP39_LISTS",
+          "key": "french",
+          "format": "lines",
+          "what": "BIP-39 French word list (2,048 words)",
+          "path": "third_party/bip39/french.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/50c4f1255eed6b1c08ca9c20b4d8f380879ed2f5/bip-0039/french.txt",
+          "commit": "50c4f1255eed6b1c08ca9c20b4d8f380879ed2f5",
+          "words": 2048,
+          "bytes": 16777,
+          "sha256": "ebc3959ab7801a1df6bac4fa7d970652f1df76b683cd2f4003c941c63d517e59",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "upstream_check": "2026-10-11: 50c4f1255eed6b1c08ca9c20b4d8f380879ed2f5 is the latest commit that touched bip-0039/french.txt (GitHub commits API); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "bip39-italian",
+          "export": "BIP39_LISTS",
+          "key": "italian",
+          "format": "lines",
+          "what": "BIP-39 Italian word list (2,048 words)",
+          "path": "third_party/bip39/italian.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/d3f34b99d05a45fe8ed9ac53cd0fabc4532fe4a3/bip-0039/italian.txt",
+          "commit": "d3f34b99d05a45fe8ed9ac53cd0fabc4532fe4a3",
+          "words": 2048,
+          "bytes": 16033,
+          "sha256": "d392c49fdb700a24cd1fceb237c1f65dcc128f6b34a8aacb58b59384b5c648c2",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "upstream_check": "2026-10-11: d3f34b99d05a45fe8ed9ac53cd0fabc4532fe4a3 is the latest commit that touched bip-0039/italian.txt (GitHub commits API); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "bip39-czech",
+          "export": "BIP39_LISTS",
+          "key": "czech",
+          "format": "lines",
+          "what": "BIP-39 Czech word list (2,048 words)",
+          "path": "third_party/bip39/czech.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/b7f682f702bfb5679b39ef19c994b191693f59b4/bip-0039/czech.txt",
+          "commit": "b7f682f702bfb5679b39ef19c994b191693f59b4",
+          "words": 2048,
+          "bytes": 14945,
+          "sha256": "7e80e161c3e93d9554c2efb78d4e3cebf8fc727e9c52e03b83b94406bdcc95fc",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "upstream_check": "2026-10-11: b7f682f702bfb5679b39ef19c994b191693f59b4 is the latest commit that touched bip-0039/czech.txt (GitHub commits API); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "bip39-japanese",
+          "export": "BIP39_LISTS",
+          "key": "japanese",
+          "format": "lines",
+          "what": "BIP-39 Japanese word list (2,048 words)",
+          "path": "third_party/bip39/japanese.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/144ef37e5314f8f968b8abb5a6fe8038d32e46ce/bip-0039/japanese.txt",
+          "commit": "144ef37e5314f8f968b8abb5a6fe8038d32e46ce",
+          "commit_date": "2015-03-12",
+          "words": 2048,
+          "bytes": 26423,
+          "sha256": "2eed0aef492291e061633d7ad8117f1a2b03eb80a29d0e4e3117ac2528d05ffd",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "notes": "Words are written in hiragana in Unicode NFKD form; a Japanese phrase is separated by ideographic spaces (U+3000), as bip-0039-wordlists.md asks.",
+          "upstream_check": "2026-10-11: 144ef37e5314f8f968b8abb5a6fe8038d32e46ce is the latest commit that touched bip-0039/japanese.txt (GitHub commits API, 2015-03-12); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "bip39-korean",
+          "export": "BIP39_LISTS",
+          "key": "korean",
+          "format": "lines",
+          "what": "BIP-39 Korean word list (2,048 words)",
+          "path": "third_party/bip39/korean.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/2880981dc3460801a4f38120a79f290206612942/bip-0039/korean.txt",
+          "commit": "2880981dc3460801a4f38120a79f290206612942",
+          "commit_date": "2017-08-10",
+          "words": 2048,
+          "bytes": 37832,
+          "sha256": "9e95f86c167de88f450f0aaf89e87f6624a57f973c67b516e338e8e8b8897f60",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "notes": "Words are written in Unicode NFKD form (Hangul jamo).",
+          "upstream_check": "2026-10-11: 2880981dc3460801a4f38120a79f290206612942 is the latest commit that touched bip-0039/korean.txt (GitHub commits API, 2017-08-10); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "bip39-chinese-simplified",
+          "export": "BIP39_LISTS",
+          "key": "chinese_simplified",
+          "format": "lines",
+          "what": "BIP-39 Chinese (simplified) word list (2,048 words)",
+          "path": "third_party/bip39/chinese_simplified.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/7d77befd2b14359b9386fc1f9fb15f82d418fb34/bip-0039/chinese_simplified.txt",
+          "commit": "7d77befd2b14359b9386fc1f9fb15f82d418fb34",
+          "commit_date": "2014-12-16",
+          "words": 2048,
+          "bytes": 8192,
+          "sha256": "5c5942792bd8340cb8b27cd592f1015edf56a8c5b26276ee18a482428e7c5726",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "notes": "One character per word; a phrase may be written with or without spaces.",
+          "upstream_check": "2026-10-11: 7d77befd2b14359b9386fc1f9fb15f82d418fb34 is the latest commit that touched bip-0039/chinese_simplified.txt (GitHub commits API, 2014-12-16); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "bip39-chinese-traditional",
+          "export": "BIP39_LISTS",
+          "key": "chinese_traditional",
+          "format": "lines",
+          "what": "BIP-39 Chinese (traditional) word list (2,048 words)",
+          "path": "third_party/bip39/chinese_traditional.txt",
+          "source": "https://raw.githubusercontent.com/bitcoin/bips/7d77befd2b14359b9386fc1f9fb15f82d418fb34/bip-0039/chinese_traditional.txt",
+          "commit": "7d77befd2b14359b9386fc1f9fb15f82d418fb34",
+          "commit_date": "2014-12-16",
+          "words": 2048,
+          "bytes": 8192,
+          "sha256": "417b26b3d8500a4ae3d59717d7011952db6fc2fb84b807f3f94ac734e89c1b5f",
+          "licence": "MIT (BIP 39 says License: MIT; licences/BIP-0039-MIT.txt)",
+          "notes": "One character per word; a phrase may be written with or without spaces. 1,275 of its characters are the same as in the simplified list, at the same positions.",
+          "upstream_check": "2026-10-11: 7d77befd2b14359b9386fc1f9fb15f82d418fb34 is the latest commit that touched bip-0039/chinese_traditional.txt (GitHub commits API, 2014-12-16); downloaded at that commit, sha256 as recorded. The file is the same at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4."
+        },
+        {
+          "name": "monero-english",
+          "export": "MONERO_ENGLISH",
+          "format": "monero-header",
+          "what": "Monero English seed word list (1,626 words; a seed is 25 words, the last a checksum over the first three letters of the others)",
+          "path": "third_party/monero/english.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/english.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "words": 1626,
+          "unique_prefix": 3,
+          "bytes": 33172,
+          "sha256": "9bd756d29e689aae0e6e7f8b1196c4f35df350225c4668d4f6f41842f05fc2ca",
+          "licence": "BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt, the repository LICENSE at the same commit)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/english.h (GitHub commits API); downloaded at that commit. Only the quoted words of its words[] table are used.",
+          "key": "english"
+        },
+        {
+          "name": "monero-chinese-simplified",
+          "export": "MONERO_LISTS",
+          "key": "chinese_simplified",
+          "format": "monero-header",
+          "what": "Monero Chinese (simplified) seed word list (1,626 words; a seed is 25 words, the last a checksum over the first character of the others)",
+          "path": "third_party/monero/chinese_simplified.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/chinese_simplified.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 1,
+          "bytes": 26291,
+          "sha256": "4a38fbe7279616aa78aa11dbcf425d0ba5305fd2089cb4421d544f2c540d50fd",
+          "licence": "BSD-3-Clause for the file, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt), and MIT for the word list, which the file says was originally created by dabura667 (licences/Monero-wordlists-dabura667-MIT.txt)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/chinese_simplified.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used.",
+          "notes": "Its 1,626 characters are the first 1,626 of the BIP-39 Chinese (simplified) list, in the same order."
+        },
+        {
+          "name": "monero-dutch",
+          "export": "MONERO_LISTS",
+          "key": "dutch",
+          "format": "monero-header",
+          "what": "Monero Dutch seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/dutch.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/dutch.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 34414,
+          "sha256": "775d05f737f453d6798876d99961bb3bcfc49d47cb57860d3c0b2a03b9a64822",
+          "licence": "BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt, the repository LICENSE at the same commit)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/dutch.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used."
+        },
+        {
+          "name": "monero-english-old",
+          "export": "MONERO_LISTS",
+          "key": "english_old",
+          "format": "monero-header",
+          "what": "Monero English (old) seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/english_old.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/english_old.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 32389,
+          "sha256": "20c9090994c5b441f2e550cddbf266d604b64e495d9b172e45a8031e1aa5d578",
+          "licence": "BSD-3-Clause for the file, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt); the file says the word list was originally created as part of the Electrum project, Copyright (C) 2014 Thomas Voegtlin, which releases it under the MIT licence (licences/Electrum-MIT.txt)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/english_old.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used.",
+          "notes": "The word list of Electrum 1.x seeds, word for word the list in electrum/old_mnemonic.py (spesmilo/electrum at 6be5bf96a89a72ac5b553493f7db385a0519ddb5, checked 2026-10-11), which Electrum releases under the MIT licence."
+        },
+        {
+          "name": "monero-esperanto",
+          "export": "MONERO_LISTS",
+          "key": "esperanto",
+          "format": "monero-header",
+          "what": "Monero Esperanto seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/esperanto.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/esperanto.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 30916,
+          "sha256": "382d9f9bfcf293e4dc9f156042fe5a3f2a151191bae368a494eaf53c77e16043",
+          "licence": "BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt, the repository LICENSE at the same commit)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/esperanto.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used.",
+          "notes": "The file names its authors (dnaleor, Engelberg, ProkhorZ) and the dictionaries the words were chosen from; it carries the Monero Project’s licence only."
+        },
+        {
+          "name": "monero-french",
+          "export": "MONERO_LISTS",
+          "key": "french",
+          "format": "monero-header",
+          "what": "Monero French seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/french.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/french.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 30898,
+          "sha256": "f4e42ab4eb9824a2cd829f132e33dfc46ae31c5788a37c9726d393e7cc809a82",
+          "licence": "BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt, the repository LICENSE at the same commit)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/french.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used."
+        },
+        {
+          "name": "monero-german",
+          "export": "MONERO_LISTS",
+          "key": "german",
+          "format": "monero-header",
+          "what": "Monero German seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/german.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/german.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 34100,
+          "sha256": "7b910a96bc94d19eb3e4edd8179db383a68b03a7608396bbee0fdc46a7d4e88e",
+          "licence": "BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt, the repository LICENSE at the same commit)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/german.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used.",
+          "notes": "Nouns are written with a capital letter, as in German; Monero matches words without regard to case, and so does CheckLink."
+        },
+        {
+          "name": "monero-italian",
+          "export": "MONERO_LISTS",
+          "key": "italian",
+          "format": "monero-header",
+          "what": "Monero Italian seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/italian.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/italian.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 34533,
+          "sha256": "d02956b528db827646a1f6f78c1a19716b9334985cb893eb09409834a04045db",
+          "licence": "BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt, the repository LICENSE at the same commit)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/italian.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used."
+        },
+        {
+          "name": "monero-japanese",
+          "export": "MONERO_LISTS",
+          "key": "japanese",
+          "format": "monero-header",
+          "what": "Monero Japanese seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 3 letters of the others)",
+          "path": "third_party/monero/japanese.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/japanese.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 3,
+          "bytes": 42380,
+          "sha256": "3701f067006b60e95e266e7a385b472c5bddeb6f476e737eed6d3b7febefe6d5",
+          "licence": "BSD-3-Clause for the file, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt), and MIT for the word list, which the file says was originally created by dabura667 (licences/Monero-wordlists-dabura667-MIT.txt)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/japanese.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used.",
+          "notes": "Words are written in hiragana in Unicode NFC form."
+        },
+        {
+          "name": "monero-lojban",
+          "export": "MONERO_LISTS",
+          "key": "lojban",
+          "format": "monero-header",
+          "what": "Monero Lojban seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/lojban.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/lojban.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 28601,
+          "sha256": "6c84dedd2609060f30368b92b5e377207e28afcda5401b5060d57c633e623a04",
+          "licence": "BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt, the repository LICENSE at the same commit)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/lojban.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used.",
+          "notes": "Some words hold an apostrophe, which is a letter in Lojban. The file names its author (sorpaas) and its sources (the gismu and cmavo lists and a Lojban corpus); it carries the Monero Project’s licence only."
+        },
+        {
+          "name": "monero-portuguese",
+          "export": "MONERO_LISTS",
+          "key": "portuguese",
+          "format": "monero-header",
+          "what": "Monero Portuguese seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/portuguese.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/portuguese.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 36110,
+          "sha256": "0a6b191930a29f1ae827c1f5f8905548035bac5e5b41386f0978cf39e4adcfa1",
+          "licence": "BSD-3-Clause for the file, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt), and MIT for the word list, which the file says was originally created by dabura667 (licences/Monero-wordlists-dabura667-MIT.txt)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/portuguese.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used."
+        },
+        {
+          "name": "monero-russian",
+          "export": "MONERO_LISTS",
+          "key": "russian",
+          "format": "monero-header",
+          "what": "Monero Russian seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/russian.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/8e0e49b93752fec16fd89f3a3d7318a7776f623b/src/mnemonics/russian.h",
+          "commit": "8e0e49b93752fec16fd89f3a3d7318a7776f623b",
+          "commit_date": "2026-05-20",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 42516,
+          "sha256": "2d3f282d11e917fcdd6248b87002f5b982b6abaa773e9676d21886b6a50a4762",
+          "licence": "BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt, the repository LICENSE at the same commit)",
+          "upstream_check": "2026-10-11: 8e0e49b93752fec16fd89f3a3d7318a7776f623b is the latest commit on master that touched src/mnemonics/russian.h (GitHub commits API, 2026-05-20); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used.",
+          "notes": "The commit of 2026-05-20 renamed the language in the code only; the words are the same as at 341771ac3e65f88a6e78ca805f8dde2ae6ba7924."
+        },
+        {
+          "name": "monero-spanish",
+          "export": "MONERO_LISTS",
+          "key": "spanish",
+          "format": "monero-header",
+          "what": "Monero Spanish seed word list (1,626 words; a seed is 25 words, the last a checksum over the first 4 letters of the others)",
+          "path": "third_party/monero/spanish.h",
+          "source": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/spanish.h",
+          "commit": "341771ac3e65f88a6e78ca805f8dde2ae6ba7924",
+          "commit_date": "2024-05-21",
+          "words": 1626,
+          "unique_prefix": 4,
+          "bytes": 33863,
+          "sha256": "994a941260f53e066753204f4b92c20bb1d830b58e76ff89c2caa71c34d546ef",
+          "licence": "BSD-3-Clause for the file, Copyright (c) 2014-2024 The Monero Project (licences/Monero-BSD-3-Clause.txt), and MIT for the word list, which the file says was originally created by dabura667 (licences/Monero-wordlists-dabura667-MIT.txt)",
+          "upstream_check": "2026-10-11: 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 is the latest commit on master that touched src/mnemonics/spanish.h (GitHub commits API, 2024-05-21); downloaded at that commit, sha256 as recorded. The file is the same at monero-project/monero master 24272e4a3b2e812cc2a569d95b177ecef4b91e46. Only the quoted words of its words[] table and the prefix length its Base(...) call names are used."
+        },
+        {
+          "name": "slip39",
+          "export": "SLIP39_WORDS",
+          "format": "lines",
+          "what": "SLIP-39 (Shamir backup) word list (1,024 words; a share is 20 or 33 words)",
+          "path": "third_party/slip39/wordlist.txt",
+          "source": "https://raw.githubusercontent.com/trezor/python-shamir-mnemonic/bea959e3c344794dbe7c766a67e192239d4e199b/shamir_mnemonic/wordlist.txt",
+          "commit": "bea959e3c344794dbe7c766a67e192239d4e199b",
+          "words": 1024,
+          "bytes": 7231,
+          "sha256": "bcc4555340332d169718aed8bf31dd9d5248cb7da6e5d355140ef4f1e601eec3",
+          "licence": "MIT, Copyright 2019 SatoshiLabs (python-shamir-mnemonic; licences/SLIP-0039-wordlist-MIT.txt)",
+          "upstream_check": "2026-10-11: bea959e3c344794dbe7c766a67e192239d4e199b is the only commit that touched shamir_mnemonic/wordlist.txt; the file at master 17fcce14736afe498871d3018e4fa9330443471a has the same sha256, and so does satoshilabs/slips slip-0039/wordlist.txt at 1524583213f1392321109b0ff0a91330836ecb32 (that repository is CC-BY-SA-4.0, so the copy is taken from the MIT one)."
+        }
+      ],
+      "history": [
+        "2026-10-11 (stage 2 fixes): BIP-39 Spanish, Portuguese, French, Italian and Czech, Monero English and SLIP-39.",
+        "2026-10-11 (stage 4b, decision W-1): BIP-39 Japanese, Korean, Chinese (simplified) and Chinese (traditional); Monero Chinese (simplified), Dutch, English (old), Esperanto, French, German, Italian, Japanese, Lojban, Portuguese, Russian and Spanish."
+      ]
+    },
+    {
+      "id": "unicode-confusables",
+      "role": "vendored (the ASCII part compiled into src/confusables.js)",
+      "what": "Unicode's confusables.txt (UTS #39): which characters can pass for which. CheckLink keeps the characters whose prototype is plain ASCII once combining marks are taken off, for its look-alike checks (stage 3): names written in letters of another alphabet, hyphen, slash and dot look-alikes, and look-alikes of the brands in src/brands.js.",
+      "version": "18.0.0",
+      "file_date": "2026-08-06",
+      "source": "https://www.unicode.org/Public/18.0.0/security/confusables.txt",
+      "retrieved": "2026-10-11",
+      "bytes": 763128,
+      "sha256": "6ed3ee967c9dfdf6677d563c9985182fbc50a2efb7d6059cd57b2e2ce18f5b92",
+      "path": "third_party/unicode/confusables.txt",
+      "generated": "src/confusables.js",
+      "entries_total": 6712,
+      "entries_kept": 2561,
+      "licence": "Unicode-3.0 (licences/Unicode-3.0.txt; the copyright notice is repeated at the top of src/confusables.js)",
+      "upstream_check": "2026-10-11: downloaded again from the versioned address above and from https://www.unicode.org/Public/security/latest/confusables.txt; both gave these exact bytes (the same sha256 as the copy read on 2026-10-10).",
+      "notes": [
+        "The versioned path moved under /Public/18.0.0/security/; /Public/security/18.0.0/ returns 404.",
+        "The spec (section 4) estimated 1,855 entries for the ASCII subset; 2,269 entries have a target that is plain ASCII as written, and 2,561 once combining marks are taken off the target (so that, for example, the slashed o counts as o). CheckLink keeps the 2,561."
+      ]
+    },
+    {
+      "id": "inter",
+      "role": "vendored",
+      "what": "Inter typeface, web subset (38 woff2 + inter.css) in fonts/inter/, with its licence in licences/",
+      "version": "4.1",
+      "release_published": "2024-11-16T00:27:07Z",
+      "source": "https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip",
+      "source_bytes": 33707794,
+      "source_sha256": "9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b11e",
+      "licence": "OFL-1.1",
+      "licence_file_in_zip": {
+        "path": "LICENSE.txt",
+        "bytes": 4380,
+        "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a",
+        "shipped": "licences/Inter-OFL-1.1.txt"
+      },
+      "check": "All 39 files in fonts/inter/ are byte-identical to web/ in the release zip (checked 2026-10-10).",
+      "files": {
+        "fonts/inter/Inter-Black.woff2": "12ed0eed6749099b46c7b2e8198dc30c2d7e0f2a4e5fb1d12f0b6ae2c4f33cc4",
+        "fonts/inter/Inter-BlackItalic.woff2": "308e101141e9dee3b6b121614da03969eb8179886975a9eeb5348021b04368fe",
+        "fonts/inter/Inter-Bold.woff2": "fa888127b6da015b65569f0351f3b5c391ad928904951f1c20e9f8462a8d95ea",
+        "fonts/inter/Inter-BoldItalic.woff2": "4a10532d76c90c4597c0ad4bfc9284600e597d3012dd1ec16c1d44e0ad0058ab",
+        "fonts/inter/Inter-ExtraBold.woff2": "6f75025856f8db1b2186e9cb89be9de9894932c8b7b20f4df5e65916ff714e34",
+        "fonts/inter/Inter-ExtraBoldItalic.woff2": "53bb20ba292e2ac28a0777bf0f56f31b98be432a3cc04359e2eb608c758349c7",
+        "fonts/inter/Inter-ExtraLight.woff2": "ba4fc81dbb25871f1bcabc664b1e37703fca0a05f7248a923e7db497c6d211cc",
+        "fonts/inter/Inter-ExtraLightItalic.woff2": "38bad3a6a9ad1a7fcd8082e6423ba5e0baea16598f2cf304e527844f697e32b2",
+        "fonts/inter/Inter-Italic.woff2": "2d078cb3bc8f934740d53b39dd23b0678f2f97477e49ec785dd9d8acd8b96bfc",
+        "fonts/inter/Inter-Light.woff2": "e111a1e2ad914ccda9179b95e83fb10234dd52a1932e0b93c480476227983fd9",
+        "fonts/inter/Inter-LightItalic.woff2": "050265b27d11860a26c66c054210852661abb5d229c4e0bb3525757a830f3790",
+        "fonts/inter/Inter-Medium.woff2": "0ff3e94614e1493eb556314fd247ae6c4a85a7783b4cc86be539940cf83f2a48",
+        "fonts/inter/Inter-MediumItalic.woff2": "1b0df503de488a92082a8c5d72ddc4c0229183ceb645ae1c25c2d0d63778517c",
+        "fonts/inter/Inter-Regular.woff2": "e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085",
+        "fonts/inter/Inter-SemiBold.woff2": "5cb7103e4e605989afebc03d989c79201e54b21b5183db33981f70db9178a301",
+        "fonts/inter/Inter-SemiBoldItalic.woff2": "5e2a2bc3b5b9af0644f005693b10499dab18065d6aedbf46c8b74ccede27daeb",
+        "fonts/inter/Inter-Thin.woff2": "70ca998635d9fc627dede8108f04d0989e6e03346183f0ad0917723e790f6973",
+        "fonts/inter/Inter-ThinItalic.woff2": "930d666b74e0dc0c26c2821f5643b701f8a41beaf3bb95ce146298104f29169c",
+        "fonts/inter/InterDisplay-Black.woff2": "05650cb83c70fda2a465eade0c0a1a6c25d37ec49df3cd74b7e564683f9729f1",
+        "fonts/inter/InterDisplay-BlackItalic.woff2": "9746bf2bd43fe158144b83ede747088e80396daad55b9e6ea7232e0e22ee6fce",
+        "fonts/inter/InterDisplay-Bold.woff2": "23bc37619593377e128f24660fedb2869d18277b4026cb46e5637be7643faf91",
+        "fonts/inter/InterDisplay-BoldItalic.woff2": "5a0fe1f01b8777fab4a5f73c757743fa52579c7723b0291777625cb53c0a792a",
+        "fonts/inter/InterDisplay-ExtraBold.woff2": "97eeee5a6f4f22fef1f607cf8836104d65968f03e59bc068a7586bf18364a8a7",
+        "fonts/inter/InterDisplay-ExtraBoldItalic.woff2": "159b72ba47887032915420aa1445ae6768197e7ea732230182998f14d1cdb932",
+        "fonts/inter/InterDisplay-ExtraLight.woff2": "9031b6d2a1a559753d50b311ecb463ddf7acaaae1d992a7e9b009620d8ce6def",
+        "fonts/inter/InterDisplay-ExtraLightItalic.woff2": "e8d7078160ef92b82c2123857c1b3aefaa4a795a44b56df5fe3edade60d81576",
+        "fonts/inter/InterDisplay-Italic.woff2": "dfd398d7372b61278e1505bfbdfc5ab0f6511ef887a47a2c90c13475eae585da",
+        "fonts/inter/InterDisplay-Light.woff2": "01dd2d491ed863177e61f6e9458813baa85453ad97b32c5c1216927d4eebfe65",
+        "fonts/inter/InterDisplay-LightItalic.woff2": "59b5be56306fd353d067aa6995c2c92bc3feb3ace73684d94e3c6e73fe2beaac",
+        "fonts/inter/InterDisplay-Medium.woff2": "f1227907684853882ad00d7f97ce9f64bc17b89a2a291a7d4ec84fccfa442934",
+        "fonts/inter/InterDisplay-MediumItalic.woff2": "6bf254c1a65c806c019f52818add66747da83595a314112917911bcf5fa2f5c5",
+        "fonts/inter/InterDisplay-Regular.woff2": "3a9463a58c3e7ba1e3cd65b5dbff91a35c508ff78a104cd1121feff83efeb787",
+        "fonts/inter/InterDisplay-SemiBold.woff2": "d9f63a82b826fb0117c92715c3a52a2d2247bc321bc39341420bf52d91e8277a",
+        "fonts/inter/InterDisplay-SemiBoldItalic.woff2": "dd9d78314bdd5062302a73c7e2954008bab8158304fa7ac4f0ea8977b841dccb",
+        "fonts/inter/InterDisplay-Thin.woff2": "21cfe42e7f1031b410e247ed199f43fc362415af81b3a8e442a97f63b4dbe327",
+        "fonts/inter/InterDisplay-ThinItalic.woff2": "eff21589eacf1f6a596191038d7b47b4dd2455a096b175bb3572ecb6d026a611",
+        "fonts/inter/InterVariable-Italic.woff2": "e564f652916db6c139570fefb9524a77c4d48f30c92928de9db19b6b5c7a262a",
+        "fonts/inter/InterVariable.woff2": "693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3",
+        "fonts/inter/inter.css": "868d674eb57814ea39415af15132b4077ccdc081b1c8e15cf31e652e12bf3cc9"
+      }
+    }
+  ],
+  "licence_files": [
+    {
+      "path": "licences/zxing-wasm-MIT.txt",
+      "covers": "zxing-wasm (wrapper, JavaScript glue)",
+      "licence": "MIT",
+      "from": "package/LICENSE in zxing-wasm-3.1.4.tgz (unchanged)",
+      "sha256": "fb506e4ade12d7a9efa67c9d76a9a28c8e15d347ca49a69e48e29b40b34ad2ab"
+    },
+    {
+      "path": "licences/zxing-cpp-Apache-2.0.txt",
+      "covers": "zxing-cpp and the zxing-wasm C++ binding (src/cpp/LICENSE is the same Apache-2.0 text)",
+      "licence": "Apache-2.0",
+      "from": "https://raw.githubusercontent.com/zxing-cpp/zxing-cpp/0b2d9a8fc81f420f369928c24331091ff0525976/LICENSE (unchanged)",
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+    },
+    {
+      "path": "licences/libzueci-BSD-3-Clause.txt",
+      "covers": "libzueci inside zxing-cpp",
+      "licence": "BSD-3-Clause",
+      "from": "standard BSD-3-Clause text with the copyright line of core/src/libzueci/zueci.h at zxing-cpp 0b2d9a8f (zueci.h sha256 1239d7c775caf1b2ad707633d7908fcfdb5b4ddeb2ad83e48ebed27154733cfd), which states SPDX BSD-3-Clause",
+      "sha256": "321d5fcf7ebe58a4126fde7ccad8d91067c04e7d6cd1b4747c4bdefd556b06e8"
+    },
+    {
+      "path": "licences/stb_image-MIT-or-Unlicense.txt",
+      "covers": "stb_image inside the .wasm",
+      "licence": "MIT OR Unlicense",
+      "from": "licence block of https://raw.githubusercontent.com/nothings/stb/master/stb_image.h at 013ac3beddff3dbffafd5177e7972067cd2b5083 (file sha256 594c2fe35d49488b4382dbfaec8f98366defca819d916ac95becf3e75f4200b3), with a two-line header",
+      "sha256": "003241f11be5037a1e69ef45cbdf097cdaecacc959f50d24b6cd41a11eeea7fb"
+    },
+    {
+      "path": "licences/Emscripten-MIT-or-NCSA.txt",
+      "covers": "Emscripten runtime and glue code",
+      "licence": "MIT OR NCSA",
+      "from": "https://raw.githubusercontent.com/emscripten-core/emscripten/9d21a55cd13c18299f18d8c3dc5a1cf165f64185/LICENSE (unchanged)",
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "licences/musl-MIT.txt",
+      "covers": "musl libc as built into Emscripten",
+      "licence": "MIT",
+      "from": "https://raw.githubusercontent.com/emscripten-core/emscripten/4bf5fb7a35c38935d20c6f8a7e3a3f1153932758/system/lib/libc/musl/COPYRIGHT (unchanged)",
+      "sha256": "b870108ec5e7790e9f9919064f1b9421d62d5f9b0e6c230c6adf7ea2da62e97b"
+    },
+    {
+      "path": "licences/LLVM-Apache-2.0-with-LLVM-exception.txt",
+      "covers": "LLVM libc++, libc++abi and compiler-rt as built into Emscripten",
+      "licence": "Apache-2.0 WITH LLVM-exception",
+      "from": "https://raw.githubusercontent.com/llvm/llvm-project/main/libcxx/LICENSE.TXT at 4a1b95bda0c444798a5240fe924dd127b776d12d (unchanged)",
+      "sha256": "539dd7aed86e8a4f12cbdd0e6c50c189c7d74847e4fecc64ce2c6ee3a01da38b"
+    },
+    {
+      "path": "licences/Public-Suffix-List-MPL-2.0.txt",
+      "covers": "Public Suffix List (src/psl.js)",
+      "licence": "MPL-2.0",
+      "from": "https://www.mozilla.org/media/MPL/2.0/index.txt (unchanged)",
+      "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04"
+    },
+    {
+      "path": "licences/BIP-0039-MIT.txt",
+      "covers": "BIP-39 English word list (src/bip39.js)",
+      "licence": "MIT",
+      "from": "written for CheckLink: the MIT text, naming the BIP 39 authors",
+      "sha256": "a0695461c40358839020e77b84ba51b2cf893f0738ae85c217a325313dd78939"
+    },
+    {
+      "path": "licences/Inter-OFL-1.1.txt",
+      "covers": "Inter typeface (fonts/inter/)",
+      "licence": "OFL-1.1",
+      "from": "LICENSE.txt in https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip (unchanged)",
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    },
+    {
+      "path": "licences/Monero-BSD-3-Clause.txt",
+      "covers": "the Monero English seed word list (third_party/monero/english.h, compiled into src/wordlists.js)",
+      "licence": "BSD-3-Clause",
+      "from": "https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/LICENSE (unchanged)",
+      "sha256": "1f99d6b6e1ae17de27147ff2e1e0238fa8c7d5a8accd0f1ac062c89365516abd"
+    },
+    {
+      "path": "licences/SLIP-0039-wordlist-MIT.txt",
+      "covers": "the SLIP-39 word list (third_party/slip39/wordlist.txt, compiled into src/wordlists.js)",
+      "licence": "MIT",
+      "from": "https://raw.githubusercontent.com/trezor/python-shamir-mnemonic/623b43e3714e31a0b9f142c1a9b6d9a084588987/LICENSE (unchanged; the latest commit that touched it)",
+      "sha256": "332f92f7f90a1c957b473b902a5daf39ad5eb179d8828e0304b4c40faa0123c0"
+    },
+    {
+      "path": "licences/Unicode-3.0.txt",
+      "covers": "Unicode's confusables.txt (third_party/unicode/confusables.txt, compiled into src/confusables.js)",
+      "licence": "Unicode-3.0",
+      "from": "https://www.unicode.org/license.txt (unchanged, retrieved 2026-10-11); confusables.txt points to https://www.unicode.org/terms_of_use.html, which names this licence for the data files",
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    {
+      "path": "licences/Monero-wordlists-dabura667-MIT.txt",
+      "covers": "the Monero word lists in Chinese (simplified), Japanese, Portuguese and Spanish (src/wordlists.js)",
+      "licence": "MIT",
+      "from": "the MIT notice in the header of src/mnemonics/chinese_simplified.h, japanese.h, portuguese.h and spanish.h at monero-project/monero 341771ac3e65f88a6e78ca805f8dde2ae6ba7924 (the same text in all four), without the comment markers, with a nine-line header",
+      "sha256": "800b889c3c2ebcc1372023749b49afd88b4ab8fcb2a4e2e97b2bae86ab17d4d4"
+    },
+    {
+      "path": "licences/Electrum-MIT.txt",
+      "covers": "the Monero English (old) word list, which comes from Electrum (src/wordlists.js)",
+      "licence": "MIT",
+      "from": "https://raw.githubusercontent.com/spesmilo/electrum/d18496c5635f5fa2875b9f3022f3bea5baf27e1a/LICENCE (unchanged; the last commit that touched it, 2024-02-21; the same at 6be5bf96a89a72ac5b553493f7db385a0519ddb5)",
+      "sha256": "fae9c8f29c1493f99de4cd7d4407ff6006e919833e9a8c191b355750ec08a349"
+    },
+    {
+      "path": "licences/QR-Code-generator-MIT.txt",
+      "covers": "Nayuki's QR Code generator (vendor/qrcodegen-8329a71/qrcodegen.js), stage 4b",
+      "licence": "MIT",
+      "from": "the MIT notice in the header of typescript-javascript/qrcodegen.ts at nayuki/QR-Code-generator 8329a7108fc22be3e1eec0a9f9318978579e3621, without the comment markers, with a seven-line header (the repository has no LICENSE file)",
+      "sha256": "9a55b0e5028261a86423550a01dab080b9e59c5855b9679c9ac3f2026c3ccee0"
+    }
+  ],
+  "planned": [],
+  "derived": [
+    {
+      "id": "provider-rules",
+      "role": "derived (Stormberry-written verified table, MIT)",
+      "path": "rules/provider-rules.json",
+      "version": "1.0.0",
+      "date": "2026-10-10",
+      "sha256": "fe2ab653743a3ce5c27281510fccaba445c559bf39df11f850a3eb9d2b887dbe",
+      "inputs": "rule_sources below (seed, checked-against and facts-only); every rule names its own sources"
+    },
+    {
+      "id": "extra-rules",
+      "role": "derived (Stormberry-written additions, MIT)",
+      "path": "rules/extra-rules.json",
+      "version": "1.8.1",
+      "date": "2026-10-12",
+      "notes": [
+        "Changes with every rule edit; node tools/build-rules.mjs --check, not this lock, guards src/rules.js against it.",
+        "1.6.1 (2026-10-11): suffix_deny removed; the Public Suffix List decides suffixes instead.",
+        "1.7.0 (2026-10-11): the online check of 10 October 2026 recorded in the rules: the six reviewer wrappers and the AMP, YouTube, Google Maps, Pinterest and TikTok names marked verified with how they were checked; Teams Safe Links on teams.public.onecdn.static.microsoft; amp_ct, csi (next to aoh, amp_tf or ampshare only), amp_r, amp_kit and Pinterest sender_id added; si on youtubekids.com kept as unverified (by extension); q-r.to and l.ead.me added as QR Code Generator dynamic codes.",
+        "1.8.0 (2026-10-11, stage 4b, decision IG-1): every instagram.com rule also applies to instagr.am, by extension, not checked online: the 16 instagram.com parameter rules of provider-rules.json copied for instagr.am (verified false) and instagr.am and www.instagr.am added to the instagram-post canonical-page rule.",
+        "1.8.1 (2026-10-12, stage 4b review findings S3 and SC-5): the searxng-search rule no longer names any instance by its host (a private instance's LAN, onion and gated names were in it), and its basis no longer says whose instance the live query ran on. SearXNG pages are recognised by the values only SearXNG writes, on every host; the 64 research test links clean exactly as researched."
+      ]
+    }
+  ],
+  "rule_sources": [
+    {
+      "id": "chadwick",
+      "role": "seed",
+      "use": "Seed list of tracking parameter names",
+      "repo": "https://github.com/mpchadwick/tracking-query-params-registry",
+      "path": "_data/params.csv",
+      "branch_read": "master",
+      "commit": "d61355e318f4c4f3650b3c42d8145ba2e68be12d",
+      "commit_date": "2026-06-08T14:34:40Z",
+      "raw_url": "https://raw.githubusercontent.com/mpchadwick/tracking-query-params-registry/d61355e318f4c4f3650b3c42d8145ba2e68be12d/_data/params.csv",
+      "retrieved": "2026-10-10",
+      "bytes": 12488,
+      "sha256": "c5d4695cc637a96f91737658bb222e7c6d3e7368fac764244eda36bb8f7e10ae",
+      "licence": "Unlicense",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "brave-clean-urls",
+      "role": "checked-against",
+      "use": "Parameter names and hosts",
+      "repo": "https://github.com/brave/adblock-lists",
+      "path": "brave-lists/clean-urls.json",
+      "branch_read": "master",
+      "commit": "e1e9c38a8e1a5d5831ccfd9622f60ae37297219b",
+      "commit_date": "2026-10-07T10:43:42Z",
+      "raw_url": "https://raw.githubusercontent.com/brave/adblock-lists/e1e9c38a8e1a5d5831ccfd9622f60ae37297219b/brave-lists/clean-urls.json",
+      "retrieved": "2026-10-10",
+      "bytes": 30763,
+      "sha256": "c2664e019673f58dbefed33ed32f355dd5c8a781e395059918d87020a9e4dc05",
+      "licence": "MPL-2.0",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "brave-query-filter",
+      "role": "checked-against",
+      "use": "Parameter names",
+      "repo": "https://github.com/brave/adblock-lists",
+      "path": "brave-lists/query-filter.json",
+      "branch_read": "master",
+      "commit": "efd4d88c359c244352de15d19e7aa3d7fbfd8937",
+      "commit_date": "2026-09-29T16:17:21Z",
+      "raw_url": "https://raw.githubusercontent.com/brave/adblock-lists/efd4d88c359c244352de15d19e7aa3d7fbfd8937/brave-lists/query-filter.json",
+      "retrieved": "2026-10-10",
+      "bytes": 2416,
+      "sha256": "c16168bb98ea4a615c178a71da6c6e9463114e24a59101c1caef80942735940e",
+      "licence": "MPL-2.0",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "brave-debounce",
+      "role": "checked-against",
+      "use": "Redirect wrapper formats",
+      "repo": "https://github.com/brave/adblock-lists",
+      "path": "brave-lists/debounce.json",
+      "branch_read": "master",
+      "commit": "a28ed4807b1f92026c996b83b32c0c0f634a467e",
+      "commit_date": "2026-08-15T01:03:25Z",
+      "raw_url": "https://raw.githubusercontent.com/brave/adblock-lists/a28ed4807b1f92026c996b83b32c0c0f634a467e/brave-lists/debounce.json",
+      "retrieved": "2026-10-10",
+      "bytes": 12930,
+      "sha256": "fb2396985a78983c8f88ee701100c5cb4681731239ac6624e86da1212645dbf8",
+      "licence": "MPL-2.0",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "brave-core-query-filter-utils",
+      "role": "checked-against",
+      "use": "Brave built-in query filter (source code)",
+      "repo": "https://github.com/brave/brave-core",
+      "path": "components/query_filter/browser/utils.cc",
+      "branch_read": "master",
+      "commit": "04d22c890676332d280dcb3f86d12905577f1480",
+      "commit_date": "2026-07-28T00:18:19Z",
+      "raw_url": "https://raw.githubusercontent.com/brave/brave-core/04d22c890676332d280dcb3f86d12905577f1480/components/query_filter/browser/utils.cc",
+      "retrieved": "2026-10-10",
+      "bytes": 6789,
+      "sha256": "f98bed509956acc1c175aa507e1eb3ccee6f4886952c7377b5716729ea803a6c",
+      "licence": "MPL-2.0",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "firefox-strip-on-share-mpl2",
+      "role": "checked-against",
+      "use": "Firefox Strip on Share list (MPL2 part)",
+      "repo": "https://github.com/mozilla-firefox/firefox",
+      "path": "toolkit/components/antitracking/StripOnShareLists/MPL2/StripOnShare.json",
+      "branch_read": "main",
+      "commit": "50efa76fae2508f6254412cda26def5b91ea2ce8",
+      "commit_date": "2026-09-22T10:07:58Z",
+      "raw_url": "https://raw.githubusercontent.com/mozilla-firefox/firefox/50efa76fae2508f6254412cda26def5b91ea2ce8/toolkit/components/antitracking/StripOnShareLists/MPL2/StripOnShare.json",
+      "retrieved": "2026-10-10",
+      "bytes": 7297,
+      "sha256": "1300235f099b0bc1d9d5aa6475d8907c7ecfa0067b4df931fa888d0e26c39706",
+      "licence": "MPL-2.0",
+      "upstream_changed_since_pin": false,
+      "notes": "Matched by git blob hash by hand (the commit search in the script timed out on this repository)."
+    },
+    {
+      "id": "firefox-strip-on-share-lgpl",
+      "role": "facts-only",
+      "use": "Firefox Strip on Share list (LGPL part, from ClearURLs)",
+      "repo": "https://github.com/mozilla-firefox/firefox",
+      "path": "toolkit/components/antitracking/StripOnShareLists/LGPL/StripOnShareLGPL.json",
+      "branch_read": "main",
+      "commit": "018fbb59dab37c8b521d1dbd33279dedcebcab32",
+      "commit_date": "2026-08-31T07:15:39Z",
+      "raw_url": "https://raw.githubusercontent.com/mozilla-firefox/firefox/018fbb59dab37c8b521d1dbd33279dedcebcab32/toolkit/components/antitracking/StripOnShareLists/LGPL/StripOnShareLGPL.json",
+      "retrieved": "2026-10-10",
+      "bytes": 12425,
+      "sha256": "7b54e8c3d32cf4043fdef26bfd9fcb4fd7d6dbe522937a7e61a058bbc6677e0c",
+      "licence": "LGPL-3.0",
+      "upstream_changed_since_pin": false,
+      "notes": "The copy read on 2026-10-10 was re-serialised (11,399 bytes, sha256 9ef8fa826f8f9f0a1eb73d404af39d6e1f21d30157110acef95350baa3896d2b); it is JSON-equal to this commit. sha256 here is of the upstream file."
+    },
+    {
+      "id": "firefox-query-stripping",
+      "role": "checked-against",
+      "use": "Firefox query stripping records",
+      "source": "https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/query-stripping/records",
+      "retrieved": "2026-10-10",
+      "records": 3,
+      "last_modified": "2023-09-14T11:10:43.914Z",
+      "bytes": 642,
+      "sha256": "70614f1da0d2e500623abc62aad07b388c45f67f7bb1fec5862b24e605472f74",
+      "licence": "not stated (Mozilla Remote Settings data); facts only"
+    },
+    {
+      "id": "duckduckgo-tracking-parameters",
+      "role": "checked-against",
+      "use": "DuckDuckGo tracking parameters",
+      "repo": "https://github.com/duckduckgo/privacy-configuration",
+      "path": "features/tracking-parameters.json",
+      "branch_read": "main",
+      "commit": "03358d9a887e221f46f97159646a85775854f970",
+      "commit_date": "2026-02-20T21:07:54Z",
+      "raw_url": "https://raw.githubusercontent.com/duckduckgo/privacy-configuration/03358d9a887e221f46f97159646a85775854f970/features/tracking-parameters.json",
+      "retrieved": "2026-10-10",
+      "bytes": 1573,
+      "sha256": "c778f989ae8149c7508c6db69fc0a545aef05088312a2740af12cdaed5717a7e",
+      "licence": "Apache-2.0",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "adguard-trackparam-general",
+      "role": "facts-only",
+      "use": "AdGuard URL Tracking filter source, general section",
+      "repo": "https://github.com/AdguardTeam/AdguardFilters",
+      "path": "TrackParamFilter/sections/general_url.txt",
+      "branch_read": "master",
+      "commit": "f8123736ecf764f8509c89070b4709486cd5bca7",
+      "commit_date": "2026-10-08T09:54:41Z",
+      "raw_url": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/f8123736ecf764f8509c89070b4709486cd5bca7/TrackParamFilter/sections/general_url.txt",
+      "retrieved": "2026-10-10",
+      "bytes": 21166,
+      "sha256": "e76397b5a5c17ee0ee03e478c2fc797ba3877b69189db52923268ddf899f0ea0",
+      "licence": "GPL-3.0",
+      "upstream_changed_since_pin": true
+    },
+    {
+      "id": "adguard-trackparam-specific",
+      "role": "facts-only",
+      "use": "AdGuard URL Tracking filter source, site section",
+      "repo": "https://github.com/AdguardTeam/AdguardFilters",
+      "path": "TrackParamFilter/sections/specific.txt",
+      "branch_read": "master",
+      "commit": "41117eec69f5b2caeef25d15def40ba3970a1c98",
+      "commit_date": "2026-10-08T05:20:14Z",
+      "raw_url": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/41117eec69f5b2caeef25d15def40ba3970a1c98/TrackParamFilter/sections/specific.txt",
+      "retrieved": "2026-10-10",
+      "bytes": 150444,
+      "sha256": "bb7ae8ffd3261f381c5d3bfd68ac591d4c6de3d12c34ada55b1e0e0c1de528a1",
+      "licence": "GPL-3.0",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "adguard-trackparam-allowlist",
+      "role": "facts-only",
+      "use": "AdGuard URL Tracking filter source, allow list",
+      "repo": "https://github.com/AdguardTeam/AdguardFilters",
+      "path": "TrackParamFilter/sections/allowlist.txt",
+      "branch_read": "master",
+      "commit": "1e58adfc86cc083cb1271827e107b1cd49a12edf",
+      "commit_date": "2026-10-09T08:38:43Z",
+      "raw_url": "https://raw.githubusercontent.com/AdguardTeam/AdguardFilters/1e58adfc86cc083cb1271827e107b1cd49a12edf/TrackParamFilter/sections/allowlist.txt",
+      "retrieved": "2026-10-10",
+      "bytes": 12117,
+      "sha256": "b96686204247598f789b2b8a279aba89ed44f625308183a012f6a1034f1686b6",
+      "licence": "GPL-3.0",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "adguard-filter-17-compiled",
+      "role": "facts-only",
+      "use": "AdGuard URL Tracking filter, compiled (filter 17)",
+      "repo": "https://github.com/AdguardTeam/FiltersRegistry",
+      "path": "filters/filter_17_TrackParam/filter.txt",
+      "branch_read": "master",
+      "commit": "2dfd148b4f39cf5096848b06f1678922dee2f3e9",
+      "commit_date": "2026-10-09T09:14:15Z",
+      "raw_url": "https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/2dfd148b4f39cf5096848b06f1678922dee2f3e9/filters/filter_17_TrackParam/filter.txt",
+      "retrieved": "2026-10-10",
+      "bytes": 188690,
+      "sha256": "6e4eaaa569c32d528694db3f291c1ea7e143d590df114d7d49f96acb42d11a08",
+      "licence": "GPL-3.0",
+      "upstream_changed_since_pin": true,
+      "notes": "The FiltersRegistry copy (188,690 bytes) matched this commit by blob hash. A second copy read the same day was AdGuard's distributed platform build, header Version 2.0.14.66, TimeUpdated 2026-10-09T09:09:30+00:00 (183,645 bytes, sha256 31cae22ba3d2c6e94d2406913a8f08e721003ac6cd44da890a287bf88e1946df). Licence per its header link: AdguardFilters LICENSE (GPL-3.0); the FiltersRegistry repository itself is LGPL-3.0."
+    },
+    {
+      "id": "ubo-privacy-removeparam",
+      "role": "facts-only",
+      "use": "uBlock Origin privacy removeparam list",
+      "repo": "https://github.com/uBlockOrigin/uAssets",
+      "path": "filters/privacy-removeparam.txt",
+      "branch_read": "master",
+      "commit": "b32e456e70969facd8401fe411b17a99dea4bb65",
+      "commit_date": "2026-10-06T14:24:43Z",
+      "raw_url": "https://raw.githubusercontent.com/uBlockOrigin/uAssets/b32e456e70969facd8401fe411b17a99dea4bb65/filters/privacy-removeparam.txt",
+      "retrieved": "2026-10-10",
+      "bytes": 178567,
+      "sha256": "0f6aa811a786f03bbe883619e26787e45371d76207215d53b6108f382910e25e",
+      "licence": "GPL-3.0",
+      "upstream_changed_since_pin": true
+    },
+    {
+      "id": "clearurls-data-min",
+      "role": "facts-only",
+      "use": "ClearURLs rules",
+      "repo": "https://github.com/ClearURLs/Rules",
+      "path": "data.min.json",
+      "branch_read": "master",
+      "commit": "11086f40512774dcadef54079f1ba023bfacf940",
+      "commit_date": "2026-03-25T14:06:24Z",
+      "raw_url": "https://raw.githubusercontent.com/ClearURLs/Rules/11086f40512774dcadef54079f1ba023bfacf940/data.min.json",
+      "retrieved": "2026-10-10",
+      "bytes": 106070,
+      "sha256": "b328d2a5b95b1b23bac2c91342a8deee3f9a3826a5950bf9e28e332ffd94cd2f",
+      "licence": "LGPL-3.0",
+      "upstream_changed_since_pin": false,
+      "also_read": {
+        "source": "https://rules2.clearurls.xyz/data.minify.json",
+        "bytes": 37176,
+        "sha256": "df97eb5c1aeeb9f96d0c28a6a60604f3cb2b1f9e7776eee228258e1b2bae1424",
+        "published_hash_file_matches": true,
+        "notes": "The 37,176-byte minified copy the ClearURLs add-on downloads. On 2026-10-10 rules1 and rules2.clearurls.xyz served these exact bytes, and the published rules.minify.hash equals this sha256."
+      }
+    },
+    {
+      "id": "dandelionsprout-lus",
+      "role": "facts-only",
+      "use": "Legitimate URL Shortener",
+      "repo": "https://github.com/DandelionSprout/adfilt",
+      "path": "LegitimateURLShortener.txt",
+      "branch_read": "master",
+      "commit": "536037b1d1a7229993b17a9e9ed8e346053e8a24",
+      "commit_date": "2026-10-08T19:48:02Z",
+      "raw_url": "https://raw.githubusercontent.com/DandelionSprout/adfilt/536037b1d1a7229993b17a9e9ed8e346053e8a24/LegitimateURLShortener.txt",
+      "retrieved": "2026-10-10",
+      "bytes": 303299,
+      "sha256": "f4b2588ac065807eb64a2553af3225640b18b7becbb761d68f734c7537188dd5",
+      "licence": "Dandelicence-1.4 (custom, LicenseRef)",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "dandelionsprout-lus-affiliate",
+      "role": "facts-only",
+      "use": "LUS affiliate tag allow list",
+      "repo": "https://github.com/DandelionSprout/adfilt",
+      "path": "LegitimateURLShortener-AffiliateTagAllowlist.txt",
+      "branch_read": "master",
+      "commit": "f5cbe5bc91a918d001377ac7f15bdfd421f8bfd2",
+      "commit_date": "2026-06-20T18:42:43Z",
+      "raw_url": "https://raw.githubusercontent.com/DandelionSprout/adfilt/f5cbe5bc91a918d001377ac7f15bdfd421f8bfd2/LegitimateURLShortener-AffiliateTagAllowlist.txt",
+      "retrieved": "2026-10-10",
+      "bytes": 2698,
+      "sha256": "787929caef9fadf396588eee79841a52fc21e07540d3c6e5d8635b71541471fb",
+      "licence": "Dandelicence-1.4 (custom, LicenseRef)",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "neat-url",
+      "role": "facts-only",
+      "use": "Neat URL default parameters",
+      "repo": "https://github.com/Smile4ever/Neat-URL",
+      "path": "data/default-params-by-category.json",
+      "branch_read": "master",
+      "commit": "08b87d5cd3f8497d5cfa0d21743beb6bd2605cfa",
+      "commit_date": "2022-02-20T02:26:02Z",
+      "raw_url": "https://raw.githubusercontent.com/Smile4ever/Neat-URL/08b87d5cd3f8497d5cfa0d21743beb6bd2605cfa/data/default-params-by-category.json",
+      "retrieved": "2026-10-10",
+      "bytes": 5883,
+      "sha256": "101da41ede730cf28900c63372f5e4a23a3552f245dde04cb752cb51bf9370b9",
+      "licence": "GPL-2.0-or-later",
+      "upstream_changed_since_pin": false
+    },
+    {
+      "id": "tidy-url-rules",
+      "role": "facts-only",
+      "use": "Tidy URL rules",
+      "repo": "https://github.com/DrKain/tidy-url",
+      "path": "data/rules.js",
+      "branch_read": "main",
+      "commit": "234e706d71ec5485875f5fb876d191a65a298d0c",
+      "commit_date": "2024-06-14T14:52:08Z",
+      "raw_url": "https://raw.githubusercontent.com/DrKain/tidy-url/234e706d71ec5485875f5fb876d191a65a298d0c/data/rules.js",
+      "retrieved": "2026-10-10",
+      "bytes": 39118,
+      "sha256": "731a32a8baa13a543307153bffbfeaea4f90699fa5c26e1fa0592f547c022c3f",
+      "licence": "MIT",
+      "upstream_changed_since_pin": false,
+      "notes": "provider-rules.json also cites tidy-url src/handlers.ts through jsDelivr at @master (unpinned); pin it at the next report run."
+    },
+    {
+      "id": "url-shorteners-list",
+      "role": "facts-only",
+      "use": "Short-link domain list (cross-check for short_links)",
+      "repo": "https://github.com/PeterDaveHello/url-shorteners",
+      "path": "list",
+      "branch_read": "master",
+      "commit": "c0993928ba85b252a89640774e58467249d0ab74",
+      "commit_date": "2026-09-06T15:56:55Z",
+      "raw_url": "https://raw.githubusercontent.com/PeterDaveHello/url-shorteners/c0993928ba85b252a89640774e58467249d0ab74/list",
+      "retrieved": "2026-10-10",
+      "bytes": 13105,
+      "sha256": "60db5c2034b8fff20b0ca49054beae17488bac6348ce51922621f2d97cd12215",
+      "licence": "CC-BY-SA-4.0",
+      "upstream_changed_since_pin": false
+    }
+  ],
+  "search_research_sources": [
+    {
+      "id": "chromium-search-engines-data",
+      "role": "facts-only",
+      "repo": "https://chromium.googlesource.com/external/search_engines_data",
+      "path": "definitions/prepopulated_engines.json",
+      "commit": "effde84e73491653b245b68ac65835ad2fc4e1de",
+      "commit_date": "2026-09-16T10:11:15Z",
+      "retrieved": "2026-10-10",
+      "bytes": 46045,
+      "sha256": "984e514a23c648a1d38afe73bc83898ebba453d5d61ef0cd79bb96a42f031a3a",
+      "licence": "BSD-3-Clause",
+      "notes": "Moved out of chromium/src components/search_engines; the research cites this repository. Matched: refs/heads/main on 2026-10-10 equals the copy read that day."
+    },
+    {
+      "id": "firefox-search-config-v2",
+      "role": "facts-only",
+      "source": "https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/search-config-v2/records",
+      "retrieved": "2026-10-10",
+      "records": 158,
+      "collection_timestamp": "2026-09-29T17:34:02.032Z",
+      "bytes": 207707,
+      "sha256": "df783b6ad41fd1a167600a194d1fa22a120dde4d0d895117804e13bbeb9afa5a",
+      "licence": "not stated (Mozilla Remote Settings data); facts only"
+    },
+    {
+      "id": "searxng-engines",
+      "role": "facts-only",
+      "repo": "https://github.com/searxng/searxng",
+      "commit": "f4822b3fc46726bb259d14c6332b702c76b98f82",
+      "commit_date": "2026-10-09T18:59:16Z",
+      "licence": "AGPL-3.0",
+      "files_sha256": {
+        "searx/engines/startpage.py": "9bbab15c0dac60d0c63f8284318478f2ac9d93159d813ad4e899212676731a47",
+        "searx/engines/duckduckgo.py": "6fd40c78b09f52a7c7ea58e25c3e974c1b182502a877406eaac1654ff33f9262",
+        "searx/engines/duckduckgo_extra.py": "d06693e3facee4e62e5e95d221ce674d62e85c690b5780ef9817a559f1b248ca",
+        "searx/engines/mojeek.py": "fdd6042b6c3530d81cf7ea735961688b954e2d06aa867f087d0284535fe2b60a",
+        "searx/engines/brave.py": "c97df7e5205d1707ce0fcbc001303008c33412ef65dcb2a000ae09264520cb71"
+      },
+      "notes": "The research cites these files at this commit; other SearXNG files are cited at master and should be pinned at the next report run."
+    }
+  ],
+  "search_research_files": {
+    "what": "The JSON summaries of the search-engine research of 10 October 2026 behind the search-engine rules in rules/extra-rules.json (canonical rules google-search to searxng-search, cited by file name in each rule's basis), copied into rules/research/ on 2026-10-11 (decision R-1). The downloaded sources they cite (173 MB) stay in the archive ~/work/checklink-archive-20261011/search-engines/ on the Dell, outside the repository; search_research_sources above records the ones the rules cite. Not shipped: rules/ is not published with the website (_config.yml) and is not in the app.",
+    "checked": "2026-10-11: before the copy, every file was searched for names, e-mail addresses, keys and tokens, local paths, LAN addresses and private host names. What was found was taken out (redactions, per file); the rest is byte for byte the archive copy. source_sha256 is the archive file, sha256 the copy in this repository. node tools/vendor.mjs --check proves the copies are unchanged.",
+    "files": [
+      {
+        "path": "rules/research/mainstream.verified.json",
+        "from": "~/work/checklink-archive-20261011/search-engines/mainstream.verified.json",
+        "source_bytes": 74360,
+        "source_sha256": "f1dacb1654fa7efd8ee5cdd129e592c42faba07de9a0448029dfd0a12f727eea",
+        "bytes": 74360,
+        "sha256": "f1dacb1654fa7efd8ee5cdd129e592c42faba07de9a0448029dfd0a12f727eea",
+        "redactions": []
+      },
+      {
+        "path": "rules/research/google-bing-yahoo-yandex.json",
+        "from": "~/work/checklink-archive-20261011/search-engines/google-bing-yahoo-yandex.json",
+        "source_bytes": 67242,
+        "source_sha256": "df9431d69f135e0f061d2018e8ed13f558f168bb6f3c933e143451a88f4194f8",
+        "bytes": 67254,
+        "sha256": "9eb3fac2a7256598bfba24bcf9a7cf88ce538faf2a54b317f8709e049bff96b7",
+        "redactions": [
+          {
+            "count": 4,
+            "what": "a name"
+          }
+        ]
+      },
+      {
+        "path": "rules/research/privacy.verified.json",
+        "from": "~/work/checklink-archive-20261011/search-engines/privacy.verified.json",
+        "source_bytes": 57171,
+        "source_sha256": "94bc3422abfc5980224068f1223a521cb3e481418ab51b9f808bd42097a74cc7",
+        "bytes": 57169,
+        "sha256": "9a0f89a20da85de34325cf313771bdc61d4976cf430e0dd4057e01caca2396bc",
+        "redactions": [
+          {
+            "count": 2,
+            "what": "a name"
+          },
+          {
+            "count": 1,
+            "what": "the VPN provider of the network the checks ran from"
+          }
+        ]
+      },
+      {
+        "path": "rules/research/ddg-brave-startpage-mojeek.json",
+        "from": "~/work/checklink-archive-20261011/search-engines/ddg-brave-startpage-mojeek.json",
+        "source_bytes": 52815,
+        "source_sha256": "966578820492c8f307d8f271e8582fd28da32c88343a113f89b69bdb4814d609",
+        "bytes": 52819,
+        "sha256": "06a88f5bb1fe21fdb2265b069dd93797c50425429cee522f69e7e5ac2a601e27",
+        "redactions": [
+          {
+            "count": 1,
+            "what": "a name"
+          },
+          {
+            "count": 1,
+            "what": "a name"
+          }
+        ]
+      },
+      {
+        "path": "rules/research/europe-green.verified.json",
+        "from": "~/work/checklink-archive-20261011/search-engines/europe-green.verified.json",
+        "source_bytes": 57571,
+        "source_sha256": "177e3f0c526479cd3564afcd859ea025b1be0572d0f0764a2787b084b2eea09f",
+        "bytes": 57242,
+        "sha256": "95818935b1c610a0180e7767f5ff7999bfe3f4ac750e8d6275e3127b8ab713d9",
+        "redactions": [
+          {
+            "count": 1,
+            "what": "the private SearXNG instance names (a LAN name, a LAN address, an onion address and a gated public name) left out of the SearXNG hosts list"
+          },
+          {
+            "count": 1,
+            "what": "the private instance described"
+          },
+          {
+            "count": 1,
+            "what": "a LAN address"
+          },
+          {
+            "count": 1,
+            "what": "a LAN address"
+          },
+          {
+            "count": 1,
+            "what": "a name"
+          },
+          {
+            "count": 2,
+            "what": "a private host in test links (the same paths and parameters on an example host)"
+          },
+          {
+            "count": 2,
+            "what": "a LAN address in test links (the same paths and parameters on an example host)"
+          }
+        ]
+      },
+      {
+        "path": "rules/research/ecosia-qwant-searxng.json",
+        "from": "~/work/checklink-archive-20261011/search-engines/ecosia-qwant-searxng.json",
+        "source_bytes": 52975,
+        "source_sha256": "a8fca7d2a8bd291a5febeae0d42e9f817ae9bed9182b35c9db9579e0e18e0c36",
+        "bytes": 52647,
+        "sha256": "37cef5aef000586d5597019e369c9c4e00576d6d4191c1195ac9700a0e6350db",
+        "redactions": [
+          {
+            "count": 1,
+            "what": "the private SearXNG instance names (a LAN name, a LAN address, an onion address and a gated public name) left out of the SearXNG hosts list"
+          },
+          {
+            "count": 1,
+            "what": "the private instance described"
+          },
+          {
+            "count": 1,
+            "what": "a LAN address"
+          },
+          {
+            "count": 1,
+            "what": "a name"
+          },
+          {
+            "count": 2,
+            "what": "a private host in test links (the same paths and parameters on an example host)"
+          },
+          {
+            "count": 2,
+            "what": "a LAN address in test links (the same paths and parameters on an example host)"
+          }
+        ]
+      },
+      {
+        "path": "rules/research/asia.verified.json",
+        "from": "~/work/checklink-archive-20261011/search-engines/asia.verified.json",
+        "source_bytes": 70859,
+        "source_sha256": "8d1e5bbfee83cbc1d3453a6d2b4619c47ff8f2832c607a1d106ac09048d18073",
+        "bytes": 70859,
+        "sha256": "8d1e5bbfee83cbc1d3453a6d2b4619c47ff8f2832c607a1d106ac09048d18073",
+        "redactions": []
+      },
+      {
+        "path": "rules/research/baidu-naver.json",
+        "from": "~/work/checklink-archive-20261011/search-engines/baidu-naver.json",
+        "source_bytes": 56728,
+        "source_sha256": "1632d47801dd2dcacba3cb18aab09ea032fb1796ebeeb1634a76b83bb0c796cd",
+        "bytes": 56728,
+        "sha256": "1632d47801dd2dcacba3cb18aab09ea032fb1796ebeeb1634a76b83bb0c796cd",
+        "redactions": []
+      }
+    ]
+  }
+}

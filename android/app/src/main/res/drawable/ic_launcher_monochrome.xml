@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Themed-icon layer (Android 13 and later). The launcher tints it with one colour and only
+  reads its alpha, so it is the outline of the mark: the handle, the lens as a ring and
+  the link, without the dark fill that would otherwise turn the lens into a solid disc.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.8487"
+        android:scaleY="0.8487"
+        android:translateX="25.99"
+        android:translateY="25.99">
+        <!-- One colour, read by its alpha only. The lens is a ring with no fill, so the link
+             stays visible inside it. -->
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="8"
+            android:strokeLineCap="round"
+            android:pathData="M43,43 L56,56" />
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="5"
+            android:pathData="M8.5,28 A19.5,19.5 0 1,0 47.5,28 A19.5,19.5 0 1,0 8.5,28 Z" />
+        <path
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="4"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M24,22 H20 A6,6 0 0,0 20,34 H24 M32,22 H36 A6,6 0 0,1 36,34 H32 M24,28 H32" />
+    </group>
+</vector>

@@ -1,0 +1,382 @@
+Third-Party Notices
+===================
+
+Kept out of LICENSE so that GitHub and other licence scanners can detect the
+MIT licence. A LICENSE file with anything appended after the MIT text is
+reported as NOASSERTION, which reads as "unlicensed" to tooling.
+
+CheckLink's own code is Stormberry AS's and is published in this repository
+under the MIT licence. Since stage 2 (11 October 2026) it also ships
+third-party code and data, listed below: a QR and barcode decoder, the Public
+Suffix List and the word lists of wallet recovery phrases (BIP-39, Monero
+and SLIP-39), plus one typeface. Stage 3 (11 October 2026) added Unicode's
+look-alike character data, and stage 4b (the same day) a QR code encoder.
+Everything in the web app is
+vendored: copied into this repository at an exact version, never loaded from
+a content delivery network, and nothing is downloaded at build or run time.
+The Android app (android/, stage 4) is the one exception, at build time
+only: see its section below. tools/upstream.lock.json records, for every
+web item, the exact version or
+commit, the source address, its size, its sha256 (and for the npm package its
+sha512 integrity as the registry publishes it) and its licence, and
+`node tools/vendor.mjs --check` proves the files here still match it.
+
+NOTICE is not published with the site or the app, so the licence texts also
+ship in licences/, which is.
+
+-------------------
+
+zxing-wasm 3.1.4 (vendor/zxing-wasm-3.1.4/)
+  What:      the QR code and barcode decoder: zxing-cpp compiled to
+             WebAssembly, reader build only. Runs in a Web Worker
+             (src/qr-worker.js); pictures never leave the device.
+  Author:    Ze-Zheng Wu (zxing-wasm)
+  Source:    https://github.com/Sec-ant/zxing-wasm, tag v3.1.4
+             (commit ba54ad0bba3f2e230c0f0a503d8d71065ef39c30), built from
+             zxing-cpp commit 0b2d9a8fc81f420f369928c24331091ff0525976
+  Package:   https://registry.npmjs.org/zxing-wasm/-/zxing-wasm-3.1.4.tgz
+  Integrity: sha512-1+v8p7sauddySVNG+ye7GD/0TS95BG2ycdkrC+EnBrFBFkHeIghzUt2yVjtx3NucJeNrQnhT8yGAIz60Vx9o0w==
+             (the tarball was downloaded and checked against the registry
+             on 11 October 2026; sha256 of the tarball
+             2416232a155533bdcfa098a22ec9087734b34640ffa2a7add90bc36e145f6da0)
+  Files:     es/reader/index.js, es/share.js and LICENSE are the package's
+             dist/es/reader/index.js, dist/es/share.js and LICENSE,
+             unchanged. zxing_reader.wasm.js is the package's
+             dist/reader/zxing_reader.wasm (953,527 bytes, sha256
+             e8af31edb56d0522f4de74495839385ef019ba8bc90d38e5ecb2f18795d86fb2)
+             written as base64 in a JavaScript module, so the page never
+             needs a network fetch; it decodes back to those exact bytes.
+  Version:   3.1.4 is the newest release that meets the 14-day age rule on
+             11 October 2026. 3.1.5 (6 October 2026, with upstream decoding
+             and security fixes) meets it from 20 October 2026.
+  Licences:  The wrapper and its JavaScript: MIT (licences/zxing-wasm-MIT.txt).
+             Compiled into the .wasm:
+               zxing-cpp and the zxing-wasm C++ binding: Apache-2.0
+                 (licences/zxing-cpp-Apache-2.0.txt)
+               libzueci (part of zxing-cpp), Copyright (C) 2022 gitlost:
+                 BSD-3-Clause (licences/libzueci-BSD-3-Clause.txt)
+               stb_image, Sean Barrett: MIT or public domain (Unlicense)
+                 (licences/stb_image-MIT-or-Unlicense.txt)
+               the Emscripten runtime: MIT or NCSA
+                 (licences/Emscripten-MIT-or-NCSA.txt); musl libc as built
+                 into it: MIT (licences/musl-MIT.txt); LLVM libc++, libc++abi
+                 and compiler-rt: Apache-2.0 WITH LLVM-exception
+                 (licences/LLVM-Apache-2.0-with-LLVM-exception.txt)
+             zxing-cpp fetches stb_image through CMake without pinning a
+             commit, so the exact stb commit inside the .wasm is not recorded
+             upstream.
+
+-------------------
+
+QR Code generator library (vendor/qrcodegen-8329a71/qrcodegen.js), stage 4b
+  What:      the QR code encoder: makes the QR code of a clean link (Make a
+             QR code). src/qr-make.js, CheckLink's own code, draws it on the
+             page and writes its PNG picture; the page reads every code back
+             with the decoder above before it shows it.
+  Author:    Project Nayuki
+  Licence:   MIT, stated in the file's header and in the repository's
+             Readme.markdown; the repository has no LICENSE file
+             (licences/QR-Code-generator-MIT.txt)
+  Source:    https://github.com/nayuki/QR-Code-generator,
+             typescript-javascript/qrcodegen.ts at commit
+             8329a7108fc22be3e1eec0a9f9318978579e3621 (1 September 2024), an
+             untagged commit: the latest tag, v1.8.0 (17 April 2022), is
+             older, and the file changed twice after it. The file is the
+             same at master on 11 October 2026. Kept as it is in
+             third_party/qrcodegen/qrcodegen.ts (41,022 bytes, sha256
+             1dc03fb5a10e0e2318ea162755bbdb9977ca6ce52cff959e9c9b6deafdccda9c).
+  Changes:   converted once to plain JavaScript by `node tools/vendor.mjs
+             --qrcodegen` with the TypeScript compiler 5.9.3 (npm, integrity
+             sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==,
+             Apache-2.0, used only for the conversion and not shipped): types
+             taken out and each namespace turned into a function, as
+             upstream's own build does, with a header and one export line
+             added. The result is 46,239 bytes, sha256
+             96af83ff3b019e7748644a4716043056dfae820ff46e1d78f01692af0ec0e29a;
+             `node tools/vendor.mjs --check` proves it.
+
+-------------------
+
+Public Suffix List (third_party/publicsuffix/, compiled into src/psl.js)
+  What:      decides who owns an address: the "Goes to" line, the bold part
+             of a link, the warnings, and provider patterns such as amazon.*
+  Licence:   Mozilla Public License 2.0 (MPL-2.0)
+             (licences/Public-Suffix-List-MPL-2.0.txt; the notice is kept at
+             the top of src/psl.js)
+  Source:    https://publicsuffix.org/list/public_suffix_list.dat
+  Version:   2026-10-07_07-28-19_UTC, commit 3929462652695bad04f0a27afb600974014a3c8b
+  sha256:    ba7d836c0ea57a8bcf9f1fcb868066a7554bed029b441ecc6204ad8494a32612
+             (equal to the file at that commit in
+             https://github.com/publicsuffix/list plus its three stamp lines)
+  Changes:   src/psl.js holds the same rules without comments, with
+             international names in their xn-- form and the ICANN and
+             PRIVATE sections kept apart. The page footer shows the list's
+             date; `node tools/vendor.mjs --release` fails when it is more
+             than 90 days old.
+
+-------------------
+
+BIP-39 English word list (third_party/bip39/, compiled into src/bip39.js)
+  What:      used only to recognise a wallet recovery phrase in a code, so
+             CheckLink can hide it and warn
+  Licence:   MIT (BIP 39 states "License: MIT"; licences/BIP-0039-MIT.txt)
+  Source:    https://raw.githubusercontent.com/bitcoin/bips/ce1862ac6bcffa1dd20aad858380e51e66e949ea/bip-0039/english.txt
+  sha256:    2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda
+
+-------------------
+
+Other recovery-phrase word lists (third_party/, compiled into src/wordlists.js)
+  What:      used only to recognise a wallet recovery phrase in a code, so
+             CheckLink can hide it and warn (added on 11 October 2026; the
+             Japanese, Korean and Chinese BIP-39 lists and Monero's other
+             languages in stage 4b, the same day)
+  BIP-39 Spanish, Portuguese, French, Italian, Czech, Japanese, Korean,
+             Chinese (simplified) and Chinese (traditional)
+             (third_party/bip39/<language>.txt)
+    Licence: MIT (BIP 39 states "License: MIT"; licences/BIP-0039-MIT.txt)
+    Source:  https://github.com/bitcoin/bips/tree/master/bip-0039, each file
+             at the latest commit that touched it (recorded per file in
+             tools/upstream.lock.json with its sha256); all nine are the same
+             at bitcoin/bips master 927b6de9915c9262615a6399de51b200f81e5aa4
+  Monero seed words in English (third_party/monero/english.h) and in
+             Chinese (simplified), Dutch, English (old), Esperanto, French,
+             German, Italian, Japanese, Lojban, Portuguese, Russian and
+             Spanish (third_party/monero/<language>.h)
+    Licence: BSD-3-Clause, Copyright (c) 2014-2024 The Monero Project
+             (licences/Monero-BSD-3-Clause.txt, the repository's LICENSE).
+             The Chinese (simplified), Japanese, Portuguese and Spanish files
+             say their word lists were originally created by dabura667 and
+             released under the MIT licence
+             (licences/Monero-wordlists-dabura667-MIT.txt, the notice from
+             those files). The English (old) file says its list was created
+             as part of the Electrum project, Copyright (C) 2014 Thomas
+             Voegtlin; it is word for word the list in Electrum's
+             electrum/old_mnemonic.py, which Electrum releases under the MIT
+             licence (licences/Electrum-MIT.txt, Electrum's LICENCE file,
+             unchanged).
+    Source:  https://raw.githubusercontent.com/monero-project/monero/341771ac3e65f88a6e78ca805f8dde2ae6ba7924/src/mnemonics/english.h
+             and the other languages at the latest commit on master that
+             touched each file (341771ac3e65f88a6e78ca805f8dde2ae6ba7924, or
+             8e0e49b93752fec16fd89f3a3d7318a7776f623b for Russian), each
+             recorded in tools/upstream.lock.json with its sha256; all are the
+             same at monero-project/monero master
+             24272e4a3b2e812cc2a569d95b177ecef4b91e46
+    sha256:  9bd756d29e689aae0e6e7f8b1196c4f35df350225c4668d4f6f41842f05fc2ca
+             (english.h; the others in the lock)
+    Changes: only the quoted words of each word table are used, and the
+             number of letters its checksum reads
+  SLIP-39 word list (third_party/slip39/wordlist.txt)
+    Licence: MIT, Copyright 2019 SatoshiLabs
+             (licences/SLIP-0039-wordlist-MIT.txt, from python-shamir-mnemonic)
+    Source:  https://raw.githubusercontent.com/trezor/python-shamir-mnemonic/bea959e3c344794dbe7c766a67e192239d4e199b/shamir_mnemonic/wordlist.txt
+    sha256:  bcc4555340332d169718aed8bf31dd9d5248cb7da6e5d355140ef4f1e601eec3
+             (the same bytes as slip-0039/wordlist.txt in satoshilabs/slips,
+             which is CC-BY-SA-4.0; the MIT copy is the one taken)
+
+-------------------
+
+Unicode confusables (third_party/unicode/, compiled into src/confusables.js)
+  What:      tells which characters can pass for which, for the look-alike
+             checks (stage 3, src/lookalike.js): names written in letters of
+             another alphabet, characters that look like a hyphen, full stop
+             or slash, and look-alikes of the brands in src/brands.js
+  Licence:   Unicode License v3 (Unicode-3.0), Copyright (c) 1991-2026
+             Unicode, Inc. (licences/Unicode-3.0.txt, copied unchanged from
+             https://www.unicode.org/license.txt; the notice is repeated at
+             the top of src/confusables.js)
+  Source:    https://www.unicode.org/Public/18.0.0/security/confusables.txt
+             (Unicode Security Mechanisms, UTS #39)
+  Version:   18.0.0, dated 2026-08-06
+  sha256:    6ed3ee967c9dfdf6677d563c9985182fbc50a2efb7d6059cd57b2e2ce18f5b92
+             (763,128 bytes; downloaded again on 11 October 2026 from the
+             versioned address and from /Public/security/latest/, both the
+             same bytes)
+  Changes:   src/confusables.js keeps only the 2,561 of 6,712 entries whose
+             target is plain printable ASCII once accents and other marks
+             are taken off, keyed by code point. `node tools/vendor.mjs
+             --check` proves it is exactly what the script writes from the
+             pinned file.
+
+-------------------
+
+Inter (fonts/inter/)
+  Licence:   SIL Open Font License 1.1 (OFL-1.1)
+  Author:    Rasmus Andersson
+  Source:    https://rsms.me/inter/
+  Version:   4.1
+  Release:   https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip
+  sha256:    9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b11e
+  Copyright (c) 2016 The Inter Project Authors
+
+  The 39 files in fonts/inter/ are byte-identical to web/ in that release.
+  This Font Software is licensed under the SIL Open Font License, Version 1.1.
+  Full licence text: licences/Inter-OFL-1.1.txt, copied unchanged from the
+  release's LICENSE.txt (sha256
+  262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a).
+
+-------------------
+
+Tracking rules (src/rules.js)
+  Generated by tools/build-rules.mjs from rules/provider-rules.json (version
+  1.0.0, dated 2026-10-10) and rules/extra-rules.json (version 1.8.1, dated
+  2026-10-12; 1.6.1 removed the suffix_deny stopgap, now that the Public
+  Suffix List decides suffixes, 1.7.0 records the online check of
+  10 October 2026, 1.8.0 applies every instagram.com rule to instagr.am,
+  and 1.8.1 recognises SearXNG by its own values only, naming no
+  instance). Written by Stormberry AS and released under this
+  repository's MIT licence. The explanations are Stormberry's own words.
+  Every rule in provider-rules.json records the sources it was checked
+  against; the additions in extra-rules.json from the review of 10 October
+  2026 were checked online the same day, and each records how. Two rest on
+  the same rule for the brand's other hosts, by extension, not checked
+  online: si on youtubekids.com, and the instagram.com rules on instagr.am.
+  The search-engine rules rest on the research summaries in rules/research/
+  (copied from the research of 10 October 2026, with private host names
+  and personal details taken out; recorded in tools/upstream.lock.json).
+
+  Seeded from:
+    Tracking query params registry, Max Chadwick (Unlicense)
+      https://github.com/mpchadwick/tracking-query-params-registry
+
+  Checked against, for facts only (parameter names and redirect formats):
+    Brave adblock-lists: clean-urls, query-filter and debounce (MPL-2.0)
+      https://github.com/brave/adblock-lists/tree/master/brave-lists
+    Firefox Strip on Share lists (MPL-2.0) and query-stripping records
+      https://github.com/mozilla-firefox/firefox/tree/main/toolkit/components/antitracking/StripOnShareLists
+    DuckDuckGo privacy-configuration, tracking parameters (Apache-2.0)
+      https://github.com/duckduckgo/privacy-configuration/blob/main/features/tracking-parameters.json
+
+  Read only to check facts, never copied: the AdGuard tracking-parameter
+  filters and uBlock Origin's uAssets (GPL-3.0), the ClearURLs rules
+  (LGPL-3.0), DandelionSprout's Legitimate URL Shortener, Neat URL, Tidy URL
+  and vendors' own documentation.
+
+  Commits: tools/upstream.lock.json pins the upstream commit, size and
+  sha256 of every source as read by the research pass of 10 October 2026.
+
+-------------------
+
+Look-alike brand list (rules/brands.json, compiled into src/brands.js)
+  Written by Stormberry AS and released under this repository's MIT
+  licence (stage 3, version 1.2.0, dated 2026-10-11): 88 brands, 233 of
+  their own domains, 4 names on GitHub Pages that brands hold and 120
+  names to look for. Who is listed: the providers
+  CheckLink already knows from its tracker rules, plus the payment, bank,
+  post and public-service names most often imitated in messages to people
+  in Norway, Portugal and Brazil, and the wallets whose recovery phrases the
+  QR inspector hides. Every domain was looked up in the DNS and opened over
+  HTTPS on 11 October 2026 and answered from the brand itself; the record
+  of each check is rules/brands-verified.json, written by `node
+  tools/brands.mjs --verify` (or `--verify-missing` for domains just added;
+  the only steps that go online, run by a person). `node tools/brands.mjs
+  --check` refuses the list when any domain lacks a passing record.
+  Version 1.1.0 (the stage 3 fixes) added 16 of the brands' own domains
+  that the look-alike accuracy review found missing, and real_names: 5
+  ordinary words and 12 domains of other organisations (or, for elkjøp.no,
+  of a brand where it answers only over plain http) that the look-alike
+  checks must leave alone, each looked up online on 11 October 2026.
+  Version 1.2.0 (stage 4b, decisions L1 to L3 of 11 October 2026)
+  lists google.github.io, microsoft.github.io, skatteetaten.github.io and
+  metamask.github.io as the brands' own (hosted; each GitHub account looked
+  up online on 11 October 2026 and to be checked again within a year, which
+  `--check` enforces), adds seven lure words (renewal, shipment, findmy,
+  minside, pakkesporing, auxilio, fgts) and the real name qmail. The
+  look-alike check also reads vv as w, cl as d and q as g (src/lookalike.js).
+  A run over the Tranco list of the top million sites and the 27,881 real
+  names found no new false alarm after these changes.
+
+Test data, not published with the site or the app
+  tests/fixtures/real-domains.txt, the real names the look-alike checks
+  must leave alone, comes from Wikidata's official-website statements
+  (CC0 1.0, https://www.wikidata.org/wiki/Wikidata:Licensing) and from
+  CheckLink's own rule files; tests/fixtures/make-real-domains.mjs holds
+  the queries.
+
+-------------------
+
+Android app (android/, stage 4, 11 October 2026)
+  What:      the CheckLink Android app, a WebView that runs the same web app
+             files from inside the APK. Its own Kotlin code is Stormberry
+             AS's, under this repository's MIT licence.
+  Libraries: AndroidX (activity, core-ktx, webkit and what they depend on),
+             the Kotlin standard library, kotlinx-coroutines, Guava's
+             listenablefuture, JSpecify and the JetBrains annotations. All
+             are under the Apache License 2.0; the text is Apache-2.0.txt in
+             the android/licences folder.
+  Versions:  pinned in android/gradle/libs.versions.toml, with the Gradle
+             wrapper pinned by its sha256. Unlike the web app, these are not
+             vendored: Gradle downloads them from Google's Maven repository
+             and Maven Central when the app is built. Nothing is downloaded
+             when the app runs, and the app has no internet permission.
+  In the APK: assets/licences/ holds the Apache License 2.0 text,
+             CheckLink's MIT licence and THIRD-PARTY.txt, which the release
+             build writes from the libraries it actually resolved; the web
+             app's licence texts travel in assets/web/licences/ as on the
+             website.
+
+-------------------
+
+Deploy-time headers (not made by this repository)
+
+Content-Security-Policy (from stage 2)
+
+  A Web Worker takes its Content-Security-Policy from its own response
+  headers, not from the page's meta tag. For the decoder worker to compile
+  its WebAssembly, check.stormberry.as must send a policy that allows
+  'wasm-unsafe-eval'; the zone-wide header does not. Recommended: a
+  Cloudflare Response Header Transform rule scoped to check.stormberry.as,
+  action Set, header Content-Security-Policy:
+
+    default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'none'; worker-src 'self'; form-action 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+
+  That is the page's own meta policy plus the two directives a meta tag
+  cannot carry, so the worker gets connect-src 'none' too. The minimum that
+  works is the zone policy with 'wasm-unsafe-eval' added to script-src.
+  tests/serve.py sends the recommended header; `python3 tests/serve.py
+  --zone-csp` shows the site without it (links work, pictures say the
+  reader cannot start). The onion mirror must send the same recommended
+  header, in full: a policy that only adds 'wasm-unsafe-eval' lets the
+  worker compile its decoder but leaves out connect-src 'none', and the
+  worker's own lockdown (src/worker-lockdown.js) cannot take import() away;
+  only the header stops it.
+
+  Where the rule sits: Cloudflare runs the zone's response header rules in
+  order, and when two rules set the same header the later one wins. Place
+  this rule below the zone's own Content-Security-Policy rule (as the
+  CheapBeer exception is), or the zone's policy replaces it.
+
+Permissions-Policy (from stage 3, for Scan with camera)
+
+  The zone sends Permissions-Policy with camera=(), which Chromium browsers
+  (Chrome, Edge, Vanadium, Samsung Internet, Brave) obey: the camera is then
+  off for every page on the zone, and Scan with camera says "This site does
+  not allow the camera at the moment" without asking for it. Firefox and
+  LibreWolf do not read this header, so a test in those alone would miss
+  it. check.stormberry.as needs a host-scoped Cloudflare Response Header
+  Transform rule, action Set, header Permissions-Policy, with the zone's
+  own value and camera=(self) in place of camera=():
+
+    geolocation=(), microphone=(), camera=(self), payment=(), usb=(), serial=(), bluetooth=(), accelerometer=(), gyroscope=(), magnetometer=(), interest-cohort=(), browsing-topics=(), join-ad-interest-group=(), run-ad-auction=(), private-state-token-redemption=(), private-state-token-issuance=(), attribution-reporting=()
+
+  camera=(self) lets this site's own pages ask for the camera, and nothing
+  else (no frame from another site). The browser still asks the person
+  first, and the page asks only when Scan with camera is pressed. Nothing
+  else in the policy changes; microphone stays off. tests/serve.py sends
+  this header; `python3 tests/serve.py --zone-permissions` shows the site
+  without it. The onion mirror must send the same value, or no
+  Permissions-Policy at all (the browser's default for the camera is the
+  site itself). The camera also needs a secure page (https, or an onion
+  address in Tor Browser); over plain http the button is not shown.
+
+  Where the rule sits matters here too, and more: later rules overwrite
+  earlier ones that set the same header. The zone's own Permissions-Policy
+  rule, which sends camera=() to every request, comes after the two CSP
+  rules (third of seven in the list as recorded on 1 August 2026). Place
+  this rule below the zone's own Permissions-Policy rule, or leave
+  check.stormberry.as out of that zone rule's expression. A rule placed
+  beside the CheapBeer CSP exception, above the zone's Permissions-Policy
+  rule, is overwritten: nothing leaks, but Scan with camera stays blocked.
+  One rule below both zone rules can set both headers for this host. After
+  the change, check that the live site sends camera=(self):
+
+    curl -sI https://check.stormberry.as/ | grep -i permissions-policy

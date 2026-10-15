@@ -1,0 +1,517 @@
+{
+  "about": "The test URLs of the verified search-engine research of 10 October 2026 (scratchpad qrlink/search-engines/*.verified.json, one file per group of engines), copied here so the tests run without the scratchpad. Each dirty link must clean to clean exactly; rule is the canonical-page rule that covers it. Batch 3 review finding L2 had DuckDuckGo 7 and 8 keep iai, the item open in the side panel; Marcos reversed that on 10 October 2026 (spec decision 22), so both clean exactly as the research says, without iai. The two SearXNG links of the research ran on a private instance; here, as in rules/research/, they are written under searx.example.org (stage 4b review, 12 October 2026).",
+  "cases": [
+    {
+      "engine": "Google Search",
+      "rule": "google-search",
+      "research": "mainstream.verified.json",
+      "n": 1,
+      "dirty": "https://www.google.com/search?q=bag&oq=bag&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBBzM4N2owajeoAgCwAgA&sourceid=chrome&ie=UTF-8",
+      "clean": "https://www.google.com/search?q=bag"
+    },
+    {
+      "engine": "Google Search",
+      "rule": "google-search",
+      "research": "mainstream.verified.json",
+      "n": 2,
+      "dirty": "https://www.google.co.uk/search?q=walking+boots&sca_esv=3f1c2a9b&sxsrf=AE3TifN1xYz&ei=Zx4kZ8yAbC&ved=0ahUKEwjQ&uact=5&oq=walking+boots&gs_lp=Egxnd3Mtd2l6&sclient=gws-wiz-serp&udm=2&tbs=qdr:w&hl=en-GB&gl=uk&start=20&biw=1536&bih=730&dpr=1.25",
+      "clean": "https://www.google.co.uk/search?q=walking+boots&udm=2&tbs=qdr:w&hl=en-GB&gl=uk&start=20"
+    },
+    {
+      "engine": "Google Search",
+      "rule": "google-search",
+      "research": "mainstream.verified.json",
+      "n": 3,
+      "dirty": "https://www.google.no/search?as_q=fjord&as_epq=norwegian+coast&as_sitesearch=no&lr=lang_no&cr=countryNO&safe=active&tbm=nws&nfpr=1&filter=0&client=firefox-b-d&channel=entpr&rlz=1C1GCEA_enNO1000NO1000&source=lnms&sa=X&authuser=0&ie=Shift_JIS",
+      "clean": "https://www.google.no/search?as_q=fjord&as_epq=norwegian+coast&as_sitesearch=no&lr=lang_no&cr=countryNO&safe=active&tbm=nws&nfpr=1&filter=0&ie=Shift_JIS"
+    },
+    {
+      "engine": "Microsoft Bing",
+      "rule": "bing-search",
+      "research": "mainstream.verified.json",
+      "n": 1,
+      "dirty": "https://www.bing.com/search?q=bag&form=QBLH&sp=-1&ghc=1&lq=0&pq=bag&sc=11-3&qs=n&sk=&cvid=530E0FE2A0144F4386F8A1B47BF7E1E4",
+      "clean": "https://www.bing.com/search?q=bag"
+    },
+    {
+      "engine": "Microsoft Bing",
+      "rule": "bing-search",
+      "research": "mainstream.verified.json",
+      "n": 2,
+      "dirty": "https://www.bing.com/search?q=bergen+weather&filters=ex1%3a%22ez1%22&first=11&FORM=PERE&pq=bergen+wea&sc=10-11&sk=&cvid=0D3A1F2B9C8E4D7A&ghsh=0&ghacc=0&ghpl=&mkt=en-GB&adlt=strict&PC=U316",
+      "clean": "https://www.bing.com/search?q=bergen+weather&filters=ex1%3a%22ez1%22&first=11&mkt=en-GB&adlt=strict"
+    },
+    {
+      "engine": "Microsoft Bing",
+      "rule": "bing-search",
+      "research": "mainstream.verified.json",
+      "n": 3,
+      "dirty": "https://www.bing.com/news/search?q=fjord&qft=sortbydate%3d%221%22&ubiroff=1&form=YFNR&setlang=en-GB&cc=GB&sid=2D8F838A01F36AD33349946400D76BDA&PC=U316&cvid=9F2E",
+      "clean": "https://www.bing.com/news/search?q=fjord&qft=sortbydate%3d%221%22&ubiroff=1&setlang=en-GB&cc=GB"
+    },
+    {
+      "engine": "Yahoo Search",
+      "rule": "yahoo-search",
+      "research": "mainstream.verified.json",
+      "n": 1,
+      "dirty": "https://search.yahoo.com/search;_ylt=AwrFQXYZ123abc;_ylc=X1MDMjc2NjY3OQRfcgMy?p=bag&fr=yfp-t&fr2=sb-top&ei=UTF-8&fp=1&iscqry=",
+      "clean": "https://search.yahoo.com/search?p=bag"
+    },
+    {
+      "engine": "Yahoo Search",
+      "rule": "yahoo-search",
+      "research": "mainstream.verified.json",
+      "n": 2,
+      "dirty": "https://uk.search.yahoo.com/search?p=bag&b=11&pz=10&bct=0&xargs=0&pstart=10&btf=w&vm=r&fr=crmas&fr2=piv-web&guccounter=1&guce_referrer=aHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS8&guce_referrer_sig=AQAAAKx",
+      "clean": "https://uk.search.yahoo.com/search?p=bag&b=11&pz=10&btf=w&vm=r"
+    },
+    {
+      "engine": "Yahoo Search",
+      "rule": "yahoo-search",
+      "research": "mainstream.verified.json",
+      "n": 3,
+      "dirty": "https://video.search.yahoo.com/search/video;_ylt=AwrE.abc123;_ylu=Y29sbwNldS13ZXN0LTE?p=fjord&fr2=p%3As%2Cv%3Ai&durs=long&vage=week&fr=crmas_sfp&ei=UTF-8",
+      "clean": "https://video.search.yahoo.com/search/video?p=fjord&durs=long&vage=week"
+    },
+    {
+      "engine": "Yandex",
+      "rule": "yandex-search",
+      "research": "mainstream.verified.json",
+      "n": 1,
+      "dirty": "https://yandex.ru/search/?text=bag&lr=213&clid=2270455&src=suggest_B&suggest_reqid=829178239176012345678901234567&search_source=dzen_desktop_safe&redircnt=1791626295.1",
+      "clean": "https://yandex.ru/search/?text=bag&lr=213"
+    },
+    {
+      "engine": "Yandex",
+      "rule": "yandex-search",
+      "research": "mainstream.verified.json",
+      "n": 2,
+      "dirty": "https://yandex.com/search/?text=fjord+cruise&p=2&lang=en&within=777&from_day=1&from_month=9&from_year=2026&to_day=10&to_month=10&to_year=2026&numdoc=20&from=os&clid=1836588&banerid=0500000134&did=12345",
+      "clean": "https://yandex.com/search/?text=fjord+cruise&p=2&lang=en&within=777&from_day=1&from_month=9&from_year=2026&to_day=10&to_month=10&to_year=2026&numdoc=20"
+    },
+    {
+      "engine": "Yandex",
+      "rule": "yandex-search",
+      "research": "mainstream.verified.json",
+      "n": 3,
+      "dirty": "https://yandex.com.tr/gorsel/search?text=kedi&isize=large&iorient=horizontal&type=photo&itype=png&recent=7D&source-serpid=Ab12Cd34&parent-reqid=1791628274085287-1881819672073123653&source=tabbar&from=tabbar&clid=1836588",
+      "clean": "https://yandex.com.tr/gorsel/search?text=kedi&isize=large&iorient=horizontal&type=photo&itype=png&recent=7D"
+    },
+    {
+      "engine": "DuckDuckGo",
+      "rule": "duckduckgo-search",
+      "research": "privacy.verified.json",
+      "n": 1,
+      "dirty": "https://duckduckgo.com/?ia=web&origin=funnel_home_website&t=h_&q=bag",
+      "clean": "https://duckduckgo.com/?q=bag"
+    },
+    {
+      "engine": "DuckDuckGo",
+      "rule": "duckduckgo-search",
+      "research": "privacy.verified.json",
+      "n": 2,
+      "dirty": "https://duckduckgo.com/?q=bag&t=h_&iar=images&iax=images&ia=images&atb=v451-1",
+      "clean": "https://duckduckgo.com/?q=bag&iax=images&ia=images"
+    },
+    {
+      "engine": "DuckDuckGo",
+      "rule": "duckduckgo-search",
+      "research": "privacy.verified.json",
+      "n": 3,
+      "dirty": "https://duckduckgo.com/?q=bag&kl=no-no&kp=-2&df=w&kad=nb_NO&kae=d&ko=-1&natb=v451-1&cp=atbhc&t=ffab&ia=web",
+      "clean": "https://duckduckgo.com/?q=bag&kl=no-no&kp=-2&df=w&kad=nb_NO"
+    },
+    {
+      "engine": "DuckDuckGo",
+      "rule": "duckduckgo-search",
+      "research": "privacy.verified.json",
+      "n": 4,
+      "dirty": "https://duckduckgo.com/?q=bag&t=h_&iar=news&ia=news&origin=funnel_home_website",
+      "clean": "https://duckduckgo.com/?q=bag&iar=news&ia=news"
+    },
+    {
+      "engine": "DuckDuckGo",
+      "rule": "duckduckgo-search",
+      "research": "privacy.verified.json",
+      "n": 5,
+      "dirty": "https://html.duckduckgo.com/html/?q=bag&kl=uk-en&df=2026-01-01..2026-03-31&b=",
+      "clean": "https://html.duckduckgo.com/html/?q=bag&kl=uk-en&df=2026-01-01..2026-03-31"
+    },
+    {
+      "engine": "DuckDuckGo",
+      "rule": "duckduckgo-search",
+      "research": "privacy.verified.json",
+      "n": 6,
+      "dirty": "https://html.duckduckgo.com/html/?q=bag&s=10&nextParams=&v=l&o=json&dc=11&api=d.js&vqd=4-175728391852509218049652584787168667124",
+      "clean": "https://html.duckduckgo.com/html/?q=bag&s=10"
+    },
+    {
+      "engine": "DuckDuckGo",
+      "rule": "duckduckgo-search",
+      "research": "privacy.verified.json",
+      "n": 7,
+      "dirty": "https://duckduckgo.com/?q=cafe&t=h_&iaxm=maps&bbox=10.70%2C59.95%2C10.80%2C59.90&strict_bbox=1&source=maps&iai=abc123",
+      "clean": "https://duckduckgo.com/?q=cafe&iaxm=maps&bbox=10.70%2C59.95%2C10.80%2C59.90&strict_bbox=1"
+    },
+    {
+      "engine": "DuckDuckGo",
+      "rule": "duckduckgo-search",
+      "research": "privacy.verified.json",
+      "n": 8,
+      "dirty": "https://duckduckgo.com/?q=bag&ia=images&iax=images&iaf=size%3Aimagesize-large&kbj=1&iai=https%3A%2F%2Fexample.com%2Fa.jpg&t=ffab&atb=v451-1",
+      "clean": "https://duckduckgo.com/?q=bag&ia=images&iax=images&iaf=size%3Aimagesize-large&kbj=1"
+    },
+    {
+      "engine": "Brave Search",
+      "rule": "brave-search",
+      "research": "privacy.verified.json",
+      "n": 1,
+      "dirty": "https://search.brave.com/search?q=bag&source=web",
+      "clean": "https://search.brave.com/search?q=bag"
+    },
+    {
+      "engine": "Brave Search",
+      "rule": "brave-search",
+      "research": "privacy.verified.json",
+      "n": 2,
+      "dirty": "https://search.brave.com/search?q=bag&offset=1&spellcheck=0&source=desktop",
+      "clean": "https://search.brave.com/search?q=bag&offset=1&spellcheck=0"
+    },
+    {
+      "engine": "Brave Search",
+      "rule": "brave-search",
+      "research": "privacy.verified.json",
+      "n": 3,
+      "dirty": "https://search.brave.com/images?origin=search&q=bag&source=web&safesearch=strict&country=de",
+      "clean": "https://search.brave.com/images?q=bag&safesearch=strict&country=de"
+    },
+    {
+      "engine": "Brave Search",
+      "rule": "brave-search",
+      "research": "privacy.verified.json",
+      "n": 4,
+      "dirty": "https://search.brave.com/news?q=bag&source=relatedQueries&tf=2026-01-01to2026-02-01",
+      "clean": "https://search.brave.com/news?q=bag&tf=2026-01-01to2026-02-01"
+    },
+    {
+      "engine": "Brave Search",
+      "rule": "brave-search",
+      "research": "privacy.verified.json",
+      "n": 5,
+      "dirty": "https://search.brave.com/goggles?q=rust&goggles_id=https%3A%2F%2Fraw.githubusercontent.com%2Fbrave%2Fgoggles-quickstart%2Fmain%2Fgoggles%2Frust_programming.goggle&source=web",
+      "clean": "https://search.brave.com/goggles?q=rust&goggles_id=https%3A%2F%2Fraw.githubusercontent.com%2Fbrave%2Fgoggles-quickstart%2Fmain%2Fgoggles%2Frust_programming.goggle"
+    },
+    {
+      "engine": "Brave Search",
+      "rule": "brave-search",
+      "research": "privacy.verified.json",
+      "n": 6,
+      "dirty": "https://search.brave.com/search?q=bagg+recieve&spellcheck=0&lang=de&search_lang=de&action=makeDefault&summary=0&source=llmSuggest",
+      "clean": "https://search.brave.com/search?q=bagg+recieve&spellcheck=0&lang=de&search_lang=de"
+    },
+    {
+      "engine": "Startpage",
+      "rule": "startpage-search",
+      "research": "privacy.verified.json",
+      "n": 1,
+      "dirty": "https://www.startpage.com/sp/search?query=bag&cat=web&pl=opensearch&language=english",
+      "clean": "https://www.startpage.com/sp/search?query=bag&cat=web&language=english"
+    },
+    {
+      "engine": "Startpage",
+      "rule": "startpage-search",
+      "research": "privacy.verified.json",
+      "n": 2,
+      "dirty": "https://www.startpage.com/sp/search?language=english&lui=english&t=device&query=bag&cat=web&sc=2MMOuFQUrfchZqKPJnWItJ&segment=startpage.udog&abd=1&abe=1&page=2",
+      "clean": "https://www.startpage.com/sp/search?language=english&lui=english&query=bag&cat=web&page=2"
+    },
+    {
+      "engine": "Startpage",
+      "rule": "startpage-search",
+      "research": "privacy.verified.json",
+      "n": 3,
+      "dirty": "https://www.startpage.com/do/search?q=bag&segment=startpage.brave&with_date=w&qadf=heavy&qsr=en-GB_GB&prfe=36c84513558a2d34bf0d89ea505333ad",
+      "clean": "https://www.startpage.com/do/search?q=bag&with_date=w&qadf=heavy&qsr=en-GB_GB&prfe=36c84513558a2d34bf0d89ea505333ad"
+    },
+    {
+      "engine": "Startpage",
+      "rule": "startpage-search",
+      "research": "privacy.verified.json",
+      "n": 4,
+      "dirty": "https://www.startpage.com/sp/search?query=bag&cat=pics&pl=ext-ff&extVersion=1.3.0",
+      "clean": "https://www.startpage.com/sp/search?query=bag&cat=pics"
+    },
+    {
+      "engine": "Startpage",
+      "rule": "startpage-search",
+      "research": "privacy.verified.json",
+      "n": 5,
+      "dirty": "https://www.startpage.com/sp/search?query=bag&cat=images&flimgsize=Large&flimgcolor=ic%3Aspecific%2Cisc%3Ared&flimgtype=Photo&flimglicense=p&segment=startpage.udog&sc=abc123&t=device&abp=1",
+      "clean": "https://www.startpage.com/sp/search?query=bag&cat=images&flimgsize=Large&flimgcolor=ic%3Aspecific%2Cisc%3Ared&flimgtype=Photo&flimglicense=p"
+    },
+    {
+      "engine": "Startpage",
+      "rule": "startpage-search",
+      "research": "privacy.verified.json",
+      "n": 6,
+      "dirty": "https://www.startpage.com/sp/search?query=bag&cat=video&sort_by=recent&with_duration=short&qadf=heavy&pl=opensearch&cmd=gen_page",
+      "clean": "https://www.startpage.com/sp/search?query=bag&cat=video&sort_by=recent&with_duration=short&qadf=heavy"
+    },
+    {
+      "engine": "Mojeek",
+      "rule": "mojeek-search",
+      "research": "privacy.verified.json",
+      "n": 1,
+      "dirty": "https://www.mojeek.com/search?q=bag&theme=dark&autocomp=0&hp=minimal",
+      "clean": "https://www.mojeek.com/search?q=bag"
+    },
+    {
+      "engine": "Mojeek",
+      "rule": "mojeek-search",
+      "research": "privacy.verified.json",
+      "n": 2,
+      "dirty": "https://www.mojeek.com/search?q=bag&s=11&t=20&lb=en&arc=no&safe=1&tlen=68&dlen=160&date=1&newtab=1",
+      "clean": "https://www.mojeek.com/search?q=bag&s=11&t=20&lb=en&arc=no&safe=1"
+    },
+    {
+      "engine": "Mojeek",
+      "rule": "mojeek-search",
+      "research": "privacy.verified.json",
+      "n": 3,
+      "dirty": "https://www.mojeek.com/search?q=bag&fmt=images&imgpr=pixabay&qsba=1&qss%5B%5D=Brave&qss%5B%5D=DuckDuckGo",
+      "clean": "https://www.mojeek.com/search?q=bag&fmt=images&imgpr=pixabay"
+    },
+    {
+      "engine": "Mojeek",
+      "rule": "mojeek-search",
+      "research": "privacy.verified.json",
+      "n": 4,
+      "dirty": "https://www.mojeek.com/search?q=bag&since=20260101&before=20260301&reg=uk&site=bbc.co.uk&rp_i=1&mal=2",
+      "clean": "https://www.mojeek.com/search?q=bag&since=20260101&before=20260301&reg=uk&site=bbc.co.uk"
+    },
+    {
+      "engine": "Mojeek",
+      "rule": "mojeek-search",
+      "research": "privacy.verified.json",
+      "n": 5,
+      "dirty": "https://www.mojeek.com/search?q=privacy&fmt=sst&sst=1&theme=light",
+      "clean": "https://www.mojeek.com/search?q=privacy&fmt=sst&sst=1"
+    },
+    {
+      "engine": "Mojeek",
+      "rule": "mojeek-search",
+      "research": "privacy.verified.json",
+      "n": 6,
+      "dirty": "https://www.mojeek.com/search?q=salt&foc_t=Recipes&s_foc=1&theme=dark&ref=1&sumb=0",
+      "clean": "https://www.mojeek.com/search?q=salt&foc_t=Recipes&s_foc=1"
+    },
+    {
+      "engine": "Ecosia",
+      "rule": "ecosia-search",
+      "research": "europe-green.verified.json",
+      "n": 1,
+      "dirty": "https://www.ecosia.org/search?method=index&q=bergen+weather&p=1&tt=mzl&addon=opensearch",
+      "clean": "https://www.ecosia.org/search?q=bergen+weather&p=1"
+    },
+    {
+      "engine": "Ecosia",
+      "rule": "ecosia-search",
+      "research": "europe-green.verified.json",
+      "n": 2,
+      "dirty": "https://www.ecosia.org/images?q=Burr%20Oak&expansion=%257B%2522text%2522%253A%2522Burr%2520Oak%2522%257D&size=large&color=green&imageType=photo&aspect=wide&license=public&freshness=week&addon=chrome&addonversion=5.2.0&_sp=00000000-0000-0000-0000-000000000000",
+      "clean": "https://www.ecosia.org/images?q=Burr%20Oak&size=large&color=green&imageType=photo&aspect=wide&license=public&freshness=week"
+    },
+    {
+      "engine": "Ecosia",
+      "rule": "ecosia-search",
+      "research": "europe-green.verified.json",
+      "n": 3,
+      "dirty": "https://www.ecosia.org/videos?q=fjord+cruise&sr=1&videoLength=short&freshness=month&tts=st_asaf_iphone&sfs=1&sfn=widget&ar=1&test=automation&disableConsent=1&feature-new-serp=true",
+      "clean": "https://www.ecosia.org/videos?q=fjord+cruise&videoLength=short&freshness=month"
+    },
+    {
+      "engine": "Qwant",
+      "rule": "qwant-search",
+      "research": "europe-green.verified.json",
+      "n": 1,
+      "dirty": "https://www.qwant.com/?q=bergen+weather&client=brz-moz&t=web&tgp=3&origin=homepage&safesearch=0&offset=20&device=smartphone",
+      "clean": "https://www.qwant.com/?q=bergen+weather&t=web"
+    },
+    {
+      "engine": "Qwant",
+      "rule": "qwant-search",
+      "research": "europe-green.verified.json",
+      "n": 2,
+      "dirty": "https://www.qwant.com/?t=images&q=fjord&size=large&color=blue&imagetype=photo&license=public&freshness=week&o=0%3Aabc123&client=opensearch&hc=0&hti=0&b=1&theme=1",
+      "clean": "https://www.qwant.com/?t=images&q=fjord&size=large&color=blue&imagetype=photo&license=public&freshness=week&o=0%3Aabc123"
+    },
+    {
+      "engine": "Qwant",
+      "rule": "qwant-search",
+      "research": "europe-green.verified.json",
+      "n": 3,
+      "dirty": "https://www.qwant.com/?q=norway+election&t=news&locale=en_GB&l=en&s=2&order=date&freshness=day&source=sportsmole.co.uk&cl=xyz&distribution=partner&chrome_dse_attribution=1&drawer=settings&llm=false",
+      "clean": "https://www.qwant.com/?q=norway+election&t=news&locale=en_GB&l=en&s=2&order=date&freshness=day&source=sportsmole.co.uk"
+    },
+    {
+      "engine": "SearXNG",
+      "rule": "searxng-search",
+      "research": "europe-green.verified.json",
+      "n": 1,
+      "dirty": "https://searx.example.org/search?q=bergen+weather&categories=general&language=en-GB&time_range=week&safesearch=1&pageno=2&theme=simple",
+      "clean": "https://searx.example.org/search?q=bergen+weather&categories=general&language=en-GB&time_range=week&safesearch=1&pageno=2"
+    },
+    {
+      "engine": "SearXNG",
+      "rule": "searxng-search",
+      "research": "europe-green.verified.json",
+      "n": 2,
+      "dirty": "https://searx.example.org/?q=%21yt+fjord&category_videos=1&engines=youtube,piped&engine_data-piped-nextpage=abc123&pageno=2&image_proxy=1&results_on_new_tab=1&center_alignment=1",
+      "clean": "https://searx.example.org/?q=%21yt+fjord&category_videos=1&engines=youtube,piped&engine_data-piped-nextpage=abc123&pageno=2"
+    },
+    {
+      "engine": "SearXNG",
+      "rule": "searxng-search",
+      "research": "europe-green.verified.json",
+      "n": 3,
+      "dirty": "https://baresearch.org/search?q=privacy&format=rss&preferences=eJwrSS0uAQAEXQHB&tokens=secret123&enabled_plugins=Hash_plugin&locale=pt&utm_source=newsletter",
+      "clean": "https://baresearch.org/search?q=privacy&format=rss&locale=pt"
+    },
+    {
+      "engine": "Baidu",
+      "rule": "baidu-search",
+      "research": "asia.verified.json",
+      "n": 1,
+      "dirty": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=privacy%20tools&fenlei=256&oq=privacy&rsv_pq=896f886f000184f4&rsv_t=fdd2CqgBgjaepxfhicpCfrq&rqlang=cn&rsv_enter=1&rsv_dl=tb&rsv_sug3=12&rsv_sug1=8&rsv_sug7=100&rsv_btype=i&inputT=2381&rsv_sug4=3019",
+      "clean": "https://www.baidu.com/s?ie=utf-8&wd=privacy%20tools"
+    },
+    {
+      "engine": "Baidu",
+      "rule": "baidu-search",
+      "research": "asia.verified.json",
+      "n": 2,
+      "dirty": "https://www.baidu.com/s?wd=%E5%A4%A9%E6%B0%94&pn=20&rn=10&oq=%E5%A4%A9%E6%B0%94&tn=48020221_dg&ie=utf-8&usm=3&rsv_pq=a1b2c3&rsv_t=xyz&rsv_page=1&gpc=stf%3D1791540000%2C1791626400%7Cstftype%3D1&ct=1&nojc=1",
+      "clean": "https://www.baidu.com/s?wd=%E5%A4%A9%E6%B0%94&pn=20&rn=10&ie=utf-8&usm=3&gpc=stf%3D1791540000%2C1791626400%7Cstftype%3D1&ct=1&nojc=1"
+    },
+    {
+      "engine": "Baidu",
+      "rule": "baidu-search",
+      "research": "asia.verified.json",
+      "n": 3,
+      "dirty": "https://www.baidu.com/s?rtt=4&bsst=1&cl=2&tn=news&rsv_dl=ns_pc&word=%E6%8C%AA%E5%A8%81&medium=1&rsv_sug3=4&inputT=1234&fr=top1000",
+      "clean": "https://www.baidu.com/s?rtt=4&cl=2&tn=news&word=%E6%8C%AA%E5%A8%81&medium=1"
+    },
+    {
+      "engine": "Baidu",
+      "rule": "baidu-search",
+      "research": "asia.verified.json",
+      "n": 4,
+      "dirty": "https://m.baidu.com/from=844b/ssid=3aed7368656e7a68696d696e673434e940/pu=sz%401320_480/s?word=test&ts=4303890&t_kt=0&ie=utf-8&tj=1&params_ssrt=node-san&sa=ib&rsv_pq=abc&rsv_t=def&rqid=123&sugid=456&rfrom=1024439e&rchannel=1024439k&pn=10",
+      "clean": "https://m.baidu.com/s?word=test&ie=utf-8&pn=10"
+    },
+    {
+      "engine": "Baidu",
+      "rule": "baidu-search",
+      "research": "asia.verified.json",
+      "n": 5,
+      "dirty": "https://image.baidu.com/search/index?tn=baiduimage&ipn=r&ct=201326592&cl=2&lm=-1&st=-1&fm=index&fr=&hs=0&xthttps=111110&sf=1&fmq=&pv=&ic=16&nc=1&z=7&se=1&showtab=0&fb=0&width=&height=&face=0&istype=2&ie=utf-8&word=fjord&oq=fjord&rsp=-1&hd=1&imgratio=4",
+      "clean": "https://image.baidu.com/search/index?tn=baiduimage&lm=-1&ic=16&z=7&face=0&ie=utf-8&word=fjord&hd=1&imgratio=4"
+    },
+    {
+      "engine": "Baidu",
+      "rule": "baidu-search",
+      "research": "asia.verified.json",
+      "n": 6,
+      "dirty": "https://www.baidu.com/s?q1=nordic+design&q2=&q3=&q4=ikea&rn=50&lm=30&ct=0&ft=pdf&q5=1&q6=&tn=baiduadv&rsv_bp=0&inputT=900",
+      "clean": "https://www.baidu.com/s?q1=nordic+design&q4=ikea&rn=50&lm=30&ct=0&ft=pdf&q5=1&tn=baiduadv"
+    },
+    {
+      "engine": "Baidu",
+      "rule": "baidu-search",
+      "research": "asia.verified.json",
+      "n": 7,
+      "dirty": "https://wenku.baidu.com/search?lm=0&od=0&ie=utf-8&dyTabStr=MCwxLDYsNCw1LDMsMiw3LDgsOQ%3D%3D&word=test&fr=top_home&cc=SearchFloatBtn",
+      "clean": "https://wenku.baidu.com/search?lm=0&od=0&ie=utf-8&word=test"
+    },
+    {
+      "engine": "Baidu",
+      "rule": "baidu-search",
+      "research": "asia.verified.json",
+      "n": 8,
+      "dirty": "https://www.baidu.com/baidu?tn=monline_3_dg&ie=utf-8&wd=%F0%9F%98%8E&rsv_bp=1&usm=1",
+      "clean": "https://www.baidu.com/baidu?ie=utf-8&wd=%F0%9F%98%8E"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 1,
+      "dirty": "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=%EB%B2%A0%EB%A5%B4%EA%B2%90&tqi=jVoLidqosNossiR5Ces-107849&oquery=bergen&acq=bergen&acr=1&ackey=x5k2b8qa",
+      "clean": "https://search.naver.com/search.naver?where=nexearch&ie=utf8&query=%EB%B2%A0%EB%A5%B4%EA%B2%90"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 2,
+      "dirty": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&sm=tab_opt&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&sort=1&photo=0&field=0&pd=3&ds=2026.09.01&de=2026.09.30&docid=&related=0&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so%3Add%2Cp%3Afrom20260901to20260930&is_sug_officeid=0&office_category=0&service_area=0&start=11&tqi=abc123&nso_open=1",
+      "clean": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&sort=1&photo=0&field=0&pd=3&ds=2026.09.01&de=2026.09.30&related=0&mynews=0&office_type=0&office_section_code=0&nso=so%3Add%2Cp%3Afrom20260901to20260930&is_sug_officeid=0&office_category=0&service_area=0&start=11"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 3,
+      "dirty": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=%ED%8E%AD%EC%88%98+%EC%9C%A0%ED%88%AC%EB%B8%8C&sm=tab_org&qvt=0",
+      "clean": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=%ED%8E%AD%EC%88%98+%EC%9C%A0%ED%88%AC%EB%B8%8C&qvt=0"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 4,
+      "dirty": "https://m.search.naver.com/search.naver?ssc=tab.m_video.all&where=m_video&sm=mtb_opt&query=fjord&sort=date&period=1week&playtime=0%3A600&dtype=shorts&nso=so%3Add%2Cp%3A1w&nso_open=1&view=big&referenceId=jVoL2lqo6X4ssd4BlyZ-127025&buckets=impression-neo-SA_SERVING-1119%5E0",
+      "clean": "https://m.search.naver.com/search.naver?ssc=tab.m_video.all&where=m_video&query=fjord&sort=date&period=1week&playtime=0%3A600&dtype=shorts&nso=so%3Add%2Cp%3A1w"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 5,
+      "dirty": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&sm=tab_opt&query=fjord&mode=column&section=blog&res_fr=786432&res_to=100000000&color=blue&ccl=2&nso=so%3Ar%2Cp%3A1m&recent=0&gif=0&nso_open=1&pq=fjor&qdt=0",
+      "clean": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=fjord&section=blog&res_fr=786432&res_to=100000000&color=blue&ccl=2&nso=so%3Ar%2Cp%3A1m&gif=0"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 6,
+      "dirty": "https://search.naver.com/search.naver?where=nexearch&sm=tab_etc&mra=blhI&pkid=594&os=15132335&qvt=0&query=%EB%84%A4%EC%9D%B4%EB%B2%84&x_csa=%7B%22fromUi%22%3A%22kb%22%7D&tqi=zz9",
+      "clean": "https://search.naver.com/search.naver?where=nexearch&mra=blhI&pkid=594&os=15132335&qvt=0&query=%EB%84%A4%EC%9D%B4%EB%B2%84"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 7,
+      "dirty": "https://search.naver.com/search.naver?ssc=tab.ur.all&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&sm=tab_pge&start=16&page=2&nso=so%3Ar%2Cp%3Aall&tqi=jVoLidqo",
+      "clean": "https://search.naver.com/search.naver?ssc=tab.ur.all&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&start=16&nso=so%3Ar%2Cp%3Aall"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 8,
+      "dirty": "https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&sm=tab_opt&cafe_where=articlec&st=date&stnm=date&date_option=3&date_from=&date_to=&srchby=text&prdtype=4&nso_open=1",
+      "clean": "https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&cafe_where=articlec&st=date&date_option=3&srchby=text&prdtype=4"
+    },
+    {
+      "engine": "Naver",
+      "rule": "naver-search",
+      "research": "asia.verified.json",
+      "n": 9,
+      "dirty": "https://search.naver.com/search.naver?de=&docid=0030014244233&ds=&field=0&mynews=0&news_office_checked=&nso=so%3Ar%2Cp%3Aall%2Ca%3Aall&office_section_code=0&office_type=0&pd=-1&photo=0&qdt=0&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&related=1&sm=tab_tnw&sort=0&ssc=tab.news.all",
+      "clean": "https://search.naver.com/search.naver?docid=0030014244233&field=0&mynews=0&nso=so%3Ar%2Cp%3Aall%2Ca%3Aall&office_section_code=0&office_type=0&pd=-1&photo=0&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&related=1&sort=0&ssc=tab.news.all"
+    }
+  ]
+}

@@ -1,0 +1,754 @@
+{
+ "group": "baidu-naver",
+ "generated": "2026-10-10",
+ "engines": [
+  {
+   "engine": "Baidu",
+   "hosts": [
+    "www.baidu.com",
+    "baidu.com",
+    "m.baidu.com",
+    "wap.baidu.com",
+    "image.baidu.com",
+    "zhidao.baidu.com",
+    "wenku.baidu.com",
+    "jingyan.baidu.com",
+    "baike.baidu.com",
+    "news.baidu.com"
+   ],
+   "paths": [
+    "www.baidu.com/s (web results; also news vertical via tn=news, advanced search via tn=baiduadv)",
+    "baidu.com/s (redirects to www)",
+    "www.baidu.com/baidu (legacy site-search form action, word/si/ct; redirects to /s; inferred from widely copied site-search snippets)",
+    "www.baidu.com/sf/vsearch (video vertical, pd=video&tn=vsearch)",
+    "m.baidu.com/s and m.baidu.com/<key=value>/.../s, where leading path segments such as from=844b, ssid=<hex>, pu=sz@1320_480, bd_page_type=0 are tracking/session/device segments to strip",
+    "m.baidu.com/sf/vsearch (mobile video vertical; inferred by analogy with www)",
+    "image.baidu.com/search/index and image.baidu.com/search/flip (image results, tn=baiduimage)",
+    "zhidao.baidu.com/search, wenku.baidu.com/search, jingyan.baidu.com/search, baike.baidu.com/search (secondary verticals)",
+    "news.baidu.com/ns (legacy news search; now served via www.baidu.com/s?tn=news; inferred)",
+    "NOT result pages: www.baidu.com/link?url=... (outbound click redirect; AdGuard/LUS strip eqid and wd there), www.baidu.com/s?tn=json and image.baidu.com/search/acjson (JSON APIs)"
+   ],
+   "functional": [
+    {
+     "name": "wd",
+     "meaning": "Search query (primary on www.baidu.com/s and /sf/vsearch).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/baidu.py ; https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_pc.py",
+     "condition": "www.baidu.com or baidu.com, path /s (also m.baidu.com /s)"
+    },
+    {
+     "name": "word",
+     "meaning": "Search query alias; the primary query name on m.baidu.com/s, image.baidu.com, zhidao, wenku, jingyan, baike and the legacy /baidu endpoint; Baidu's own UI layer reads it on /s too.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/baidu.py (images: word) ; https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_mobile.py ; https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php",
+     "condition": "any Baidu result path"
+    },
+    {
+     "name": "pn",
+     "meaning": "Result offset, 0-based, in steps of rn (page 2 at 10 per page is pn=10).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/baidu.py ; https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves)",
+     "condition": "any Baidu result path"
+    },
+    {
+     "name": "rn",
+     "meaning": "Results per page; the advanced form offers 10, 20 or 50. Note LUS strips rn, which changes page size; keep it.",
+     "source": "https://www.baidu.com/gaoji/advanced.html ; https://github.com/searxng/searxng/blob/master/searx/engines/baidu.py",
+     "condition": "any Baidu result path"
+    },
+    {
+     "name": "ie",
+     "meaning": "Character encoding of the query (utf-8, gbk, gb2312). Required to decode a GBK-encoded wd/word correctly; Baidu's UI falls back to GBK detection. LUS disabled its own ie-removal rule after breakage.",
+     "source": "https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_pc.py ; https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php (PS-INPUTENCODE, GBK fallback) ; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (commented-out ||baidu.com^$removeparam=ie, issue 831)",
+     "condition": "any Baidu result path"
+    },
+    {
+     "name": "tn",
+     "meaning": "Overloaded. Functional ONLY when the value selects a vertical/template: news (news vertical on /s), baiduadv (advanced search, required by q1 to q6), baiduimage (image results), vsearch (video on /sf/vsearch). Every other value (baidu, baiduhome_pg, 48020221_dg, monline_3_dg, baidutop10, iphone, SE_*, *_pg, *_dg) is a partner/account code and is non-functional.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php (tn mapped to PS-ORIACCOUNTNAME, i.e. originating account) ; https://www.baidu.com/gaoji/advanced.html (hidden tn=baiduadv) ; https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (tn=news, tn=vsearch, tn=baiduimage)",
+     "condition": "keep only if value in {news, baiduadv, baiduimage, vsearch}"
+    },
+    {
+     "name": "gpc",
+     "meaning": "Time filter: stf=<from_unix>,<to_unix>|stftype=1 (preset range such as last day/week/month/year) or stftype=2 (custom range). Keep verbatim.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/baidu.py ; https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_pc.py ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "www/m /s, including tn=news"
+    },
+    {
+     "name": "lm",
+     "meaning": "Time limit in days from the advanced form: 0 all, 1 day, 7 week, 30 month, 360 year. Other meanings on zhidao/wenku/jingyan (see those entries). LUS strips lm globally; do not copy that.",
+     "source": "https://www.baidu.com/gaoji/advanced.html ; https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php",
+     "condition": "www.baidu.com/s"
+    },
+    {
+     "name": "ct",
+     "meaning": "Bitfield. Advanced form: 0 all languages, 1 simplified Chinese only, 2 traditional Chinese only. ct=2097152 (bit 21) together with si turns on site restriction. Keep verbatim.",
+     "source": "https://www.baidu.com/gaoji/advanced.html ; https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_pc.py (si plus ct=2097152) ; https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php (ct read as PS-ORIGINCODETYPE with bit masks)",
+     "condition": "www.baidu.com/s and /baidu (on image.baidu.com ct is non-functional, see nonfunctional)"
+    },
+    {
+     "name": "si",
+     "meaning": "Site restriction domain (site search); effective together with ct=2097152.",
+     "source": "https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_pc.py ; https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php (PS-SITENAME)",
+     "condition": "www.baidu.com/s and /baidu"
+    },
+    {
+     "name": "q1",
+     "meaning": "Advanced search: all of these words.",
+     "source": "https://www.baidu.com/gaoji/advanced.html",
+     "condition": "with tn=baiduadv"
+    },
+    {
+     "name": "q2",
+     "meaning": "Advanced search: this exact phrase.",
+     "source": "https://www.baidu.com/gaoji/advanced.html",
+     "condition": "with tn=baiduadv"
+    },
+    {
+     "name": "q3",
+     "meaning": "Advanced search: any of these words.",
+     "source": "https://www.baidu.com/gaoji/advanced.html",
+     "condition": "with tn=baiduadv"
+    },
+    {
+     "name": "q4",
+     "meaning": "Advanced search: exclude these words.",
+     "source": "https://www.baidu.com/gaoji/advanced.html",
+     "condition": "with tn=baiduadv"
+    },
+    {
+     "name": "q5",
+     "meaning": "Advanced search keyword position: empty anywhere, 1 title only, 2 URL only.",
+     "source": "https://www.baidu.com/gaoji/advanced.html",
+     "condition": "with tn=baiduadv"
+    },
+    {
+     "name": "q6",
+     "meaning": "Advanced search: restrict to this site (e.g. baidu.com).",
+     "source": "https://www.baidu.com/gaoji/advanced.html",
+     "condition": "with tn=baiduadv"
+    },
+    {
+     "name": "ft",
+     "meaning": "File type: pdf, doc, xls, ppt, rtf, all (empty = all pages and files). Also a 'search tools' state variable on the SERP.",
+     "source": "https://www.baidu.com/gaoji/advanced.html ; https://github.com/frankyZhang/User_Preference_Prediction/tree/master/SERP_baidu (saved Baidu SERPs, 2016) (bds.comm.search_tool.ft)",
+     "condition": "www.baidu.com/s"
+    },
+    {
+     "name": "sl_lang",
+     "meaning": "Search-tools result-language restriction (e.g. en). Meaning inferred: it is a SERP 'search tools' state variable and clients append sl_lang=en for English results.",
+     "source": "https://github.com/frankyZhang/User_Preference_Prediction/tree/master/SERP_baidu (saved Baidu SERPs, 2016) (bds.comm.search_tool.sl_lang) ; https://github.com/kingcc/wist/blob/master/lib/baidu.js (sl_lang=en&rsv_srlang=en&rsv_rq=en)",
+     "condition": "www.baidu.com/s; inferred"
+    },
+    {
+     "name": "nojc",
+     "meaning": "nojc=1 disables spelling correction (search exactly as typed; no 'did you mean' rewrite). Baidu UI code names it the flag that cancels the spelling-error hint.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/strategy/HintFlag.php ('取消SE提示的标识') ; https://github.com/kowainik/shortcut-links/blob/main/src/ShortcutLinks/All.hs (baidu.com/s?nojc=1&wd=) ; https://github.com/andeya/pholcus_lib/blob/master/baidusearch/baidusearch.go",
+     "condition": "any Baidu search path"
+    },
+    {
+     "name": "rtt",
+     "meaning": "News sort: 1 by focus/relevance (default), 4 by time.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (search_news sort_by)",
+     "condition": "with tn=news"
+    },
+    {
+     "name": "medium",
+     "meaning": "News source filter: 0 all, 1 media websites, 2 Baijiahao.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "with tn=news"
+    },
+    {
+     "name": "cl",
+     "meaning": "Result 'cluster mode'; cl=2 is sent with the news vertical. Treat as functional only with tn=news; cl=3 on plain web URLs is a legacy default that LUS strips. Inferred.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (tn=news ... &cl=2) ; https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php (cl mapped to PS-CLUSTERMOD)",
+     "condition": "keep only with tn=news; inferred"
+    },
+    {
+     "name": "pd",
+     "meaning": "Vertical selector on the video path: pd=video.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "path /sf/vsearch"
+    },
+    {
+     "name": "z",
+     "meaning": "Image size: 7 extra large (1080px+), 6 large (600 to 1080px), 5 medium (300 to 600px), 4 small (under 300px). Older URLs use 9/3/2/1 (inferred legacy).",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "imgratio",
+     "meaning": "Image aspect ratio: 1 tall vertical, 2 vertical, 3 square, 4 horizontal, 5 wide horizontal.",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "imgformat",
+     "meaning": "Image format: 3 JPG, 5 JPEG, 4 PNG, 2 BMP, 6 animated GIF.",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "ic",
+     "meaning": "Image colour: 1 red, 2 yellow, 4 green, 8 teal, 16 blue, 32 purple, 64 magenta, 128 brown, 256 orange, 512 black, 1024 white, 2048 black and white (0 or empty any).",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "hd",
+     "meaning": "hd=1 high-definition images only.",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "latest",
+     "meaning": "latest=1 sort images by newest.",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "hot",
+     "meaning": "hot=1 sort images by popularity.",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "copyright",
+     "meaning": "copyright=1 copyright-cleared images only.",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "isImgSet",
+     "meaning": "isImgSet=1 photo albums (image sets) only.",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/baidu.php",
+     "condition": "image.baidu.com"
+    },
+    {
+     "name": "width",
+     "meaning": "Custom image width filter (pixels). Inferred from the parameter name in the image search request.",
+     "source": "https://github.com/blacknon/pydork/blob/master/pydork/engine_baidu.py ; https://github.com/kong36088/BaiduImageSpider/blob/master/crawling.py",
+     "condition": "image.baidu.com; inferred"
+    },
+    {
+     "name": "height",
+     "meaning": "Custom image height filter (pixels). Inferred.",
+     "source": "https://github.com/blacknon/pydork/blob/master/pydork/engine_baidu.py ; https://github.com/kong36088/BaiduImageSpider/blob/master/crawling.py",
+     "condition": "image.baidu.com; inferred"
+    },
+    {
+     "name": "face",
+     "meaning": "Face/portrait filter (face=1). Inferred; 0 is the default.",
+     "source": "https://github.com/kong36088/BaiduImageSpider/blob/master/crawling.py",
+     "condition": "image.baidu.com; inferred"
+    },
+    {
+     "name": "lm",
+     "meaning": "Image search: legacy image-type filter (-1 any). Low confidence; LUS strips it. Keep to be safe.",
+     "source": "https://github.com/blacknon/pydork/blob/master/pydork/engine_baidu.py ; https://github.com/kong36088/BaiduImageSpider/blob/master/crawling.py",
+     "condition": "image.baidu.com; inferred, low confidence"
+    },
+    {
+     "name": "date",
+     "meaning": "Zhidao (Q&A) time filter: 0 all, 2 within a week, 3 within a month, 4 within a year.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (search_zhidao)",
+     "condition": "zhidao.baidu.com/search"
+    },
+    {
+     "name": "lm",
+     "meaning": "Zhidao: lm=0 sent by default; jingyan: scope 0 all, 1 outstanding, 2 praised, 3 original; wenku: format 0 all, 1 doc, 2 pdf, 3 ppt, 4 xls, 5 txt.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (search_zhidao, search_jingyan, search_wenku)",
+     "condition": "zhidao/jingyan/wenku .baidu.com/search"
+    },
+    {
+     "name": "fd",
+     "meaning": "Wenku scope: 0 all, 1 VIP only, 2 VIP, 3 free, 4 high quality.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (search_wenku)",
+     "condition": "wenku.baidu.com/search"
+    },
+    {
+     "name": "pt",
+     "meaning": "Wenku time: 0 all, 1 this year, 2 last year, 3 earlier.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (search_wenku)",
+     "condition": "wenku.baidu.com/search"
+    },
+    {
+     "name": "od",
+     "meaning": "Wenku sort: 0 relevance, 1 time, 2 downloads, 3 score. LUS strips od; do not copy that.",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (search_wenku)",
+     "condition": "wenku.baidu.com/search"
+    },
+    {
+     "name": "pb",
+     "meaning": "Wenku page-count range start (with pe).",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (search_wenku)",
+     "condition": "wenku.baidu.com/search"
+    },
+    {
+     "name": "pe",
+     "meaning": "Wenku page-count range end (with pb).",
+     "source": "https://pypi.org/project/BaiduSpider/1.0.2.6/ (sdist baiduspider/__init__.py; upstream github.com/BaiduSpider/BaiduSpider no longer resolves) (search_wenku)",
+     "condition": "wenku.baidu.com/search"
+    }
+   ],
+   "nonfunctional": [
+    {
+     "name": "rsv_* (rsv_bp, rsv_idx, rsv_spt, rsv_iqid, rsv_t, rsv_pq, rsv_enter, rsv_dl, rsv_btype, rsv_sug1 to rsv_sug9, rsv_n, rsv_jmp, rsv_page, rsv_cq, rsv_ers, rsv_crq, rsv_bdr, rsv_sid, rsv_srlang, rsv_rq)",
+     "meaning": "Baidu logging/statistics fields: how the query was typed, suggestion use, timestamps, previous-query ids, browser hints. rsv_srlang/rsv_rq only duplicate sl_lang.",
+     "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (||baidu.com^$removeparam=/^rsv.*$/) ; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (rsv_pq, rsv_t)"
+    },
+    {
+     "name": "f",
+     "meaning": "Come-from code (PS-COMEFROM): e.g. f=8 typed in box, f=3 suggestion, f=12 related search.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php ; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (||baidu.com/s?$removeparam=f)"
+    },
+    {
+     "name": "tn (any value other than news, baiduadv, baiduimage, vsearch)",
+     "meaning": "Originating partner/account code (browser, hao123, toolbar, affiliate), e.g. baidu, baiduhome_pg, 48020221_dg, monline_3_dg, baidutop10.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php (PS-ORIACCOUNTNAME) ; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (||baidu.com/s?$removeparam=tn)"
+    },
+    {
+     "name": "oq",
+     "meaning": "Original/previous query as typed before the current search.",
+     "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt ; https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_pc.py (comment '原始查询')"
+    },
+    {
+     "name": "bs",
+     "meaning": "Previous ('before search') query carried on related-search links. Inferred.",
+     "source": "https://github.com/frankyZhang/User_Preference_Prediction/tree/master/SERP_baidu (saved Baidu SERPs, 2016)"
+    },
+    {
+     "name": "inputT",
+     "meaning": "Typing duration in milliseconds.",
+     "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt ; https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_pc.py"
+    },
+    {
+     "name": "usm",
+     "meaning": "Offset of back-end inserted results, used only to keep paging consistent; dropping it can at worst shift one inserted item. Stripped by LUS.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/baiduplugins/function.wiseMakeSearchUrl.php ('后端插入结果偏移量, 仅翻页搜索需要此参数') ; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+    },
+    {
+     "name": "rsp, rs_src, rsf, rqid, prefixsug, issp, euri, for, hisfilter, hl_tag, fenlei, bsst, p_tk, gsid, idctag, logid, pageFrom, sids, srcp, asctag, rq, vslid, n_type, p_from, sfrom, sourceFrom, frs, xzhid, iid, jid, cf, miniId, ps, nc, fid, pi, lattr, category, prod_type, query (on non-/s pages)",
+     "meaning": "Click position, related-search source, experiment, log and source ids.",
+     "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+    },
+    {
+     "name": "fr, from, from* (e.g. fr=top1000, from=844b)",
+     "meaning": "Referral/channel codes.",
+     "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (||baidu.com^$doc,removeparam=/^from.*$/) ; https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/baiduplugins/function.wiseMakeSearchUrl.php"
+    },
+    {
+     "name": "sa",
+     "meaning": "Search action and position code ('搜索行为_位置'), e.g. sa=ib, sa=tb, sa=re_dl_er.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/baiduplugins/function.wiseMakeSearchUrl.php ; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+    },
+    {
+     "name": "st (mobile), at, ms, uid, ref, lid, bd_page_type, sasub",
+     "meaning": "Mobile click-logging search-type marker, AJAX flag, force-mobile-site flag, user and log ids.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/baiduplugins/function.wiseMakeSearchUrl.php"
+    },
+    {
+     "name": "ssid, pu, from, bd_page_type (as path segments before /s on m.baidu.com)",
+     "meaning": "Session id, device profile (pu=sz@...), partner and page-type segments embedded in the path; strip the segments and keep /s.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/baiduplugins/function.wiseMakeSearchUrl.php (http_build_query(common_prefix_array, '', '/') . '/s') ; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (sample m.baidu.com/ssid=.../s URL)"
+    },
+    {
+     "name": "ts, t_kt, tj, params_ssrt, vit, sugid, ss, rfrom, rchannel",
+     "meaning": "Mobile timing, suggestion, channel and rendering fields.",
+     "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt ; https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_mobile.py"
+    },
+    {
+     "name": "rqlang",
+     "meaning": "Request-language code sent by the home search box (normally cn). Inferred non-functional; not a results-language filter (use sl_lang/ct).",
+     "source": "https://github.com/ohblue/baidu-serp-api/blob/master/baidu_serp_api/baidu_pc.py (rqlang=cn always sent)"
+    },
+    {
+     "name": "ch, bar, hsug, sugsid, cqid, clist, _ss, istc, ver",
+     "meaning": "Home-box and suggestion bookkeeping. Inferred from name and context; no source documents a results effect.",
+     "source": "https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php (ch, ver listed as URL-config fields)"
+    },
+    {
+     "name": "cl (when tn is not news)",
+     "meaning": "Legacy cluster-mode value (cl=3) on web URLs.",
+     "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt ; https://github.com/simonsww/edpx-zhixin/blob/master/env/app/view-ui/io/InputProcess.php"
+    },
+    {
+     "name": "recid, srcid, rt, cq, vmp_ec, vmp_ectm",
+     "meaning": "Right-rail recommendation and video module tracking on related links.",
+     "source": "https://github.com/frankyZhang/User_Preference_Prediction/tree/master/SERP_baidu (saved Baidu SERPs, 2016)"
+    },
+    {
+     "name": "ipn, ct, cl, fm, fr, pv, sf, fmq, hs, xthttps, showtab, fb, se, nc, istype, st, oe, adpicid, is, fp, gsm, logid, queryWord, expermode, force, cs, os, simid, di, ln (image.baidu.com)",
+     "meaning": "Image search request plumbing, module and referral codes, duplicate query (queryWord), output encoding. ct on image is a constant (201326592) that LUS strips.",
+     "source": "https://github.com/blacknon/pydork/blob/master/pydork/engine_baidu.py ; https://github.com/kong36088/BaiduImageSpider/blob/master/crawling.py ; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (||baidu.com/search/index?$removeparam=ct)"
+    },
+    {
+     "name": "dyTabStr, cc, fixfr, rec_flag, sxts, _wkts_, aggId (wenku); qbl (zhidao)",
+     "meaning": "Tab ordering and recommendation tracking on secondary verticals.",
+     "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+    },
+    {
+     "name": "eqid, wd (on www.baidu.com/link only)",
+     "meaning": "Click-redirect tracking on the outbound /link endpoint (not a result page).",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt ; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+    }
+   ],
+   "notes": "Baidu publishes no URL-parameter documentation; the only first-party reference is the advanced-search form (q1 to q6, rn, lm, ct, ft, tn=baiduadv), plus Baidu UI code mirrored in the 2014 edpx-zhixin dev environment (tn = originating account, f = come-from, ct = bitfield, nojc = cancel spelling hint, mobile path segments). Live verification was impossible: on 2026-10-10 both www.baidu.com/s and m.baidu.com/s redirected unauthenticated clients to the wappass.baidu.com captcha. ClearURLs has no Baidu provider. AdGuard strips only rsv_pq, rsv_t and eqid; DandelionSprout's LUS is far more aggressive and also strips functional rn, lm, od, cl, ct (image) and tn wholesale, so CheckLink must not copy LUS blindly; tn needs a value allowlist. Baidu has no safe-search, region/market or interface-language URL parameter (Chinese-only UI; no source shows one); results language is ct (advanced) or sl_lang (search tools). Duplicate keys: if both wd and word appear, keep both (Baidu uses wd first on www; inferred). Empty-valued parameters (width=, height=, q3=) can be dropped. Keep gpc and other values byte-for-byte; do not re-encode. www.baidu.com/link?url=... is a redirect, not a canonical page.",
+   "tests": [
+    {
+     "dirty": "https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&rsv_idx=1&tn=baidu&wd=privacy%20tools&fenlei=256&oq=privacy&rsv_pq=896f886f000184f4&rsv_t=fdd2CqgBgjaepxfhicpCfrq&rqlang=cn&rsv_enter=1&rsv_dl=tb&rsv_sug3=12&rsv_sug1=8&rsv_sug7=100&rsv_btype=i&inputT=2381&rsv_sug4=3019",
+     "clean": "https://www.baidu.com/s?ie=utf-8&wd=privacy%20tools"
+    },
+    {
+     "dirty": "https://www.baidu.com/s?wd=%E5%A4%A9%E6%B0%94&pn=20&rn=10&oq=%E5%A4%A9%E6%B0%94&tn=48020221_dg&ie=utf-8&usm=3&rsv_pq=a1b2c3&rsv_t=xyz&rsv_page=1&gpc=stf%3D1791540000%2C1791626400%7Cstftype%3D1&ct=1&nojc=1",
+     "clean": "https://www.baidu.com/s?wd=%E5%A4%A9%E6%B0%94&pn=20&rn=10&ie=utf-8&gpc=stf%3D1791540000%2C1791626400%7Cstftype%3D1&ct=1&nojc=1"
+    },
+    {
+     "dirty": "https://www.baidu.com/s?rtt=4&bsst=1&cl=2&tn=news&rsv_dl=ns_pc&word=%E6%8C%AA%E5%A8%81&medium=1&rsv_sug3=4&inputT=1234&fr=top1000",
+     "clean": "https://www.baidu.com/s?rtt=4&cl=2&tn=news&word=%E6%8C%AA%E5%A8%81&medium=1"
+    },
+    {
+     "dirty": "https://m.baidu.com/from=844b/ssid=3aed7368656e7a68696d696e673434e940/pu=sz%401320_480/s?word=test&ts=4303890&t_kt=0&ie=utf-8&tj=1&params_ssrt=node-san&sa=ib&rsv_pq=abc&rsv_t=def&rqid=123&sugid=456&rfrom=1024439e&rchannel=1024439k&pn=10",
+     "clean": "https://m.baidu.com/s?word=test&ie=utf-8&pn=10"
+    },
+    {
+     "dirty": "https://image.baidu.com/search/index?tn=baiduimage&ipn=r&ct=201326592&cl=2&lm=-1&st=-1&fm=index&fr=&hs=0&xthttps=111110&sf=1&fmq=&pv=&ic=16&nc=1&z=7&se=1&showtab=0&fb=0&width=&height=&face=0&istype=2&ie=utf-8&word=fjord&oq=fjord&rsp=-1&hd=1&imgratio=4",
+     "clean": "https://image.baidu.com/search/index?tn=baiduimage&lm=-1&ic=16&z=7&face=0&ie=utf-8&word=fjord&hd=1&imgratio=4"
+    },
+    {
+     "dirty": "https://www.baidu.com/s?q1=nordic+design&q2=&q3=&q4=ikea&rn=50&lm=30&ct=0&ft=pdf&q5=1&q6=&tn=baiduadv&rsv_bp=0&inputT=900",
+     "clean": "https://www.baidu.com/s?q1=nordic+design&q4=ikea&rn=50&lm=30&ct=0&ft=pdf&q5=1&tn=baiduadv"
+    }
+   ]
+  },
+  {
+   "engine": "Naver",
+   "hosts": [
+    "search.naver.com",
+    "m.search.naver.com"
+   ],
+   "paths": [
+    "search.naver.com/search.naver (desktop; all verticals selected by where and/or ssc)",
+    "m.search.naver.com/search.naver (mobile; where=m, m_news, m_image, m_video, m_kin, m_influencer, m_expd; ssc=tab.m.all, tab.m_news.all ...)",
+    "NOT result pages: s.search.naver.com/p/... (XHR/JSON pagination APIs used by 4get, carry api_type, display, nlu_query, nqx_theme, nx_* fields), search.naver.com/p/crd/rd and cc.naver.com/cc (click redirects/beacons; AdGuard strips their coordinates), search.shopping.naver.com (shopping, separate rules: frm, NaPm per AdGuard)"
+   ],
+   "functional": [
+    {
+     "name": "query",
+     "meaning": "Search query (UTF-8).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/naver.py ; https://github.com/naver/naver-openapi-guide/blob/master/ko/service-apis/search/news/news.md (mirror of developers.naver.com/docs/serviceapi/search/news/news.md) ; https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "where",
+     "meaning": "Vertical: nexearch (integrated, default), web, image, video, news, kin, influencer, blog (legacy), m (mobile integrated), m_news, m_image, m_video, m_kin, m_influencer, m_expd.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/naver.py (web, image, news, video) ; https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10) ; https://m.search.naver.com/search.naver?where=m&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (live page source fetched 2026-10-10) ; https://github.com/DIYgod/RSSHub/blob/master/lib/routes/naver/search.ts"
+    },
+    {
+     "name": "ssc",
+     "meaning": "Tab selector 'tab.<vertical>.<subtab>': tab.nx.all, tab.news.all, tab.blog.all, tab.cafe.all, tab.image.all, tab.video.all, tab.kin.kqna, tab.influencer.chl, tab.clip.all, tab.ur.all (web documents), tab.ait.all (AI tab); mobile tab.m.all, tab.m_news.all, tab.m_blog.all, tab.m_cafe.all, tab.m_image.all, tab.m_video.all, tab.m_kin.all, tab.m_clip.all, tab.m_ur.all, tab.m_ait.all. Blog and cafe tabs are selected by ssc alone, without where.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10) (tab links ?ssc=tab.blog.all&sm=tab_jum&query=...) ; https://github.com/DIYgod/RSSHub/blob/master/lib/routes/naver/search.ts (blog/cafe URLs carry ssc but no where)"
+    },
+    {
+     "name": "start",
+     "meaning": "1-based result offset (page size depends on vertical: 15 web, 10 news, 50 image, 48 video per SearXNG).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/naver.py ; https://github.com/naver/naver-openapi-guide/blob/master/ko/service-apis/search/news/news.md (mirror of developers.naver.com/docs/serviceapi/search/news/news.md) (start: default 1) ; https://github.com/dev-Lesser/naver-news-crawler (README, URL parameter list)"
+    },
+    {
+     "name": "page",
+     "meaning": "Page number carried with start on paged web/document results. Meaning inferred from pagination links.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10) (sm=tab_pge links with page=2..9 and start)",
+     "condition": "inferred"
+    },
+    {
+     "name": "nso",
+     "meaning": "Option string, comma-separated: so:r (relevance) | so:dd (newest) | so:pc (most played, video); p:all | 1h | 1d | 1w | 1m | 3m | 6m | 1y | fromYYYYMMDDtoYYYYMMDD; a:all; sa:all (kin answer scope). Keep verbatim.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/naver.py (nso=p:1d etc.) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php (so:dd) ; https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (news_get_nso_parameters) ; https://search.naver.com/search.naver?ssc=tab.blog.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (view_form, view_submit_* JS) (live page source fetched 2026-10-10) (view_submit_date_option) ; https://search.naver.com/search.naver?ssc=tab.kin.kqna&where=kin&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (option data-param attributes) (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "qvt",
+     "meaning": "qvt=0 searches the query exactly as typed: disables automatic typo correction and Korean/English keyboard-layout conversion. Naver's own 'search the original term' link is sm=tab_org&qvt=0; verified that qvt=0 alone suppresses the rewrite and sm=tab_org alone does not; qvt=1 behaves like absent.",
+     "source": "Live A/B test 2026-10-10: same query fetched with and without the parameter; result links and correction behaviour compared (queries spdlqj and 펭수 유투브) ; https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "ie",
+     "meaning": "Query encoding (utf8). Keep when present.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10) (ie=utf8 in video_form) ; https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (cafe_option form and option links) (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "os, pkid, mra, mra2, eid, bid",
+     "meaning": "Entity / knowledge-panel selectors filled in when an entity is chosen from autocomplete or a panel link (sm=tab_etc); they pick which entity card is shown for an ambiguous name. Inferred functional (low confidence for eid and bid).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10) (links ?where=nexearch&sm=tab_etc&mra=blhI&pkid=594&os=15132335&qvt=0&query=...; nx_search_form hidden fields os, bid, pkid, eid, mra)",
+     "condition": "integrated results; inferred"
+    },
+    {
+     "name": "sort",
+     "meaning": "News sort: 0 relevance, 1 newest, 2 oldest.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (news_submit_sort_option(0,'sim'), (1,'new'), (2,'old')) ; https://github.com/dev-Lesser/naver-news-crawler (README, URL parameter list)",
+     "condition": "news (where=news, m_news or ssc=tab.news.all / tab.m_news.all)"
+    },
+    {
+     "name": "pd",
+     "meaning": "News period: -1 none (default), 0 all, 1 one week, 2 one month, 3 custom (uses ds/de), 4 one day, 5 one year, 6 six months, 7 to 12 one to six hours, 13 three months.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (news_set_period, news_submit_period_option_custom)",
+     "condition": "news"
+    },
+    {
+     "name": "ds",
+     "meaning": "News custom start date YYYY.MM.DD (with pd=3).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) ; https://github.com/lovit/naver_news_search_scraper/blob/master/naver_news_search_crawler/search_crawler.py ; https://github.com/dev-Lesser/naver-news-crawler (README, URL parameter list)",
+     "condition": "news"
+    },
+    {
+     "name": "de",
+     "meaning": "News custom end date YYYY.MM.DD (with pd=3).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) ; https://github.com/lovit/naver_news_search_scraper/blob/master/naver_news_search_crawler/search_crawler.py ; https://github.com/dev-Lesser/naver-news-crawler (README, URL parameter list)",
+     "condition": "news"
+    },
+    {
+     "name": "photo",
+     "meaning": "News type: 0 all, 1 photo, 2 video, 3 print edition, 4 press release, 5 automatically generated articles.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (news_submit_category_option)",
+     "condition": "news"
+    },
+    {
+     "name": "field",
+     "meaning": "News search field: 0 all, 2 reporter name.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (news_submit_reporter_option sets field=2)",
+     "condition": "news"
+    },
+    {
+     "name": "mynews, office_type, office_section_code, news_office_checked, office_category, is_sug_officeid",
+     "meaning": "News publisher filter: office_type 0 all, 1 single publisher by section, 2 by alphabetical list, 3 publisher group/category or local; news_office_checked holds the publisher code(s); mynews=1 marks a publisher filter as active.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (news_submit_office_option, news_submit_suggest_office_option) ; https://github.com/dev-Lesser/naver-news-crawler (README, URL parameter list) (news_office_checked = publisher code)",
+     "condition": "news"
+    },
+    {
+     "name": "service_area",
+     "meaning": "News placement filter: 0 all, 1 on Naver mobile main, 2 on Naver PC main.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (news_submit_service_option(0,'serviceall'), (1,'servicem'), (2,'servicep'))",
+     "condition": "news"
+    },
+    {
+     "name": "docid, related",
+     "meaning": "related=1 with docid shows the related-articles cluster for that article. Meaning inferred from the 'related articles' links.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (links sm=tab_tnw&docid=...&related=1)",
+     "condition": "news; inferred"
+    },
+    {
+     "name": "section",
+     "meaning": "Image source: image (all), blog, cafe, abdb (web), news (photo news), sshopping, place, pshopping, clip, dic, land, imglibrary, navermusic.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10)",
+     "condition": "image"
+    },
+    {
+     "name": "res_fr, res_to",
+     "meaning": "Image resolution range in pixels; res_fr=786432&res_to=100000000 is the 'high definition' option.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php",
+     "condition": "image"
+    },
+    {
+     "name": "color",
+     "meaning": "Image colour: red, orange, yellow, lime, green, cyan, blue, purple, pink, apricot, ocher, sepia, black, gray, white.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php",
+     "condition": "image"
+    },
+    {
+     "name": "ccl",
+     "meaning": "Licence: 0 none, 1 all Creative Commons, 2 commercial use allowed, 4 modification allowed.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php",
+     "condition": "image"
+    },
+    {
+     "name": "recent",
+     "meaning": "recent=1 recent images (sent with nso=so:r,p:1w).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10)",
+     "condition": "image"
+    },
+    {
+     "name": "gif",
+     "meaning": "gif=1 animated GIF only.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10)",
+     "condition": "image"
+    },
+    {
+     "name": "sort",
+     "meaning": "Video sort: rel, date, playcount.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php",
+     "condition": "video (where=video, m_video)"
+    },
+    {
+     "name": "period",
+     "meaning": "Video period: 1day, 1week, 1month, 3month, 6month, 1year.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php",
+     "condition": "video"
+    },
+    {
+     "name": "playtime",
+     "meaning": "Video duration in seconds: 0:600, 601:1800, 1801:3600, 3601:65535.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php",
+     "condition": "video"
+    },
+    {
+     "name": "dtype",
+     "meaning": "Video type: shorts (short-form only).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php",
+     "condition": "video"
+    },
+    {
+     "name": "ptype",
+     "meaning": "ptype=inplay playable in place only.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10)",
+     "condition": "video"
+    },
+    {
+     "name": "selected_cp, cp_bundle",
+     "meaning": "Video source (content provider) filter.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10) (data-param selected_cp=&cp_bundle=)",
+     "condition": "video"
+    },
+    {
+     "name": "answer",
+     "meaning": "Knowledge iN answerer filter: 0 all, 1 eXpert, 2 experts, 3 lawyer, 4 patent attorney, 5 judicial scrivener, 6 labour attorney, 7 accountant, 8 tax accountant, 9 doctor, 10 Korean-medicine doctor, 11 vet, 12 pharmacist, 13 dietitian, 14 fitness expert, 15 loss adjuster, 16 management consultant, 17 technical consultant, 18 professional engineer, 19 customs broker, 20 knowledge partner, 21 field specialists, 22 top-ranked users.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.kin.kqna&where=kin&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (option data-param attributes) (live page source fetched 2026-10-10)",
+     "condition": "kin (where=kin, ssc=tab.kin.kqna)"
+    },
+    {
+     "name": "cafe_where",
+     "meaning": "Cafe scope: article (all posts), articlec (trade posts), articleg (general posts), cafe (cafe names).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (cafe_option form and option links) (live page source fetched 2026-10-10)",
+     "condition": "cafe (ssc=tab.cafe.all)"
+    },
+    {
+     "name": "st",
+     "meaning": "Cafe sort: rel, date.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (cafe_option form and option links) (live page source fetched 2026-10-10)",
+     "condition": "cafe"
+    },
+    {
+     "name": "date_option, date_from, date_to",
+     "meaning": "Cafe period: 0 all, 1 hour, 2 day, 3 week, 4 month, 5 three months, 6 six months, 7 year; custom range via date_from/date_to (custom value format inferred).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (cafe_option form and option links) (live page source fetched 2026-10-10)",
+     "condition": "cafe"
+    },
+    {
+     "name": "srchby",
+     "meaning": "Cafe search field (text observed as default; other values not observed).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (cafe_option form and option links) (live page source fetched 2026-10-10)",
+     "condition": "cafe; partially inferred"
+    },
+    {
+     "name": "prdtype",
+     "meaning": "Cafe trade filter: 0 all, 1 safe trade, 2 general trade, 4 on sale, 8 sold.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (cafe_option form and option links) (live page source fetched 2026-10-10)",
+     "condition": "cafe"
+    }
+   ],
+   "nonfunctional": [
+    {
+     "name": "sm",
+     "meaning": "Source/action code: top_hty, tab_hty.top, tab_jum (tab jump), tab_opt (option), tab_pge (paging), tab_org, tab_etc, tab_tnw, tab_smr, tab_sht.best, svc_pin.*, twp_pin, mtb_* on mobile. Verified to change neither results nor correction.",
+     "source": "Live A/B test 2026-10-10: same query fetched with and without the parameter; result links and correction behaviour compared ; https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "tqi",
+     "meaning": "Per-query tracking id (also in the search box hidden fields).",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (||search.naver.com/search.naver$removeparam=tqi) ; Live A/B test 2026-10-10: same query fetched with and without the parameter; result links and correction behaviour compared"
+    },
+    {
+     "name": "oquery",
+     "meaning": "Previous query (search-box hidden field).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (nx_search_form) ; Live A/B test 2026-10-10: same query fetched with and without the parameter; result links and correction behaviour compared"
+    },
+    {
+     "name": "acq, acr, acir, ackey",
+     "meaning": "Autocomplete typed prefix, rank, info and key.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (nx_search_form hidden fields acq, acr, acir) ; Live A/B test 2026-10-10: same query fetched with and without the parameter; result links and correction behaviour compared (acq, acr)"
+    },
+    {
+     "name": "fbm",
+     "meaning": "Legacy search-box flag; no effect observed.",
+     "source": "Live A/B test 2026-10-10: same query fetched with and without the parameter; result links and correction behaviour compared"
+    },
+    {
+     "name": "qdt",
+     "meaning": "Per-query flag that Naver's own search box drops on a new query (as it does qvt), but qdt=0/1 changed neither results nor correction in testing.",
+     "source": "Live A/B test 2026-10-10: same query fetched with and without the parameter; result links and correction behaviour compared ; https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (news_form and news_* JS functions) (live page source fetched 2026-10-10) (nx_form_submit append_params(f, ['qdt','qvt']))"
+    },
+    {
+     "name": "nso_open",
+     "meaning": "UI state: options panel open.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://search.naver.com/search.naver?ssc=tab.blog.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (view_form, view_submit_* JS) (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "mode, view",
+     "meaning": "Layout only: image mode=column, video view=big.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10) ; https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "pq",
+     "meaning": "Image option-form field, previous query (inferred).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (image_form and option data-param attributes) (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "stnm",
+     "meaning": "Cafe duplicate sort label next to st (inferred).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.cafe.all&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (cafe_option form and option links) (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "x_csa, x_shortents, x_video",
+     "meaning": "JSON context blobs for click attribution (x_shortents carries category/gdid of the clicked shortcut); x_video empty in forms. Inferred tracking.",
+     "source": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10) (x_shortents on sm=tab_sht.best links) ; https://search.naver.com/search.naver?ssc=tab.video.all&where=video&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (video_form and option data-param attributes) (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "dtm_source, dtm_medium",
+     "meaning": "Campaign-style attribution on the AI tab link (search/tab).",
+     "source": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=spdlqj (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "buckets",
+     "meaning": "A/B experiment bucket id (e.g. impression-neo-SA_SERVING-1119^0).",
+     "source": "https://m.search.naver.com/search.naver?where=m&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "referenceId",
+     "meaning": "Request reference id echoed into links.",
+     "source": "https://m.search.naver.com/search.naver?where=m&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "api_type, logStart, display, ac, aq, crbase, last_block_type, video_more, nlu_query, nqx_theme, nx_search_query, nx_and_query, nx_sub_query, nx_search_hlquery, kin_age, kin_display, kin_start, nid_year_age_div10",
+     "meaning": "XHR/API plumbing on s.search.naver.com endpoints; should never be canonical on result pages.",
+     "source": "https://git.lolcat.ca/lolcat/4get/src/branch/master/scraper/naver.php ; https://search.naver.com/search.naver?ssc=tab.kin.kqna&where=kin&query=%EC%82%BC%EC%84%B1%EC%A0%84%EC%9E%90 (option data-param attributes) (live page source fetched 2026-10-10)"
+    },
+    {
+     "name": "frm, NaPm",
+     "meaning": "Shopping click attribution (only on search.shopping.naver.com links).",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    }
+   ],
+   "notes": "Most Naver parameter semantics come straight from Naver's own result-page source (option forms and their JS handlers), fetched live on 2026-10-10, which counts as first-party; the official Search API docs confirm query/start semantics. Live A/B tests on 2026-10-10 established that qvt=0 is the only 'search as typed' switch (sm=tab_org is a label), and that sm, tqi, oquery, acq, acr, fbm and qdt do not change results. ClearURLs has no Naver provider; AdGuard strips only tqi on result pages. Keep both where and ssc: some tabs (blog, cafe) are chosen by ssc alone, others by where alone in older URLs (SearXNG sends only where). sort is overloaded: numeric for news, rel/date/playcount for video; st is the cafe sort. Naver has no safe-search, region or interface-language URL parameter: adult results are gated by login (4get: 'Naver blocks logged-out NSFW searches'). Empty-valued parameters (docid=, news_office_checked=, color=) can be dropped. Naver's own search-option guide pages are linked from each panel (e.g. https://help.naver.com/support/alias/search/integration/intergration_86.naver for images) but render client-side and were not machine-readable.",
+   "tests": [
+    {
+     "dirty": "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=%EB%B2%A0%EB%A5%B4%EA%B2%90&tqi=jVoLidqosNossiR5Ces-107849&oquery=bergen&acq=bergen&acr=1&ackey=x5k2b8qa",
+     "clean": "https://search.naver.com/search.naver?where=nexearch&ie=utf8&query=%EB%B2%A0%EB%A5%B4%EA%B2%90"
+    },
+    {
+     "dirty": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&sm=tab_opt&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&sort=1&photo=0&field=0&pd=3&ds=2026.09.01&de=2026.09.30&docid=&related=0&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so%3Add%2Cp%3Afrom20260901to20260930&is_sug_officeid=0&office_category=0&service_area=0&start=11&tqi=abc123&nso_open=1",
+     "clean": "https://search.naver.com/search.naver?ssc=tab.news.all&where=news&query=%EB%85%B8%EB%A5%B4%EC%9B%A8%EC%9D%B4&sort=1&photo=0&field=0&pd=3&ds=2026.09.01&de=2026.09.30&related=0&mynews=0&office_type=0&office_section_code=0&nso=so%3Add%2Cp%3Afrom20260901to20260930&is_sug_officeid=0&office_category=0&service_area=0&start=11"
+    },
+    {
+     "dirty": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=%ED%8E%AD%EC%88%98+%EC%9C%A0%ED%88%AC%EB%B8%8C&sm=tab_org&qvt=0",
+     "clean": "https://search.naver.com/search.naver?ssc=tab.nx.all&where=nexearch&query=%ED%8E%AD%EC%88%98+%EC%9C%A0%ED%88%AC%EB%B8%8C&qvt=0"
+    },
+    {
+     "dirty": "https://m.search.naver.com/search.naver?ssc=tab.m_video.all&where=m_video&sm=mtb_opt&query=fjord&sort=date&period=1week&playtime=0%3A600&dtype=shorts&nso=so%3Add%2Cp%3A1w&nso_open=1&view=big&referenceId=jVoL2lqo6X4ssd4BlyZ-127025&buckets=impression-neo-SA_SERVING-1119%5E0",
+     "clean": "https://m.search.naver.com/search.naver?ssc=tab.m_video.all&where=m_video&query=fjord&sort=date&period=1week&playtime=0%3A600&dtype=shorts&nso=so%3Add%2Cp%3A1w"
+    },
+    {
+     "dirty": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&sm=tab_opt&query=fjord&mode=column&section=blog&res_fr=786432&res_to=100000000&color=blue&ccl=2&nso=so%3Ar%2Cp%3A1m&recent=0&gif=0&nso_open=1&pq=fjor&qdt=0",
+     "clean": "https://search.naver.com/search.naver?ssc=tab.image.all&where=image&query=fjord&section=blog&res_fr=786432&res_to=100000000&color=blue&ccl=2&nso=so%3Ar%2Cp%3A1m&recent=0&gif=0"
+    },
+    {
+     "dirty": "https://search.naver.com/search.naver?where=nexearch&sm=tab_etc&mra=blhI&pkid=594&os=15132335&qvt=0&query=%EB%84%A4%EC%9D%B4%EB%B2%84&x_csa=%7B%22fromUi%22%3A%22kb%22%7D&tqi=zz9",
+     "clean": "https://search.naver.com/search.naver?where=nexearch&mra=blhI&pkid=594&os=15132335&qvt=0&query=%EB%84%A4%EC%9D%B4%EB%B2%84"
+    }
+   ]
+  }
+ ]
+}

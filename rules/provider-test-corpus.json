@@ -1,0 +1,2532 @@
+{
+ "version": "1.0.0",
+ "generated": "2026-10-10",
+ "rules_file": "provider-rules.json",
+ "how_to_use": "For each sample, cleaning dirty with the default policy must give clean. clean_if_affiliate_kept is the result with the \"keep the sharer's affiliate credit\" switch on; clean_if_asks_stripped is the result when the user also strips every \"ask\" parameter. clean_verified is the result the verifier recorded, kept where the merged affiliate policy changes it. stripped, asked, kept_functional, unwrapped and opaque_redirect list what the UI should show in red, ask about, mark as needed, or flag as a redirect.",
+ "count": 214,
+ "samples": [
+  {
+   "id": "G1-01",
+   "group": "G1",
+   "dirty": "https://www.google.com/search?q=bergen+weather&sca_esv=6a1b2c3d4e5f6a7b&sxsrf=AE3TifN9xQ2Lr7Yh1Kp0Vw8zZ1aB2c3d4e%3A1760078400000&ei=cDzoaKqVJ5Tm7_UPq8uX-AE&oq=bergen+wea&gs_lp=Egxnd3Mtd2l6LXNlcnAiCmJlcmdlbiB3ZWEqAggAMgUQABiABDIFEAAYgAQ&sclient=gws-wiz-serp&ved=0ahUKEwiqiPDQ0vWPAxUU8_sCHatlBo8Q4dUDCBA&uact=5",
+   "clean": "https://www.google.com/search?q=bergen+weather",
+   "stripped": [
+    "sca_esv",
+    "sxsrf",
+    "ei",
+    "oq",
+    "gs_lp",
+    "sclient",
+    "ved",
+    "uact"
+   ],
+   "note": "Google Search: everything except q is session, typing or click tracking. VERIFIER: no rows dropped. Corrected: removed unsupported Brave query-filter citations from gPromoCode, gQT and cto_pld; removed DandelionSprout citations from usg (it excludes google.*), subid and LinkedIn origin; rescoped visit_id to Google Help; replaced the Stack Overflow source for _branch_match_id with Branch's SDK; switched the Firefox LGPL list to its raw GitHub copy. Added verified rows: dcr, gws_rd, ctx (Google), aqs, pglt, refig, ts (Bing)."
+  },
+  {
+   "id": "G1-02",
+   "group": "G1",
+   "dirty": "https://www.google.co.uk/search?q=askoy+bridge&rlz=1C1GCEU_en-GBNO1100NO1100&oq=askoy+br&aqs=chrome.0.0i512j46i512l2.4231j0j7&sourceid=chrome&ie=UTF-8&biw=1536&bih=730&dpr=1.25&tbm=isch",
+   "clean": "https://www.google.co.uk/search?q=askoy+bridge&tbm=isch",
+   "stripped": [
+    "rlz",
+    "oq",
+    "aqs",
+    "sourceid",
+    "ie",
+    "biw",
+    "bih",
+    "dpr"
+   ],
+   "note": "Chrome omnibox search: rlz, aqs, sourceid, ie (UTF-8), window size and dpr go; tbm (image search) is functional and stays. dpr is low risk here because it sizes image boxes."
+  },
+  {
+   "id": "G1-03",
+   "group": "G1",
+   "dirty": "https://www.google.com/search?q=fjord+cruise&udm=14&start=10&ei=AbCdEfGhIjKlMnOp&sa=X&ved=2ahUKEwjAbCdEf&sstk=AcOmHxYz123",
+   "clean": "https://www.google.com/search?q=fjord+cruise&udm=14&start=10",
+   "stripped": [
+    "ei",
+    "sa",
+    "ved",
+    "sstk"
+   ],
+   "note": "udm (search mode) and start (page) are functional and stay."
+  },
+  {
+   "id": "G1-04",
+   "group": "G1",
+   "dirty": "https://www.example-shop.no/sko/vintersko?gad_source=1&gad_campaignid=21987654321&gbraid=0AAAAADtR3kCqf1Yx2Zp9hJk&gclid=Cj0KCQjw9YzGBhCAARIsAKdA3P1_abcDEFghiJKLmnopQRstUVwxYZ012345aAk8REALw_wcB",
+   "clean": "https://www.example-shop.no/sko/vintersko",
+   "stripped": [
+    "gad_source",
+    "gad_campaignid",
+    "gbraid",
+    "gclid"
+   ],
+   "note": "Google Ads landing page: all four parameters are Google Ads click tracking."
+  },
+  {
+   "id": "G1-05",
+   "group": "G1",
+   "dirty": "https://shop.example.com/products/merino-sweater?variant=4412&srsltid=AfmBOoq1x2Y3z4AbCdEfGhIjKlMnOpQrStUvWxYz",
+   "clean": "https://shop.example.com/products/merino-sweater?variant=4412",
+   "stripped": [
+    "srsltid"
+   ],
+   "note": "Google Shopping / Merchant Center result ID; the shop's own variant parameter stays."
+  },
+  {
+   "id": "G1-06",
+   "group": "G1",
+   "dirty": "https://checkout.example.com/cart?_gl=1*1k2j3h4*_ga*MTIzNDU2Nzg5MC4xNzYwMDc4NDAw*_ga_ABC123*MTc2MDA3ODQwMC4xLjEuMTc2MDA3ODQ1MC4wLjAuMA..&step=2",
+   "clean": "https://checkout.example.com/cart?step=2",
+   "stripped": [
+    "_gl"
+   ],
+   "note": "Google Analytics cross-domain linker carrying the visitor's cookie IDs."
+  },
+  {
+   "id": "G1-07",
+   "group": "G1",
+   "dirty": "https://www.example.org/events/autumn?utm_source=newsletter&utm_medium=email&utm_campaign=oct_2026&utm_content=hero_button&utm_id=abc123",
+   "clean": "https://www.example.org/events/autumn",
+   "stripped": [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_id"
+   ],
+   "note": "Google Analytics campaign tags."
+  },
+  {
+   "id": "G1-08",
+   "group": "G1",
+   "dirty": "https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.example.no/en/forecast/daily-table/1-92416%3Futm_source%3Dgoogle&ved=2ahUKEwiAbC&usg=AOvVaw0AbCdEf",
+   "clean": "https://www.example.no/en/forecast/daily-table/1-92416",
+   "stripped": [
+    "utm_source"
+   ],
+   "unwrapped": [
+    "google-url"
+   ],
+   "note": "Google /url redirect: unwrap url (or q) offline, then clean the target."
+  },
+  {
+   "id": "G1-09",
+   "group": "G1",
+   "dirty": "https://www.googleadservices.com/pagead/aclk?sa=L&ai=DChcSEwiZ5c2X0vWPAxVHk2gJHRqZAg0YABAAGgJ3Zg&ae=2&sig=AOD64_3AbCdEf&adurl=https://www.example-hotel.no/booking%3Fgad_source%3D1",
+   "clean": "https://www.example-hotel.no/booking",
+   "stripped": [
+    "gad_source"
+   ],
+   "unwrapped": [
+    "googleadservices-aclk"
+   ],
+   "note": "Google Ads click redirect: unwrap adurl offline, then clean the target."
+  },
+  {
+   "id": "G1-10",
+   "group": "G1",
+   "dirty": "https://search.app/?link=https%3A%2F%2Fwww.example.no%2Fvestland%2Farticle-1.17012345&utm_campaign=aga&utm_source=agsadl1%2Csh%2Fx%2Fgs%2Fm2%2F4",
+   "clean": "https://www.example.no/vestland/article-1.17012345",
+   "stripped": [],
+   "unwrapped": [
+    "search-app-link"
+   ],
+   "note": "Google app share wrapper with a link parameter: unwrap offline."
+  },
+  {
+   "id": "G1-11",
+   "group": "G1",
+   "dirty": "https://www.google.com/amp/s/www.example.com/news/article-123.amp",
+   "clean": "https://www.example.com/news/article-123.amp",
+   "stripped": [],
+   "unwrapped": [
+    "google-amp"
+   ],
+   "note": "Google AMP viewer: the target is the path after /amp/s/; prepend https:// (handled as a path wrapper, not a parameter)."
+  },
+  {
+   "id": "G1-12",
+   "group": "G1",
+   "dirty": "https://www.google.com/goto?url=CAESHgFxQeBfXyZ9k4mN2pQ7rS1tU3vW5xY7zA9bC1dE",
+   "clean": "https://www.google.com/goto?url=CAESHgFxQeBfXyZ9k4mN2pQ7rS1tU3vW5xY7zA9bC1dE",
+   "stripped": [],
+   "opaque_redirect": "google-goto",
+   "note": "Google /goto result redirect (2026): the destination is encoded and cannot be recovered offline; show it as an unresolvable Google redirect and leave it unchanged."
+  },
+  {
+   "id": "G1-13",
+   "group": "G1",
+   "dirty": "https://www.google.com/maps/place/Bryggen/@60.3975,5.3238,17z/data=!3m1!4b1!4m6!3m5!1s0x463cfc1c8d5f5f5f:0x1a2b3c4d5e6f7a8b!8m2!3d60.3975!4d5.3238!16zL20vMDNoYzBy?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D",
+   "clean": "https://www.google.com/maps/place/Bryggen/@60.3975,5.3238,17z/data=!3m1!4b1!4m6!3m5!1s0x463cfc1c8d5f5f5f:0x1a2b3c4d5e6f7a8b!8m2!3d60.3975!4d5.3238!16zL20vMDNoYzBy",
+   "stripped": [
+    "entry",
+    "g_ep"
+   ],
+   "note": "Google Maps place: the path (place name, @coordinates, data=) is functional; entry and g_ep go."
+  },
+  {
+   "id": "G1-14",
+   "group": "G1",
+   "dirty": "https://maps.app.goo.gl/AbCdEf123456789?g_st=ic",
+   "clean": "https://maps.app.goo.gl/AbCdEf123456789",
+   "stripped": [
+    "g_st"
+   ],
+   "opaque_redirect": "google-maps-short",
+   "note": "Google Maps short link: g_st goes, but the short link itself cannot be expanded offline."
+  },
+  {
+   "id": "G1-15",
+   "group": "G1",
+   "dirty": "https://play.google.com/store/apps/details?id=no.example.app&hl=en_GB&pcampaignid=web_share&referrer=utm_source%3Dnewsletter",
+   "clean": "https://play.google.com/store/apps/details?id=no.example.app&hl=en_GB",
+   "stripped": [
+    "pcampaignid",
+    "referrer"
+   ],
+   "note": "Google Play: id and hl are functional; pcampaignid and the install referrer go."
+  },
+  {
+   "id": "G1-16",
+   "group": "G1",
+   "dirty": "https://play.google.com/store/search?q=ferry+timetable&c=apps&pcampaignid=web_share",
+   "clean": "https://play.google.com/store/search?q=ferry+timetable&c=apps",
+   "stripped": [
+    "pcampaignid"
+   ],
+   "note": "Google Play search: q and c (c=apps) are functional; removing c has caused a redirect loop (DandelionSprout issue 475)."
+  },
+  {
+   "id": "G1-17",
+   "group": "G1",
+   "dirty": "https://support.google.com/websearch/answer/9351707?hl=en&visit_id=638950000000000000-1234567890&rd=1&ref_topic=3378866",
+   "clean": "https://support.google.com/websearch/answer/9351707?hl=en&rd=1",
+   "stripped": [
+    "visit_id",
+    "ref_topic"
+   ],
+   "note": "Google Help article: visit_id and ref_topic go; hl and rd are left alone."
+  },
+  {
+   "id": "G1-18",
+   "group": "G1",
+   "dirty": "https://apps.apple.com/app/apple-store/id123456789?pt=118012345&ct=autumn_newsletter&mt=8",
+   "clean": "https://apps.apple.com/app/apple-store/id123456789",
+   "stripped": [
+    "pt",
+    "ct",
+    "mt"
+   ],
+   "note": "App Store campaign link (format from Apple's documentation): the app ID in the path is what matters."
+  },
+  {
+   "id": "G1-19",
+   "group": "G1",
+   "dirty": "https://music.apple.com/gb/album/example-album/1035047659?i=1035048414&itscg=30200&itsct=music_box_link",
+   "clean": "https://music.apple.com/gb/album/example-album/1035047659?i=1035048414",
+   "stripped": [
+    "itscg",
+    "itsct"
+   ],
+   "kept_functional": [
+    "i"
+   ],
+   "note": "Apple Music song link: i is the song within the album and MUST stay (TidyURL wrongly strips it)."
+  },
+  {
+   "id": "G1-20",
+   "group": "G1",
+   "dirty": "https://podcasts.apple.com/gb/podcast/example-podcast/id1135137367?i=1000482637777&uo=4&itsct=podcast_box_link",
+   "clean": "https://podcasts.apple.com/gb/podcast/example-podcast/id1135137367?i=1000482637777",
+   "stripped": [
+    "uo",
+    "itsct"
+   ],
+   "note": "Apple Podcasts episode link: i is the episode ID and stays."
+  },
+  {
+   "id": "G1-21",
+   "group": "G1",
+   "dirty": "https://tv.apple.com/gb/show/example-show/umc.cmc.1a2b3c4d5e6f7g8h9i0j?ign-itscg=10000&ign-itsct=atv-0-tv_ovp-nav_stm-apl-avl-191111&mttn3pid=Google%20AdWords&mttnsiteid=143238&mttnsubkw=75222244984",
+   "clean": "https://tv.apple.com/gb/show/example-show/umc.cmc.1a2b3c4d5e6f7g8h9i0j",
+   "stripped": [
+    "ign-itscg",
+    "ign-itsct",
+    "mttn3pid",
+    "mttnsiteid",
+    "mttnsubkw"
+   ],
+   "note": "Apple TV link with Apple internal and ad-partner attribution."
+  },
+  {
+   "id": "G1-22",
+   "group": "G1",
+   "dirty": "https://music.apple.com/subscribe?app=music&at=1000lXYZ&ct=summer_promo&ls=1",
+   "clean": "https://music.apple.com/subscribe?app=music&ls=1",
+   "clean_verified": "https://music.apple.com/subscribe?app=music&at=1000lXYZ&ls=1",
+   "merge_note": "The merged affiliate policy strips at by default (affiliate parameters, see affiliate_policy); the verifier had kept them as ask. clean_if_affiliate_kept shows the result with the keep-affiliate-credit switch on.",
+   "clean_if_affiliate_kept": "https://music.apple.com/subscribe?app=music&at=1000lXYZ&ls=1",
+   "clean_if_asks_stripped": "https://music.apple.com/subscribe",
+   "stripped": [
+    "at",
+    "ct"
+   ],
+   "asked": [
+    "app",
+    "ls"
+   ],
+   "note": "Apple affiliate subscribe link: ct is stripped by default; app, at and ls are 'ask' and stay until the user decides."
+  },
+  {
+   "id": "G1-23",
+   "group": "G1",
+   "dirty": "https://apps.apple.com/us/app/apple-store/id439104108?pt=8668&ct=test123&mt=8&app=messages",
+   "clean": "https://apps.apple.com/us/app/apple-store/id439104108?app=messages",
+   "clean_if_asks_stripped": "https://apps.apple.com/us/app/apple-store/id439104108",
+   "stripped": [
+    "pt",
+    "ct",
+    "mt"
+   ],
+   "asked": [
+    "app"
+   ],
+   "note": "App Store for iMessage link from Apple's documentation: pt, ct and mt go; app=messages is 'ask' and stays because it picks the iMessage page."
+  },
+  {
+   "id": "G1-24",
+   "group": "G1",
+   "dirty": "https://www.bing.com/search?q=askoy+ferry&form=QBLH&sp=-1&pq=askoy+ferr&sc=10-10&qs=n&sk=&cvid=49B83A335B1C4884B71B2FAD4A8027A9",
+   "clean": "https://www.bing.com/search?q=askoy+ferry",
+   "stripped": [
+    "form",
+    "sp",
+    "pq",
+    "sc",
+    "qs",
+    "sk",
+    "cvid"
+   ],
+   "note": "Bing search: only q is needed (removing form may stop Microsoft Rewards counting the search)."
+  },
+  {
+   "id": "G1-25",
+   "group": "G1",
+   "dirty": "https://www.bing.com/ck/a?!&&p=1a2b3c4d5e6f7a8bJmltdHM9MTc2MDA0ODAwMA&ptn=3&ver=2&hsh=4&fclid=0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d&u=a1aHR0cHM6Ly93d3cuZXhhbXBsZS5uby92ZXN0bGFuZC9hcnRpY2xlLTEuMTcwMTIzNDU_dXRtX3NvdXJjZT1iaW5n&ntb=1",
+   "clean": "https://www.example.no/vestland/article-1.17012345",
+   "stripped": [
+    "utm_source"
+   ],
+   "unwrapped": [
+    "bing-ck"
+   ],
+   "note": "Bing result redirect: u is 'a1' plus the base64url-encoded destination; decode it offline, then clean the target."
+  },
+  {
+   "id": "G1-26",
+   "group": "G1",
+   "dirty": "https://www.example-shop.co.uk/boots?msclkid=8a1b2c3d4e5f60718293a4b5c6d7e8f9&utm_source=bing&utm_medium=cpc&utm_campaign=Boots_UK&utm_term=walking%20boots&utm_content=Ad1",
+   "clean": "https://www.example-shop.co.uk/boots",
+   "stripped": [
+    "msclkid",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content"
+   ],
+   "note": "Microsoft Advertising landing page with auto-tagged UTM values."
+  },
+  {
+   "id": "G1-27",
+   "group": "G1",
+   "dirty": "https://www.msn.com/en-gb/news/world/example-headline/ar-AA1a2B3c?ocid=msedgntp&pc=U531&cvid=6f1e2d3c4b5a49788796a5b4c3d2e1f0&ei=12",
+   "clean": "https://www.msn.com/en-gb/news/world/example-headline/ar-AA1a2B3c",
+   "stripped": [
+    "ocid",
+    "pc",
+    "cvid",
+    "ei"
+   ],
+   "note": "MSN article link with Microsoft origin, partner and session codes."
+  },
+  {
+   "id": "G1-28",
+   "group": "G1",
+   "dirty": "https://eur03.safelinks.protection.outlook.com/?url=https%3A%2F%2Fwww.example.org%2Freport.pdf%3Futm_source%3Dnewsletter&data=05%7C02%7Cperson%40example.no%7C1a2b3c4d5e6f%7C0%7C0%7C638950000000000000%7CUnknown&sdata=AbCdEfGhIjKlMnOpQrStUvWxYz0123456789%3D&reserved=0",
+   "clean": "https://www.example.org/report.pdf",
+   "stripped": [
+    "utm_source"
+   ],
+   "unwrapped": [
+    "outlook-safelinks"
+   ],
+   "note": "Outlook Safe Links: unwrap url offline; the data parameter contains the recipient's email address and must never be shared."
+  },
+  {
+   "id": "G1-29",
+   "group": "G1",
+   "dirty": "https://microsoft.msafflnk.net/c/1234567/791234/9876?u=https%3A%2F%2Fwww.microsoft.com%2Fen-gb%2Fstore%2Fb%2Fxbox&subId1=blog",
+   "clean": "https://www.microsoft.com/en-gb/store/b/xbox",
+   "stripped": [],
+   "unwrapped": [
+    "microsoft-msafflnk"
+   ],
+   "note": "Microsoft affiliate redirect domain: unwrap u offline (Brave debounce list)."
+  },
+  {
+   "id": "G1-30",
+   "group": "G1",
+   "dirty": "https://www.microsoft.com/en-gb/store/b/xbox?ranMID=24542&ranEAID=AbCdEfGh1Jk&ranSiteID=AbCdEfGh1Jk-1a2B3c4D5e6F7g8H9i0J&epi=AbCdEfGh1Jk-1a2B3c4D5e6F7g8H9i0J&ocid=AID2000142_aff_7593_1243925",
+   "clean": "https://www.microsoft.com/en-gb/store/b/xbox",
+   "clean_verified": "https://www.microsoft.com/en-gb/store/b/xbox?ranMID=24542&ranEAID=AbCdEfGh1Jk",
+   "merge_note": "The merged affiliate policy strips ranMID, ranEAID by default (affiliate parameters, see affiliate_policy); the verifier had kept them as ask. clean_if_affiliate_kept shows the result with the keep-affiliate-credit switch on.",
+   "clean_if_affiliate_kept": "https://www.microsoft.com/en-gb/store/b/xbox?ranMID=24542&ranEAID=AbCdEfGh1Jk&ranSiteID=AbCdEfGh1Jk-1a2B3c4D5e6F7g8H9i0J&epi=AbCdEfGh1Jk-1a2B3c4D5e6F7g8H9i0J",
+   "stripped": [
+    "ranMID",
+    "ranEAID",
+    "ranSiteID",
+    "epi",
+    "ocid"
+   ],
+   "note": "Microsoft Store affiliate landing: the per-click ranSiteID, epi and ocid are stripped; ranMID and ranEAID are 'ask' (affiliate credit) and stay until the user decides."
+  },
+  {
+   "id": "G1-31",
+   "group": "G1",
+   "dirty": "https://www.linkedin.com/jobs/view/4012345678/?alternateChannel=search&refId=9f8e7d6c5b4a3210&trackingId=AbCdEfGhIjKlMnOpQrStUw%3D%3D&trk=d_flagship3_search_srp_jobs",
+   "clean": "https://www.linkedin.com/jobs/view/4012345678/",
+   "stripped": [
+    "alternateChannel",
+    "refId",
+    "trackingId",
+    "trk"
+   ],
+   "note": "LinkedIn job: the job ID in the path is what matters."
+  },
+  {
+   "id": "G1-32",
+   "group": "G1",
+   "dirty": "https://www.linkedin.com/comm/jobs/view/4012345678?trackingId=AbCd%3D%3D&refId=EfGh%3D%3D&lipi=urn%3Ali%3Apage%3Aemail_email_job_alert_digest_01%3BAbCd&midToken=AQHxYz12AbCd&midSig=3a-1BcDeFgHiJk1&trk=eml-email_job_alert_digest_01-job_card-0-jobcard_body&trkEmail=eml-email_job_alert_digest_01-job_card-0-jobcard_body-null-1a2b3c-null-null-null&eid=1a2b3c-m1n2o3p4-q5",
+   "clean": "https://www.linkedin.com/comm/jobs/view/4012345678",
+   "stripped": [
+    "trackingId",
+    "refId",
+    "lipi",
+    "midToken",
+    "midSig",
+    "trk",
+    "trkEmail",
+    "eid"
+   ],
+   "note": "LinkedIn job-alert email link: all email and recipient tracking removed."
+  },
+  {
+   "id": "G1-33",
+   "group": "G1",
+   "dirty": "https://www.linkedin.com/comm/feed/update/urn:li:activity:7380000000000000000?lipi=urn%3Ali%3Apage%3Aemail_notifications%3BAbCd&midToken=AQHxYz12AbCd&trk=eml-notifications&otpToken=MTUwMzE3ZTUxMTJiYzVjNmI3MjQwNGVkNDYxZGU0YjY4YmM4ZDA0NjkxYWEwMzYxN2Y3ZDVlNjQ0NA%3D%3D",
+   "clean": "https://www.linkedin.com/comm/feed/update/urn:li:activity:7380000000000000000?otpToken=MTUwMzE3ZTUxMTJiYzVjNmI3MjQwNGVkNDYxZGU0YjY4YmM4ZDA0NjkxYWEwMzYxN2Y3ZDVlNjQ0NA%3D%3D",
+   "clean_if_asks_stripped": "https://www.linkedin.com/comm/feed/update/urn:li:activity:7380000000000000000",
+   "stripped": [
+    "lipi",
+    "midToken",
+    "trk"
+   ],
+   "asked": [
+    "otpToken"
+   ],
+   "note": "otpToken is 'ask': kept by default because TidyURL treats it as a one-time password token, but the app should warn that the link is personal."
+  },
+  {
+   "id": "G1-34",
+   "group": "G1",
+   "dirty": "https://www.linkedin.com/posts/example-person_some-topic-activity-7380000000000000000-AbCd?utm_source=share&utm_medium=member_android&rcm=ACoAAAbCdEfGhIjKlMnOp",
+   "clean": "https://www.linkedin.com/posts/example-person_some-topic-activity-7380000000000000000-AbCd",
+   "stripped": [
+    "utm_source",
+    "utm_medium",
+    "rcm"
+   ],
+   "note": "LinkedIn post shared from the Android app."
+  },
+  {
+   "id": "G1-35",
+   "group": "G1",
+   "dirty": "https://www.linkedin.com/in/example-person/?trackingCode=abc&original_referer=https%3A%2F%2Fwww.google.com%2F",
+   "clean": "https://www.linkedin.com/in/example-person/",
+   "stripped": [
+    "trackingCode",
+    "original_referer"
+   ],
+   "note": "LinkedIn profile."
+  },
+  {
+   "id": "G1-36",
+   "group": "G1",
+   "dirty": "https://www.example-saas.com/demo?li_fat_id=1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d&utm_source=linkedin&utm_medium=paid",
+   "clean": "https://www.example-saas.com/demo",
+   "stripped": [
+    "li_fat_id",
+    "utm_source",
+    "utm_medium"
+   ],
+   "note": "Advertiser landing page after a LinkedIn ad click."
+  },
+  {
+   "id": "G1-37",
+   "group": "G1",
+   "dirty": "https://lnkd.in/eAbC1234?trk=public_post-text",
+   "clean": "https://lnkd.in/eAbC1234",
+   "stripped": [
+    "trk"
+   ],
+   "opaque_redirect": "linkedin-lnkd",
+   "note": "lnkd.in short link: trk goes, but the short link cannot be expanded offline."
+  },
+  {
+   "id": "G1-38",
+   "group": "G1",
+   "dirty": "https://www.example-airline.com/offers?s_kwcid=AL!12345!3!678901234567!e!!g!!cheap%20flights&ef_id=Cj0KCQjw9YzGBhCAARIsAKdA3P1:G:s&s_cid=PS_GOOGLE_UK",
+   "clean": "https://www.example-airline.com/offers",
+   "stripped": [
+    "s_kwcid",
+    "ef_id",
+    "s_cid"
+   ],
+   "note": "Adobe Advertising and Adobe Analytics tracking."
+  },
+  {
+   "id": "G1-39",
+   "group": "G1",
+   "dirty": "https://www.example-travel.com/deals?adobe_mc=MCMID%3D12345678901234567890123456789012345678%7CMCORGID%3D1A2B3C4D5E6F7A8B9C0D1E2F%2540AdobeOrg%7CTS%3D1760078400&region=nordics",
+   "clean": "https://www.example-travel.com/deals?region=nordics",
+   "stripped": [
+    "adobe_mc"
+   ],
+   "note": "Adobe Experience Cloud cross-domain visitor ID; region is the site's own and stays."
+  },
+  {
+   "id": "G1-40",
+   "group": "G1",
+   "dirty": "https://www.example-b2b.com/webinar?mkt_tok=MTIzLUFCQy00NTYAAAGWabcdefghijkl",
+   "clean": "https://www.example-b2b.com/webinar",
+   "stripped": [
+    "mkt_tok"
+   ],
+   "note": "Adobe Marketo email link."
+  },
+  {
+   "id": "G1-41",
+   "group": "G1",
+   "dirty": "https://www.example-b2b.com/unsubscribe?mkt_tok=MTIzLUFCQy00NTYAAAGWabcdefghijkl",
+   "clean": "https://www.example-b2b.com/unsubscribe?mkt_tok=MTIzLUFCQy00NTYAAAGWabcdefghijkl",
+   "stripped": [],
+   "note": "Marketo unsubscribe link: mkt_tok is needed here (Brave keeps it on unsubscribe and emailWebview URLs), so the link stays as is."
+  },
+  {
+   "id": "G1-42",
+   "group": "G1",
+   "dirty": "https://blog.example.org/post/42?mtm_campaign=autumn&mtm_kwd=newsletter&pk_vid=1a2b3c4d5e6f7a8b1760078400&page=2",
+   "clean": "https://blog.example.org/post/42?page=2",
+   "stripped": [
+    "mtm_campaign",
+    "mtm_kwd",
+    "pk_vid"
+   ],
+   "note": "Matomo campaign tags and cross-domain visitor ID; page stays."
+  },
+  {
+   "id": "G1-43",
+   "group": "G1",
+   "dirty": "https://www.example.org/landing#pk_campaign=summer&pk_kwd=banner",
+   "clean": "https://www.example.org/landing",
+   "stripped": [
+    "#pk_campaign",
+    "#pk_kwd"
+   ],
+   "note": "Matomo campaign tags in the fragment (Matomo documents this form)."
+  },
+  {
+   "id": "G1-44",
+   "group": "G1",
+   "dirty": "https://www.example.com/pricing#_gl=1~abcde5~",
+   "clean": "https://www.example.com/pricing",
+   "stripped": [
+    "#_gl"
+   ],
+   "note": "Google tag linker placed in the fragment (url_position set to fragment); strip it there and drop the empty #."
+  },
+  {
+   "id": "G1-45",
+   "group": "G1",
+   "dirty": "https://www.example.ru/catalog?yclid=1234567890123456789&_openstat=ZGlyZWN0LnlhbmRleC5ydTsxMjM0NTY3ODs5ODc2NTQzMjE7eWFuZGV4LnJ1OnByZW1pdW0&ysclid=lq1a2b3c4d567890",
+   "clean": "https://www.example.ru/catalog",
+   "stripped": [
+    "yclid",
+    "_openstat",
+    "ysclid"
+   ],
+   "note": "Yandex Direct, Openstat and Yandex Search click tracking."
+  },
+  {
+   "id": "G1-46",
+   "group": "G1",
+   "dirty": "https://www.example-store.com/item/77?cto_pld=AbCdEfGhIjKl&tblci=GiAbCdEfGhIjKlMnOpQrStUvWxYz012345&dicbo=v2-AbCdEf123",
+   "clean": "https://www.example-store.com/item/77",
+   "stripped": [
+    "cto_pld",
+    "tblci",
+    "dicbo"
+   ],
+   "note": "Criteo, Taboola and Outbrain click tracking."
+  },
+  {
+   "id": "G1-47",
+   "group": "G1",
+   "dirty": "https://www.example-news.com/story/123?_branch_match_id=1234567890123456789&_branch_referrer=H4sIAAAAAAAAA8soKSkottLXLy%2FPS8pMKUkt0ssoyi9KBQA",
+   "clean": "https://www.example-news.com/story/123",
+   "stripped": [
+    "_branch_match_id",
+    "_branch_referrer"
+   ],
+   "note": "Branch web-to-app matching."
+  },
+  {
+   "id": "G1-48",
+   "group": "G1",
+   "dirty": "https://example.app.link/AbCdEfGh12?$fallback_url=https%3A%2F%2Fwww.example.com%2Fpromo%3Futm_source%3Dbranch",
+   "clean": "https://www.example.com/promo",
+   "stripped": [
+    "utm_source"
+   ],
+   "unwrapped": [
+    "branch-app-link"
+   ],
+   "note": "Branch long link: unwrap $fallback_url offline (a bare app.link short link cannot be unwrapped)."
+  },
+  {
+   "id": "G1-49",
+   "group": "G1",
+   "dirty": "https://example.onelink.me/AbCd?pid=email&c=october_promo&af_sub1=u12345&af_r=https%3A%2F%2Fwww.example.com%2Fapp-promo",
+   "clean": "https://www.example.com/app-promo",
+   "stripped": [],
+   "unwrapped": [
+    "appsflyer-onelink"
+   ],
+   "note": "AppsFlyer OneLink with af_r (same destination on every platform): unwrap offline."
+  },
+  {
+   "id": "G1-50",
+   "group": "G1",
+   "dirty": "https://www.example.com/landing?af_xp=social&pid=instagram&c=autumn&af_adset=stories&af_ad=video1&is_retargeting=true&af_click_lookback=7d",
+   "clean": "https://www.example.com/landing",
+   "stripped": [
+    "af_xp",
+    "pid",
+    "c",
+    "af_adset",
+    "af_ad",
+    "is_retargeting",
+    "af_click_lookback"
+   ],
+   "note": "AppsFlyer-tagged landing page: pid and c are stripped only because af_xp is present."
+  },
+  {
+   "id": "G1-51",
+   "group": "G1",
+   "dirty": "https://app.adjust.com/abc123?campaign=october&adgroup=email&creative=banner1&redirect=https%3A%2F%2Fwww.example.com%2Fapp%3Fgclid%3DCj0abc",
+   "clean": "https://www.example.com/app",
+   "stripped": [
+    "gclid"
+   ],
+   "unwrapped": [
+    "adjust-redirect"
+   ],
+   "note": "Adjust link with redirect: unwrap offline, then clean the target."
+  },
+  {
+   "id": "G1-52",
+   "group": "G1",
+   "dirty": "https://www.example.com/promo?adj_t=1a2b3c4&adj_campaign=october&gps_adid=38400000-8cf0-11bd-b23e-10b96e40000d",
+   "clean": "https://www.example.com/promo",
+   "stripped": [
+    "adj_t",
+    "adj_campaign",
+    "gps_adid"
+   ],
+   "note": "Adjust web campaign including the Android advertising ID."
+  },
+  {
+   "id": "G2-01",
+   "group": "G2",
+   "dirty": "https://www.facebook.com/NASA/posts/pfbid02abcDEF123?__cft__[0]=AZWxyz123&__tn__=%2CO%2CP-R",
+   "clean": "https://www.facebook.com/NASA/posts/pfbid02abcDEF123",
+   "stripped": [
+    "__cft__[0]",
+    "__tn__"
+   ],
+   "note": "Feed click-tracking token and node code. All 92 original samples were re-run through a rule engine built from these rows on 2026-10-10: 0 mismatches, order preserved, no trailing ? or &."
+  },
+  {
+   "id": "G2-02",
+   "group": "G2",
+   "dirty": "https://www.facebook.com/watch/?v=1234567890123456&mibextid=Nif5oz&rdid=Y40G6SJnlqoZAE07",
+   "clean": "https://www.facebook.com/watch/?v=1234567890123456",
+   "stripped": [
+    "mibextid",
+    "rdid"
+   ],
+   "note": "v is functional"
+  },
+  {
+   "id": "G2-03",
+   "group": "G2",
+   "dirty": "https://m.facebook.com/story.php?story_fbid=2953962358150955&id=2029436133936920&m_entstream_source=timeline&__tn__=%2As%2As-R",
+   "clean": "https://m.facebook.com/story.php?story_fbid=2953962358150955&id=2029436133936920",
+   "stripped": [
+    "m_entstream_source",
+    "__tn__"
+   ],
+   "note": "story_fbid and id are functional (example from LUS)"
+  },
+  {
+   "id": "G2-04",
+   "group": "G2",
+   "dirty": "https://www.facebook.com/groups/474038555978926/permalink/3971436826239064/?comment_id=3971500000000000&ref=share&mibextid=Nif5oz",
+   "clean": "https://www.facebook.com/groups/474038555978926/permalink/3971436826239064/?comment_id=3971500000000000",
+   "stripped": [
+    "ref",
+    "mibextid"
+   ],
+   "note": "comment_id kept"
+  },
+  {
+   "id": "G2-05",
+   "group": "G2",
+   "dirty": "https://www.facebook.com/profile.php?id=100000000000001&fref=nf&hc_ref=ARQabc&hc_location=ufi",
+   "clean": "https://www.facebook.com/profile.php?id=100000000000001",
+   "stripped": [
+    "fref",
+    "hc_ref",
+    "hc_location"
+   ]
+  },
+  {
+   "id": "G2-06",
+   "group": "G2",
+   "dirty": "https://www.facebook.com/photo/?fbid=10150000000000000&set=a.10150000000000001",
+   "clean": "https://www.facebook.com/photo/?fbid=10150000000000000&set=a.10150000000000001",
+   "clean_if_asks_stripped": "https://www.facebook.com/photo/?fbid=10150000000000000",
+   "stripped": [],
+   "asked": [
+    "set"
+   ],
+   "note": "set is ask, so unchanged by default"
+  },
+  {
+   "id": "G2-07",
+   "group": "G2",
+   "dirty": "https://portal.facebook.com/?Source=Rakuten&Medium=Affiliate",
+   "clean": "https://portal.facebook.com/",
+   "stripped": [
+    "Source",
+    "Medium"
+   ],
+   "note": "NEW (verifier): capitalised Source and Medium from LUS; match case-sensitively"
+  },
+  {
+   "id": "G2-08",
+   "group": "G2",
+   "dirty": "https://www.facebook.com/somepage/videos/917830495715016/?source=feed&refsrc=https%3A%2F%2Fm.facebook.com%2F&_rdr",
+   "clean": "https://www.facebook.com/somepage/videos/917830495715016/?source=feed",
+   "clean_if_asks_stripped": "https://www.facebook.com/somepage/videos/917830495715016/",
+   "stripped": [
+    "refsrc",
+    "_rdr"
+   ],
+   "asked": [
+    "source"
+   ],
+   "note": "NEW (verifier): lower-case source is ask so it stays; refsrc and valueless _rdr are stripped"
+  },
+  {
+   "id": "G2-09",
+   "group": "G2",
+   "dirty": "https://l.facebook.com/l.php?u=https%3A%2F%2Fexample.org%2Farticle%3Futm_source%3Dfacebook%26id%3D42%26fbclid%3DIwAR2F4-dbP0l7Mn1&h=AT0abc123",
+   "clean": "https://example.org/article?id=42",
+   "stripped": [
+    "utm_source",
+    "fbclid"
+   ],
+   "unwrapped": [
+    "facebook-lphp"
+   ],
+   "note": "Unwrap link shim offline, then clean the destination"
+  },
+  {
+   "id": "G2-10",
+   "group": "G2",
+   "dirty": "https://example.org/landing?fbclid=IwAR2F4-dbP0l7Mn1IawQQGCINEz7PYXQvwjNwB_qa2ofrHyiLjcbCRxTDMgk&page=2",
+   "clean": "https://example.org/landing?page=2",
+   "stripped": [
+    "fbclid"
+   ],
+   "note": "Global Meta click ID on any site"
+  },
+  {
+   "id": "G2-11",
+   "group": "G2",
+   "dirty": "https://l.messenger.com/l.php?u=https%3A%2F%2Fexample.org%2Fnews%3Fid%3D7%26fbclid%3DIwAR0abc&h=AT0xyz",
+   "clean": "https://example.org/news?id=7",
+   "stripped": [
+    "fbclid"
+   ],
+   "unwrapped": [
+    "messenger-l"
+   ]
+  },
+  {
+   "id": "G2-12",
+   "group": "G2",
+   "dirty": "https://m.me/examplepage?ref=summer_promo",
+   "clean": "https://m.me/examplepage?ref=summer_promo",
+   "stripped": [],
+   "kept_functional": [
+    "ref"
+   ],
+   "note": "ref on m.me is functional"
+  },
+  {
+   "id": "G2-13",
+   "group": "G2",
+   "dirty": "https://www.instagram.com/p/CNHpCrjj1RJ/?igsh=MTBiZHRrMzwuNw==",
+   "clean": "https://www.instagram.com/p/CNHpCrjj1RJ/",
+   "stripped": [
+    "igsh"
+   ]
+  },
+  {
+   "id": "G2-14",
+   "group": "G2",
+   "dirty": "https://www.instagram.com/reel/C9xYzAbCdEf/?igshid=NTc4MTIwNjQ2YQ==&utm_source=ig_web_copy_link",
+   "clean": "https://www.instagram.com/reel/C9xYzAbCdEf/",
+   "stripped": [
+    "igshid",
+    "utm_source"
+   ]
+  },
+  {
+   "id": "G2-15",
+   "group": "G2",
+   "dirty": "https://www.instagram.com/p/CNHpCrjj1RJ/?ig_rid=2ffdc8c5-24e6-4ab6-a772-804bc5d1cf13&stkn=abc123",
+   "clean": "https://www.instagram.com/p/CNHpCrjj1RJ/",
+   "stripped": [
+    "ig_rid",
+    "stkn"
+   ]
+  },
+  {
+   "id": "G2-16",
+   "group": "G2",
+   "dirty": "https://l.instagram.com/?u=https%3A%2F%2Fshop.example.com%2Fitem%3Fsku%3D99%26fbclid%3DPAZXh0bgNhZW0&e=AT1xyz",
+   "clean": "https://shop.example.com/item?sku=99",
+   "stripped": [
+    "fbclid"
+   ],
+   "unwrapped": [
+    "instagram-l"
+   ]
+  },
+  {
+   "id": "G2-17",
+   "group": "G2",
+   "dirty": "https://www.threads.com/@summer_59_dr/post/DRq5RAADGxL?xmt=AQF0cskUx85SYwWZGaRbhcAaArylPOYNFHezHXjwWylQ6LmOcaAM4O3FqsvJfiWMhYmarso&slof=1",
+   "clean": "https://www.threads.com/@summer_59_dr/post/DRq5RAADGxL",
+   "stripped": [
+    "xmt",
+    "slof"
+   ],
+   "note": "Example taken from LUS"
+  },
+  {
+   "id": "G2-18",
+   "group": "G2",
+   "dirty": "https://www.threads.net/@zuck/post/C8abcDEFghi?igshid=NTc4MTIwNjQ2YQ==",
+   "clean": "https://www.threads.net/@zuck/post/C8abcDEFghi",
+   "stripped": [
+    "igshid"
+   ]
+  },
+  {
+   "id": "G2-19",
+   "group": "G2",
+   "dirty": "https://www.threads.com/@meta/post/DAbc123xyz0?xmt=AQGzabc",
+   "clean": "https://www.threads.com/@meta/post/DAbc123xyz0",
+   "stripped": [
+    "xmt"
+   ]
+  },
+  {
+   "id": "G2-20",
+   "group": "G2",
+   "dirty": "https://wa.me/4791234567?text=Hei%20der",
+   "clean": "https://wa.me/4791234567?text=Hei%20der",
+   "stripped": [],
+   "note": "Functional; contains a phone number"
+  },
+  {
+   "id": "G2-21",
+   "group": "G2",
+   "dirty": "https://faq.whatsapp.com/673193694148537/?helpref=hc_fnav",
+   "clean": "https://faq.whatsapp.com/673193694148537/",
+   "stripped": [
+    "helpref"
+   ]
+  },
+  {
+   "id": "G2-22",
+   "group": "G2",
+   "dirty": "https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv",
+   "clean": "https://chat.whatsapp.com/AbCdEfGhIjKlMnOpQrStUv",
+   "stripped": [],
+   "note": "Group invite, functional"
+  },
+  {
+   "id": "G2-23",
+   "group": "G2",
+   "dirty": "https://l.wl.co/l?u=https%3A%2F%2Fexample.org%2Fdeal%3Futm_source%3Dwhatsapp",
+   "clean": "https://example.org/deal",
+   "stripped": [
+    "utm_source"
+   ],
+   "unwrapped": [
+    "whatsapp-lwl"
+   ],
+   "note": "Lower-confidence wrapper"
+  },
+  {
+   "id": "G2-24",
+   "group": "G2",
+   "dirty": "https://x.com/NASA/status/1712345678901234567?s=46&t=AbCdEfGhIjKlMnOpQrStUv",
+   "clean": "https://x.com/NASA/status/1712345678901234567",
+   "stripped": [
+    "s",
+    "t"
+   ]
+  },
+  {
+   "id": "G2-25",
+   "group": "G2",
+   "dirty": "https://twitter.com/NASA/status/1712345678901234567?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed&ref_url=https%3A%2F%2Fnews.example.com%2Fstory",
+   "clean": "https://twitter.com/NASA/status/1712345678901234567",
+   "stripped": [
+    "ref_src",
+    "ref_url"
+   ],
+   "note": "ref_url leaked the embedding page"
+  },
+  {
+   "id": "G2-26",
+   "group": "G2",
+   "dirty": "https://x.com/search?q=aurora%20bergen&src=typed_query&f=live",
+   "clean": "https://x.com/search?q=aurora%20bergen&f=live",
+   "stripped": [
+    "src"
+   ]
+  },
+  {
+   "id": "G2-27",
+   "group": "G2",
+   "dirty": "https://x.com/i/redirect?url=https%3A%2F%2Fexample.org%2Fpage%3Futm_campaign%3Dx",
+   "clean": "https://example.org/page",
+   "stripped": [
+    "utm_campaign"
+   ],
+   "unwrapped": [
+    "x-redirect"
+   ]
+  },
+  {
+   "id": "G2-28",
+   "group": "G2",
+   "dirty": "https://x.com/i/redirect?url=https%3A%2F%2Fexample.org%2F&t=AbCd",
+   "clean": "https://example.org/",
+   "stripped": [],
+   "unwrapped": [
+    "x-redirect"
+   ],
+   "note": "NEW (verifier): t outside /status/ is never stripped in place; here the wrapper is unwrapped first, which discards it"
+  },
+  {
+   "id": "G2-29",
+   "group": "G2",
+   "dirty": "https://example.org/signup?twclid=2-3bhrj1ny7p11v5r9pap3anqge",
+   "clean": "https://example.org/signup",
+   "stripped": [
+    "twclid"
+   ]
+  },
+  {
+   "id": "G2-30",
+   "group": "G2",
+   "dirty": "https://t.co/AbCdEf1234",
+   "clean": "https://t.co/AbCdEf1234",
+   "stripped": [],
+   "opaque_redirect": "x-tco",
+   "note": "Cannot unwrap offline; flag as X click-measuring shortener"
+  },
+  {
+   "id": "G2-31",
+   "group": "G2",
+   "dirty": "https://www.tiktok.com/@nasa/video/7301234567890123456?is_from_webapp=1&sender_device=pc&web_id=7301111111111111111",
+   "clean": "https://www.tiktok.com/@nasa/video/7301234567890123456",
+   "stripped": [
+    "is_from_webapp",
+    "sender_device",
+    "web_id"
+   ]
+  },
+  {
+   "id": "G2-32",
+   "group": "G2",
+   "dirty": "https://www.tiktok.com/@nasa/video/7301234567890123456?_t=8hQwErTyUiO&_r=1",
+   "clean": "https://www.tiktok.com/@nasa/video/7301234567890123456",
+   "stripped": [
+    "_t",
+    "_r"
+   ]
+  },
+  {
+   "id": "G2-33",
+   "group": "G2",
+   "dirty": "https://www.tiktok.com/@nasa/video/7301234567890123456?u_code=dabc123&share_app_id=1233&share_link_id=0a1b2c3d&tt_from=copy&is_copy_url=1&user_id=6800000000000000000&timestamp=1700000000&lang=en",
+   "clean": "https://www.tiktok.com/@nasa/video/7301234567890123456?lang=en",
+   "stripped": [
+    "u_code",
+    "share_app_id",
+    "share_link_id",
+    "tt_from",
+    "is_copy_url",
+    "user_id",
+    "timestamp"
+   ],
+   "note": "lang kept (Tidy allow-list)"
+  },
+  {
+   "id": "G2-34",
+   "group": "G2",
+   "dirty": "https://www.tiktok.com/search?q=fjord&t=1700000000000",
+   "clean": "https://www.tiktok.com/search?q=fjord",
+   "stripped": [
+    "t"
+   ]
+  },
+  {
+   "id": "G2-35",
+   "group": "G2",
+   "dirty": "https://www.tiktok.com/link/v2?target=https%3A%2F%2Fexample.org%2F%3Futm_source%3Dtiktok",
+   "clean": "https://example.org/",
+   "stripped": [
+    "utm_source"
+   ],
+   "unwrapped": [
+    "tiktok-link-v2"
+   ]
+  },
+  {
+   "id": "G2-36",
+   "group": "G2",
+   "dirty": "https://shop.example.com/?ttclid=E.C.P.CsABexample",
+   "clean": "https://shop.example.com/",
+   "stripped": [
+    "ttclid"
+   ]
+  },
+  {
+   "id": "G2-37",
+   "group": "G2",
+   "dirty": "https://www.snapchat.com/add/nasa?share_id=7TRPgdxQm4I&locale=nb-NO",
+   "clean": "https://www.snapchat.com/add/nasa?locale=nb-NO",
+   "stripped": [
+    "share_id"
+   ]
+  },
+  {
+   "id": "G2-38",
+   "group": "G2",
+   "dirty": "https://story.snapchat.com/p/a9868981-ac8a-4c7c-bdd3-bbd94c7cd46a/3298970858393600?share_id=7TRPgdxQm4I&locale=nb-NO",
+   "clean": "https://story.snapchat.com/p/a9868981-ac8a-4c7c-bdd3-bbd94c7cd46a/3298970858393600?locale=nb-NO",
+   "stripped": [
+    "share_id"
+   ]
+  },
+  {
+   "id": "G2-39",
+   "group": "G2",
+   "dirty": "https://www.mywebsite.com/landing-page?utm_source=snapchat&ScCid=7b3a7917-a82a-47e8-9728-e1b3b045abb2",
+   "clean": "https://www.mywebsite.com/landing-page",
+   "stripped": [
+    "utm_source",
+    "ScCid"
+   ],
+   "note": "Example taken from Snap's own docs (re-confirmed 2026-10-10)"
+  },
+  {
+   "id": "G2-40",
+   "group": "G2",
+   "dirty": "https://www.reddit.com/r/norway/comments/1abcdef/fjord_photo/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button",
+   "clean": "https://www.reddit.com/r/norway/comments/1abcdef/fjord_photo/",
+   "stripped": [
+    "utm_source",
+    "utm_medium",
+    "utm_name",
+    "utm_term",
+    "utm_content"
+   ]
+  },
+  {
+   "id": "G2-41",
+   "group": "G2",
+   "dirty": "https://www.reddit.com/r/apple/comments/1g478w1/apple_announces_new_ipad_mini_with_a17_pro_chip/?$deep_link=true&post_index=1&$3p=e_as&correlation_id=abc-123",
+   "clean": "https://www.reddit.com/r/apple/comments/1g478w1/apple_announces_new_ipad_mini_with_a17_pro_chip/",
+   "stripped": [
+    "$deep_link",
+    "post_index",
+    "$3p",
+    "correlation_id"
+   ]
+  },
+  {
+   "id": "G2-42",
+   "group": "G2",
+   "dirty": "https://www.reddit.com/r/AskReddit/comments/1abcdef/title/kx9z8y7/?context=3&share_id=AbCdEf123&rdt=51234",
+   "clean": "https://www.reddit.com/r/AskReddit/comments/1abcdef/title/kx9z8y7/?context=3",
+   "stripped": [
+    "share_id",
+    "rdt"
+   ],
+   "note": "context is functional"
+  },
+  {
+   "id": "G2-43",
+   "group": "G2",
+   "dirty": "https://out.reddit.com/t3_1abcdef?url=https%3A%2F%2Fexample.org%2Fa%3Fref%3Dreddit&token=AQAAabc",
+   "clean": "https://example.org/a?ref=reddit",
+   "stripped": [],
+   "unwrapped": [
+    "reddit-out"
+   ],
+   "note": "CORRECTED NOTE: ClearURLs does list ref_? and referrer as global referral-marketing rules, but this app strips ref only on the listed platform hosts because ref is often functional elsewhere (ClearURLs itself needs many ref exceptions), so it stays here"
+  },
+  {
+   "id": "G2-44",
+   "group": "G2",
+   "dirty": "https://click.redditmail.com/CL0/https:%2F%2Fwww.reddit.com%2Fr%2Fnorway%2Fcomments%2F1abcdef%2F%3F%24deep_link=true%26correlation_id=abc%26ref=email_digest%26ref_campaign=email_digest%26ref_source=email/1/0100018abcdef/AbCdEf=343",
+   "clean": "https://www.reddit.com/r/norway/comments/1abcdef/",
+   "stripped": [
+    "$deep_link",
+    "correlation_id",
+    "ref",
+    "ref_campaign",
+    "ref_source"
+   ],
+   "unwrapped": [
+    "redditmail-cl0"
+   ]
+  },
+  {
+   "id": "G2-45",
+   "group": "G2",
+   "dirty": "https://redd.it/eorhm",
+   "clean": "https://redd.it/eorhm",
+   "stripped": [],
+   "opaque_redirect": "redd-it",
+   "redirect_offer": {
+    "id": "redd-it",
+    "target": "https://www.reddit.com/comments/eorhm/"
+   },
+   "note": "No trackers; optional offline expansion to https://www.reddit.com/comments/eorhm/"
+  },
+  {
+   "id": "G2-46",
+   "group": "G2",
+   "dirty": "https://shop.example.com/p/1?rdt_cid=1234567890123456789_abc",
+   "clean": "https://shop.example.com/p/1",
+   "stripped": [
+    "rdt_cid"
+   ]
+  },
+  {
+   "id": "G2-47",
+   "group": "G2",
+   "dirty": "https://www.pinterest.com/pin/123456789012345678/?rs=srs",
+   "clean": "https://www.pinterest.com/pin/123456789012345678/",
+   "stripped": [
+    "rs"
+   ]
+  },
+  {
+   "id": "G2-48",
+   "group": "G2",
+   "dirty": "https://shop.example.com/item?epik=dj0yJnU9abc",
+   "clean": "https://shop.example.com/item",
+   "stripped": [
+    "epik"
+   ]
+  },
+  {
+   "id": "G2-49",
+   "group": "G2",
+   "dirty": "https://pin.it/1AbCdEfGh",
+   "clean": "https://pin.it/1AbCdEfGh",
+   "stripped": [],
+   "opaque_redirect": "pinterest-pinit",
+   "note": "Opaque short link, cannot unwrap offline"
+  },
+  {
+   "id": "G2-50",
+   "group": "G2",
+   "dirty": "https://t.me/durov/123?single",
+   "clean": "https://t.me/durov/123?single",
+   "stripped": []
+  },
+  {
+   "id": "G2-51",
+   "group": "G2",
+   "dirty": "https://t.me/examplebot?ref=123456789",
+   "clean": "https://t.me/examplebot",
+   "clean_verified": "https://t.me/examplebot?ref=123456789",
+   "merge_note": "The merged affiliate policy strips ref by default (affiliate parameters, see affiliate_policy); the verifier had kept them as ask. clean_if_affiliate_kept shows the result with the keep-affiliate-credit switch on.",
+   "clean_if_affiliate_kept": "https://t.me/examplebot?ref=123456789",
+   "stripped": [
+    "ref"
+   ],
+   "note": "Affiliate ref is ask; unchanged by default"
+  },
+  {
+   "id": "G2-52",
+   "group": "G2",
+   "dirty": "https://discord.com/invite/abcd123?source=share",
+   "clean": "https://discord.com/invite/abcd123",
+   "stripped": [
+    "source"
+   ]
+  },
+  {
+   "id": "G2-53",
+   "group": "G2",
+   "dirty": "https://mastodon.social/@Gargron/109932346178312345",
+   "clean": "https://mastodon.social/@Gargron/109932346178312345",
+   "stripped": [],
+   "note": "Mastodon: nothing to strip"
+  },
+  {
+   "id": "G2-54",
+   "group": "G2",
+   "dirty": "https://youtu.be/dQw4w9WgXcQ?si=AbCdEfGhIjKlMnOp",
+   "clean": "https://youtu.be/dQw4w9WgXcQ",
+   "stripped": [
+    "si"
+   ]
+  },
+  {
+   "id": "G2-55",
+   "group": "G2",
+   "dirty": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s&list=PL1234567890ABCDEF&index=3&pp=ygUEdGVzdA%3D%3D",
+   "clean": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42s&list=PL1234567890ABCDEF&index=3",
+   "stripped": [
+    "pp"
+   ]
+  },
+  {
+   "id": "G2-56",
+   "group": "G2",
+   "dirty": "https://www.youtube.com/watch?v=ACb-3n4tRGE&ab_channel=BillyO%27Reilly&feature=shared",
+   "clean": "https://www.youtube.com/watch?v=ACb-3n4tRGE",
+   "stripped": [
+    "ab_channel",
+    "feature"
+   ]
+  },
+  {
+   "id": "G2-57",
+   "group": "G2",
+   "dirty": "https://youtu.be/dQw4w9WgXcQ?is=Xy12AbCd&t=30",
+   "clean": "https://youtu.be/dQw4w9WgXcQ?t=30",
+   "stripped": [
+    "is"
+   ]
+  },
+  {
+   "id": "G2-58",
+   "group": "G2",
+   "dirty": "https://www.youtube.com/shorts/aBcDeFgHiJk?si=AbCdEfGhIjKlMnOp&feature=share",
+   "clean": "https://www.youtube.com/shorts/aBcDeFgHiJk",
+   "stripped": [
+    "si",
+    "feature"
+   ]
+  },
+  {
+   "id": "G2-59",
+   "group": "G2",
+   "dirty": "https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqbXyz&q=https%3A%2F%2Fexample.org%2Fshop%3Futm_source%3Dyoutube&v=dQw4w9WgXcQ",
+   "clean": "https://example.org/shop",
+   "stripped": [
+    "utm_source"
+   ],
+   "unwrapped": [
+    "youtube-redirect"
+   ]
+  },
+  {
+   "id": "G2-60",
+   "group": "G2",
+   "dirty": "https://www.youtube.com/attribution_link?a=8g8kPrPIi-ecwIsS&u=/watch%3Fv%3DyZv2daTWRZU%26feature%3Dem-uploademail",
+   "clean": "https://www.youtube.com/watch?v=yZv2daTWRZU",
+   "stripped": [
+    "feature"
+   ],
+   "unwrapped": [
+    "youtube-attribution"
+   ]
+  },
+  {
+   "id": "G2-61",
+   "group": "G2",
+   "dirty": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&lc=UgxAbCdEfGhIjKlMnOp4AaABAg",
+   "clean": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&lc=UgxAbCdEfGhIjKlMnOp4AaABAg",
+   "stripped": [],
+   "note": "lc highlights a comment, functional"
+  },
+  {
+   "id": "G2-62",
+   "group": "G2",
+   "dirty": "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC?si=a1b2c3d4e5f64789",
+   "clean": "https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC",
+   "stripped": [
+    "si"
+   ]
+  },
+  {
+   "id": "G2-63",
+   "group": "G2",
+   "dirty": "https://open.spotify.com/playlist/3PNLOlV1Wh2aHe4s7J0I1l?si=KMfZRZS4SUCSG7WIAljASw&pi=jKU5pszGSaiIN",
+   "clean": "https://open.spotify.com/playlist/3PNLOlV1Wh2aHe4s7J0I1l",
+   "stripped": [
+    "si",
+    "pi"
+   ]
+  },
+  {
+   "id": "G2-64",
+   "group": "G2",
+   "dirty": "https://open.spotify.com/playlist/6437FZlBYbqqcC610ttB6k?go=1&sp_cid=dd9da0952f7ddde24d0eb42f3718bf6b",
+   "clean": "https://open.spotify.com/playlist/6437FZlBYbqqcC610ttB6k?go=1",
+   "stripped": [
+    "sp_cid"
+   ],
+   "kept_functional": [
+    "go"
+   ]
+  },
+  {
+   "id": "G2-65",
+   "group": "G2",
+   "dirty": "https://open.spotify.com/track/3HoSi38l1e6E1K1lHWUCeV?si=abc123&context=spotify%3Aplaylist%3A37i9dQZF1DXcBWIGoYBM5M",
+   "clean": "https://open.spotify.com/track/3HoSi38l1e6E1K1lHWUCeV",
+   "stripped": [
+    "si",
+    "context"
+   ],
+   "note": "context breakage re-rated from none to low (playlist playback context is lost)"
+  },
+  {
+   "id": "G2-66",
+   "group": "G2",
+   "dirty": "https://open.spotify.com/album/6Mf15O3wMv52ySP3aSTre1?uid=1dadcf09fbbee47a&uri=spotify%3Atrack%3A3HoSi38l1e6E1K1lHWUCeV",
+   "clean": "https://open.spotify.com/album/6Mf15O3wMv52ySP3aSTre1?uri=spotify%3Atrack%3A3HoSi38l1e6E1K1lHWUCeV",
+   "stripped": [
+    "uid"
+   ],
+   "note": "NEW (verifier): example from LUS; uid stripped, uri functional"
+  },
+  {
+   "id": "G2-67",
+   "group": "G2",
+   "dirty": "https://open.spotify.com/episode/24GvJqPbc7MEi7JqN2IBJb?si=0f1e2d3c4b5a6978&t=1450",
+   "clean": "https://open.spotify.com/episode/24GvJqPbc7MEi7JqN2IBJb?t=1450",
+   "stripped": [
+    "si"
+   ],
+   "note": "t is the episode timestamp"
+  },
+  {
+   "id": "G2-68",
+   "group": "G2",
+   "dirty": "https://open.spotify.com/album/7D2NdGvBHIavgLhmcwhluK?nd=1&si=xyz987",
+   "clean": "https://open.spotify.com/album/7D2NdGvBHIavgLhmcwhluK?nd=1",
+   "stripped": [
+    "si"
+   ],
+   "kept_functional": [
+    "nd"
+   ]
+  },
+  {
+   "id": "G2-69",
+   "group": "G2",
+   "dirty": "https://music.apple.com/us/album/take-on-me-1985-12-mix-2015-remastered/1035047659?i=1035048414",
+   "clean": "https://music.apple.com/us/album/take-on-me-1985-12-mix-2015-remastered/1035047659?i=1035048414",
+   "stripped": [],
+   "kept_functional": [
+    "i"
+   ],
+   "note": "Already clean; i is the song (example from Apple's developer forum)"
+  },
+  {
+   "id": "G2-70",
+   "group": "G2",
+   "dirty": "https://music.apple.com/gb/album/some-album/1035047659?i=1035048414&itscg=30200&itsct=music_box_link",
+   "clean": "https://music.apple.com/gb/album/some-album/1035047659?i=1035048414",
+   "stripped": [
+    "itscg",
+    "itsct"
+   ],
+   "kept_functional": [
+    "i"
+   ]
+  },
+  {
+   "id": "G2-71",
+   "group": "G2",
+   "dirty": "https://tv.apple.com/gb/show/severance/umc.cmc.1srk2goyh2q2zdxcx605w8vtx?itscg=30200&itsct=tv_box_link",
+   "clean": "https://tv.apple.com/gb/show/severance/umc.cmc.1srk2goyh2q2zdxcx605w8vtx",
+   "stripped": [
+    "itscg",
+    "itsct"
+   ]
+  },
+  {
+   "id": "G2-72",
+   "group": "G2",
+   "dirty": "https://music.apple.com/us/album/some-album/1035047659?i=1035048414&at=1000lABC&ct=spring_campaign&app=music",
+   "clean": "https://music.apple.com/us/album/some-album/1035047659?i=1035048414&app=music",
+   "clean_verified": "https://music.apple.com/us/album/some-album/1035047659?i=1035048414&at=1000lABC&app=music",
+   "merge_note": "The merged affiliate policy strips at by default (affiliate parameters, see affiliate_policy); the verifier had kept them as ask. clean_if_affiliate_kept shows the result with the keep-affiliate-credit switch on.",
+   "clean_if_affiliate_kept": "https://music.apple.com/us/album/some-album/1035047659?i=1035048414&at=1000lABC&app=music",
+   "clean_if_asks_stripped": "https://music.apple.com/us/album/some-album/1035047659?i=1035048414",
+   "stripped": [
+    "at",
+    "ct"
+   ],
+   "asked": [
+    "app"
+   ],
+   "kept_functional": [
+    "i"
+   ],
+   "note": "at and app are ask (affiliate pair); if the user strips affiliates the result is ...?i=1035048414"
+  },
+  {
+   "id": "G2-73",
+   "group": "G2",
+   "dirty": "https://apps.apple.com/app/apple-store/id123456789?pt=123456&ct=test1234&mt=8",
+   "clean": "https://apps.apple.com/app/apple-store/id123456789",
+   "stripped": [
+    "pt",
+    "ct",
+    "mt"
+   ],
+   "note": "NEW (verifier): Apple's own campaign-link example; pt, ct and mt are documented tokens. Also: uo | ls | mt row split, Apple FAQ removed as a source for uo and ls (it does not mention them)"
+  },
+  {
+   "id": "G2-74",
+   "group": "G2",
+   "dirty": "https://www.netflix.com/title/80057281?trackId=255824129&tctx=0%2C0%2Cabc",
+   "clean": "https://www.netflix.com/title/80057281",
+   "stripped": [
+    "trackId",
+    "tctx"
+   ]
+  },
+  {
+   "id": "G2-75",
+   "group": "G2",
+   "dirty": "https://www.netflix.com/watch/80057281?trackId=14170286&tctx=1%2C2%2Cdef&source=35",
+   "clean": "https://www.netflix.com/watch/80057281",
+   "stripped": [
+    "trackId",
+    "tctx",
+    "source"
+   ]
+  },
+  {
+   "id": "G2-76",
+   "group": "G2",
+   "dirty": "https://www.netflix.com/browse?jbv=80057281&trackIdJaw=123&tctx=2%2C3",
+   "clean": "https://www.netflix.com/browse?jbv=80057281",
+   "stripped": [
+    "trackIdJaw",
+    "tctx"
+   ],
+   "kept_functional": [
+    "jbv"
+   ],
+   "note": "jbv is the title id; may optionally be rewritten to /title/80057281"
+  },
+  {
+   "id": "G2-77",
+   "group": "G2",
+   "dirty": "https://www.twitch.tv/videos/123456789?t=05h19m48s&tt_medium=redt&tt_content=post_title",
+   "clean": "https://www.twitch.tv/videos/123456789?t=05h19m48s",
+   "stripped": [
+    "tt_medium",
+    "tt_content"
+   ]
+  },
+  {
+   "id": "G2-78",
+   "group": "G2",
+   "dirty": "https://www.twitch.tv/someone?tt_email_id=abc123&tt_medium=email&tt_content=go_live",
+   "clean": "https://www.twitch.tv/someone",
+   "stripped": [
+    "tt_email_id",
+    "tt_medium",
+    "tt_content"
+   ]
+  },
+  {
+   "id": "G2-79",
+   "group": "G2",
+   "dirty": "https://clips.twitch.tv/FunnyClipSlug-AbCdEf123?tt_medium=clips_api&tt_content=url",
+   "clean": "https://clips.twitch.tv/FunnyClipSlug-AbCdEf123",
+   "stripped": [
+    "tt_medium",
+    "tt_content"
+   ],
+   "note": "Covered by LUS (its own example is a clips.twitch.tv URL); Tidy and Firefox only cover www.twitch.tv"
+  },
+  {
+   "id": "G2-80",
+   "group": "G2",
+   "dirty": "https://soundcloud.com/artist/track-name?si=0123456789abcdef0123456789abcdef&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+   "clean": "https://soundcloud.com/artist/track-name",
+   "stripped": [
+    "si",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign"
+   ]
+  },
+  {
+   "id": "G2-81",
+   "group": "G2",
+   "dirty": "https://soundcloud.com/artist/track-name?si=0123456789abcdef#t=1%3A23",
+   "clean": "https://soundcloud.com/artist/track-name#t=1%3A23",
+   "stripped": [
+    "si"
+   ],
+   "note": "Time fragment kept"
+  },
+  {
+   "id": "G2-82",
+   "group": "G2",
+   "dirty": "https://on.soundcloud.com/AbCdEfGh12345",
+   "clean": "https://on.soundcloud.com/AbCdEfGh12345",
+   "stripped": [],
+   "opaque_redirect": "soundcloud-short",
+   "note": "Cannot unwrap offline"
+  },
+  {
+   "id": "G2-83",
+   "group": "G2",
+   "dirty": "https://www.deezer.com/en/track/3135556?origin=share&deferredFl=1",
+   "clean": "https://www.deezer.com/en/track/3135556",
+   "stripped": [
+    "origin",
+    "deferredFl"
+   ]
+  },
+  {
+   "id": "G2-84",
+   "group": "G2",
+   "dirty": "https://www.deezer.com/en/album/302127?deferredFl=1",
+   "clean": "https://www.deezer.com/en/album/302127",
+   "stripped": [
+    "deferredFl"
+   ]
+  },
+  {
+   "id": "G2-85",
+   "group": "G2",
+   "dirty": "https://www.deezer.com/da/album/677166011?host=692437151&utm_campaign=clipboard-generic&utm_source=user_sharing&utm_content=album-677166011",
+   "clean": "https://www.deezer.com/da/album/677166011",
+   "stripped": [
+    "host",
+    "utm_campaign",
+    "utm_source",
+    "utm_content"
+   ],
+   "note": "NEW (verifier): example from LUS; new host row"
+  },
+  {
+   "id": "G2-86",
+   "group": "G2",
+   "dirty": "https://link.deezer.com/s/30Abcd1234xyz",
+   "clean": "https://link.deezer.com/s/30Abcd1234xyz",
+   "stripped": [],
+   "opaque_redirect": "deezer-short",
+   "note": "Cannot unwrap offline. DROPPED: deezer.page.link and dzr.page.link from the redirect pattern (neither the Deezer support page nor any list confirms them); support.deezer.com and malwaretips replaced by LUS as source"
+  },
+  {
+   "id": "G2-87",
+   "group": "G2",
+   "dirty": "https://tidal.com/browse/track/106257794/u",
+   "clean": "https://tidal.com/browse/track/106257794/u",
+   "stripped": [],
+   "note": "/u is functional (source now 404s; kept because path segments are never stripped anyway)"
+  },
+  {
+   "id": "G2-88",
+   "group": "G2",
+   "dirty": "https://tidal.com/browse/track/106257794?utm_source=share",
+   "clean": "https://tidal.com/browse/track/106257794",
+   "stripped": [
+    "utm_source"
+   ]
+  },
+  {
+   "id": "G2-89",
+   "group": "G2",
+   "dirty": "https://listen.tidal.com/album/106257790",
+   "clean": "https://listen.tidal.com/album/106257790",
+   "stripped": []
+  },
+  {
+   "id": "G2-90",
+   "group": "G2",
+   "dirty": "https://music.amazon.com/albums/B0ABCDE123?trackAsin=B0ABCDE456&ref=dm_sh_AbCdEf",
+   "clean": "https://music.amazon.com/albums/B0ABCDE123?trackAsin=B0ABCDE456",
+   "stripped": [
+    "ref"
+   ]
+  },
+  {
+   "id": "G2-91",
+   "group": "G2",
+   "dirty": "https://music.amazon.co.uk/albums/B0ABCDE123?trackAsin=B0ABCDE456&ref=dm_sh_AbCdEf&tag=examplesite-21",
+   "clean": "https://music.amazon.co.uk/albums/B0ABCDE123?trackAsin=B0ABCDE456",
+   "clean_verified": "https://music.amazon.co.uk/albums/B0ABCDE123?trackAsin=B0ABCDE456&tag=examplesite-21",
+   "merge_note": "The merged affiliate policy strips tag by default (affiliate parameters, see affiliate_policy); the verifier had kept them as ask. clean_if_affiliate_kept shows the result with the keep-affiliate-credit switch on.",
+   "clean_if_affiliate_kept": "https://music.amazon.co.uk/albums/B0ABCDE123?trackAsin=B0ABCDE456&tag=examplesite-21",
+   "stripped": [
+    "ref",
+    "tag"
+   ],
+   "note": "tag is ask (affiliate)"
+  },
+  {
+   "id": "G2-92",
+   "group": "G2",
+   "dirty": "https://www.primevideo.com/detail/0ABCDEFGHIJKLMN/ref=atv_dp_share_cu_r",
+   "clean": "https://www.primevideo.com/detail/0ABCDEFGHIJKLMN",
+   "stripped": [
+    "/ref=<code> (path segment)"
+   ],
+   "note": "Path-embedded /ref="
+  },
+  {
+   "id": "G2-93",
+   "group": "G2",
+   "dirty": "https://www.amazon.co.uk/gp/video/detail/B0ABCDE789/ref=atv_hm_hom_1_c_abc?pf_rd_r=XYZ&pf_rd_p=123",
+   "clean": "https://www.amazon.co.uk/gp/video/detail/B0ABCDE789",
+   "stripped": [
+    "/ref=<code> (path segment)",
+    "pf_rd_r",
+    "pf_rd_p"
+   ],
+   "note": "pf_rd_r and pf_rd_p come from the Amazon shop rows (ClearURLs p[fd]_rd_[a-z]*, uBO), not from this platform group"
+  },
+  {
+   "id": "G2-94",
+   "group": "G2",
+   "dirty": "https://www.disneyplus.com/movies/frozen/4uKGzAJi3ROz?distributionPartner=google",
+   "clean": "https://www.disneyplus.com/movies/frozen/4uKGzAJi3ROz",
+   "stripped": [
+    "distributionPartner"
+   ]
+  },
+  {
+   "id": "G2-95",
+   "group": "G2",
+   "dirty": "https://www.disneyplus.com/movies/frozen/4uKGzAJi3ROz?cid=DSS-Affiliate-Impact-Example",
+   "clean": "https://www.disneyplus.com/movies/frozen/4uKGzAJi3ROz",
+   "stripped": [
+    "cid"
+   ],
+   "note": "cid stripped only because the value starts with DSS-Affiliate"
+  },
+  {
+   "id": "G2-96",
+   "group": "G2",
+   "dirty": "https://www.disneyplus.com/en-gb/series/andor/3xsQKWG00GL5?linkId=123456",
+   "clean": "https://www.disneyplus.com/en-gb/series/andor/3xsQKWG00GL5",
+   "stripped": [
+    "linkId"
+   ]
+  },
+  {
+   "id": "G2-97",
+   "group": "G2",
+   "dirty": "https://play.hbomax.com/show/abc-123?source=email",
+   "clean": "https://play.hbomax.com/show/abc-123",
+   "stripped": [
+    "source"
+   ]
+  },
+  {
+   "id": "G2-98",
+   "group": "G2",
+   "dirty": "https://vk.com/away.php?to=https%3A%2F%2Fexample.org%2F%3Futm_medium%3Dsocial",
+   "clean": "https://example.org/",
+   "stripped": [
+    "utm_medium"
+   ],
+   "unwrapped": [
+    "vk-away"
+   ],
+   "note": "Bonus social wrapper. Verifier summary: no parameter rows dropped. Sources replaced: Pinterest dev page (404) by Pinterest staff post; blog.lflow.co (does not mention TikTok short links) by trevorfox.com; developers.secure.facebook.com thread (about sharer.php, not /share/ links) by commentpicker.com; engineering.fb.com link-shim post removed (does not mention l.php or u). Meaning hedged as undocumented: ttadid, scadid, padid, uo, ls, mttn*. Corrected: fbc_id is the ad set ID, not campaign; generic social ref limited to discord.com; Telegram commissions are paid in Stars by the mini app's programme."
+  },
+  {
+   "id": "G3-01",
+   "group": "G3",
+   "dirty": "https://www.amazon.de/Logitech-Mechanische-Gaming-Tastatur/dp/B07VZLMQN7/ref=asc_df_B07VZLMQN7/?hvadid=380194285389&hvpos=&hvnetw=g&hvrand=829567778685238150&hvqmt=&hvdev=c&hvlocphy=9043042&hvtargid=pla-815390482707&adgrpid=79218802204&th=1&psc=1",
+   "clean": "https://www.amazon.de/Logitech-Mechanische-Gaming-Tastatur/dp/B07VZLMQN7/?psc=1",
+   "stripped": [
+    "/ref=<code> (path segment)",
+    "hvadid",
+    "hvpos",
+    "hvnetw",
+    "hvrand",
+    "hvqmt",
+    "hvdev",
+    "hvlocphy",
+    "hvtargid",
+    "adgrpid",
+    "th"
+   ],
+   "kept_functional": [
+    "psc"
+   ],
+   "note": "Amazon.de Google Shopping ad click (based on a DandelionSprout example): hvlocphy is a location ID for where the clicker was; psc kept (functional)."
+  },
+  {
+   "id": "G3-02",
+   "group": "G3",
+   "dirty": "https://www.amazon.co.uk/dp/1338323326/ref=pd_sbs_14_1?_encoding=UTF8&pd_rd_i=1338323326&pd_rd_r=da2a232b-99a2-4202-ade0-6b52bb20749b&pd_rd_w=cXLbd&pd_rd_wg=46K05&pf_rd_p=2773aa8e-42c5-4dbe-bda8-5cdf226aa078&pf_rd_r=1HVF5BQG27VGX33FG5J6&psc=1&refRID=1HVF5BQG27VGX33FG5J6",
+   "clean": "https://www.amazon.co.uk/dp/1338323326?psc=1",
+   "stripped": [
+    "/ref=<code> (path segment)",
+    "_encoding",
+    "pd_rd_i",
+    "pd_rd_r",
+    "pd_rd_w",
+    "pd_rd_wg",
+    "pf_rd_p",
+    "pf_rd_r",
+    "refRID"
+   ],
+   "kept_functional": [
+    "psc"
+   ],
+   "note": "Recommendation carousel click: /ref= path segment, _encoding, pd_rd_*, pf_rd_*, refRID removed."
+  },
+  {
+   "id": "G3-03",
+   "group": "G3",
+   "dirty": "https://www.amazon.se/Razer-Core-Thunderbolt-External-Enclosure/dp/B07CQG2K5K/?tag=makeusw-20&linkCode=ogi&th=1&psc=1",
+   "clean": "https://www.amazon.se/Razer-Core-Thunderbolt-External-Enclosure/dp/B07CQG2K5K/?psc=1",
+   "clean_if_affiliate_kept": "https://www.amazon.se/Razer-Core-Thunderbolt-External-Enclosure/dp/B07CQG2K5K/?tag=makeusw-20&linkCode=ogi&psc=1",
+   "stripped": [
+    "tag",
+    "linkCode",
+    "th"
+   ],
+   "kept_functional": [
+    "psc"
+   ],
+   "note": "Affiliate link: tag pays the creator 'makeusw-20'; the app should say so before removing it."
+  },
+  {
+   "id": "G3-04",
+   "group": "G3",
+   "dirty": "https://www.amazon.com.br/dp/B086YQT1BV/ref=sr_1_6?crid=37PR5OFNF1UXD&keywords=brinquedo+cachorro&qid=1728550000&sprefix=brinq%2Caps%2C140&sr=8-6",
+   "clean": "https://www.amazon.com.br/dp/B086YQT1BV",
+   "stripped": [
+    "/ref=<code> (path segment)",
+    "crid",
+    "keywords",
+    "qid",
+    "sprefix",
+    "sr"
+   ],
+   "note": "Search-result click: reveals the search words, partial typing, search time and result position."
+  },
+  {
+   "id": "G3-05",
+   "group": "G3",
+   "dirty": "https://www.amazon.es/s?k=auriculares&crid=2M096C61O4MLT&sprefix=auric%2Caps%2C120&ref=nb_sb_noss_2",
+   "clean": "https://www.amazon.es/s?k=auriculares",
+   "stripped": [
+    "crid",
+    "sprefix",
+    "ref"
+   ],
+   "note": "Search page: k is the query and must stay."
+  },
+  {
+   "id": "G3-06",
+   "group": "G3",
+   "dirty": "https://www.amazon.fr/dp/B08K443FBQ/ref=asc_df_B08K443FBQ1606003200000/?creative=22374&creativeASIN=B08K443FBQ&linkCode=df0&tag=googshopfr-21&smid=A1X6FK5RDHNB96",
+   "clean": "https://www.amazon.fr/dp/B08K443FBQ/?smid=A1X6FK5RDHNB96",
+   "clean_if_affiliate_kept": "https://www.amazon.fr/dp/B08K443FBQ/?creative=22374&creativeASIN=B08K443FBQ&linkCode=df0&tag=googshopfr-21&smid=A1X6FK5RDHNB96",
+   "stripped": [
+    "/ref=<code> (path segment)",
+    "creative",
+    "creativeASIN",
+    "linkCode",
+    "tag"
+   ],
+   "kept_functional": [
+    "smid"
+   ],
+   "note": "smid (seller) kept so the recipient sees the same seller's offer."
+  },
+  {
+   "id": "G3-07",
+   "group": "G3",
+   "dirty": "https://www.amazon.it/gp/slredirect/picassoRedirect.html/ref=pa_sp_atf_aps_sr_pg1_1?ie=UTF8&adId=A03156898KWFBC5TXHB6&url=%2FAmazonBasics-Performance-Alkaline-Batteries-20-Pack%2Fdp%2FB00NTCH52W%2Fref%3Dsr_1_2_sspa%3Fdchild%3D1%26keywords%3Damazonbasics%26qid%3D1595365589%26sr%3D8-2-spons%26psc%3D1&qualifier=1595365589&id=4772800613953936&widgetName=sp_atf",
+   "clean": "https://www.amazon.it/AmazonBasics-Performance-Alkaline-Batteries-20-Pack/dp/B00NTCH52W?psc=1",
+   "stripped": [
+    "/ref=<code> (path segment)",
+    "dchild",
+    "keywords",
+    "qid",
+    "sr"
+   ],
+   "kept_functional": [
+    "psc"
+   ],
+   "unwrapped": [
+    "amazon-picasso"
+   ],
+   "note": "Sponsored-product redirect unwrapped offline from url= (relative path, same host), then cleaned."
+  },
+  {
+   "id": "G3-08",
+   "group": "G3",
+   "dirty": "https://www.amazon.nl/dp/B0CSGTN8DT?ref_=emc_p_m_5_i_atc&content-id=amzn1.sym.12345678-aaaa-bbbb-cccc-1234567890ab&pf_rd_r=XYZ123&social_share=cm_sw_r_cp_ud_dp",
+   "clean": "https://www.amazon.nl/dp/B0CSGTN8DT",
+   "stripped": [
+    "ref_",
+    "content-id",
+    "pf_rd_r",
+    "social_share"
+   ],
+   "note": "Shared from the Amazon app."
+  },
+  {
+   "id": "G3-09",
+   "group": "G3",
+   "dirty": "https://amzn.eu/d/abc1234",
+   "clean": "https://amzn.eu/d/abc1234",
+   "stripped": [],
+   "opaque_redirect": "amazon-short",
+   "note": "Amazon short link: cannot be expanded offline; flag as 'opens a redirect, contents unknown'."
+  },
+  {
+   "id": "G3-10",
+   "group": "G3",
+   "dirty": "https://www.ebay.co.uk/itm/355113317598?_skw=doulton+rani&itmmeta=01J9ABCDEF&hash=item52aeb5a5de:g:abcAAOSw&itmprp=enc%3AAQAJAAAA&_trkparms=ispr%3D1%26amclksrc%3DITM&_trksid=p2047675.m570.l2632&amdata=enc%3AAQAJAAAA",
+   "clean": "https://www.ebay.co.uk/itm/355113317598",
+   "stripped": [
+    "_skw",
+    "itmmeta",
+    "hash",
+    "itmprp",
+    "_trkparms",
+    "_trksid",
+    "amdata"
+   ],
+   "note": "Item page from search: search keyword and internal tracking removed; item ID in path kept."
+  },
+  {
+   "id": "G3-11",
+   "group": "G3",
+   "dirty": "https://www.ebay.de/itm/265272975304?mkcid=1&mkrid=707-53477-19255-0&siteid=77&campid=5338273189&customid=blog-post-17&toolid=10001&mkevt=1",
+   "clean": "https://www.ebay.de/itm/265272975304",
+   "clean_if_affiliate_kept": "https://www.ebay.de/itm/265272975304?mkcid=1&mkrid=707-53477-19255-0&campid=5338273189&customid=blog-post-17&toolid=10001&mkevt=1",
+   "stripped": [
+    "mkcid",
+    "mkrid",
+    "siteid",
+    "campid",
+    "customid",
+    "toolid",
+    "mkevt"
+   ],
+   "note": "eBay Partner Network affiliate link (campid pays the affiliate; 707-53477-19255-0 is eBay Germany's rotation ID in eBay's docs)."
+  },
+  {
+   "id": "G3-12",
+   "group": "G3",
+   "dirty": "https://www.ebay.com/itm/173553616659?var=472938475612&ssspo=abc123&sssrc=2349624&ssuid=xyz789&widget_ver=artemis&media=COPY",
+   "clean": "https://www.ebay.com/itm/173553616659?var=472938475612",
+   "stripped": [
+    "ssspo",
+    "sssrc",
+    "ssuid",
+    "widget_ver",
+    "media"
+   ],
+   "kept_functional": [
+    "var"
+   ],
+   "note": "Shared from the eBay app: share IDs removed, variation (var) kept."
+  },
+  {
+   "id": "G3-13",
+   "group": "G3",
+   "dirty": "https://rover.ebay.com/rover/1/711-53200-19255-0/1?ff3=4&pub=5575000000&toolid=10001&campid=5338000000&customid=&mpre=https%3A%2F%2Fwww.ebay.com%2Fitm%2F173553616659%3F_trksid%3Dp2481888.c100675.m4236",
+   "clean": "https://www.ebay.com/itm/173553616659",
+   "stripped": [
+    "_trksid"
+   ],
+   "unwrapped": [
+    "ebay-rover"
+   ],
+   "note": "Legacy rover affiliate redirect unwrapped offline from mpre=, then _trksid removed."
+  },
+  {
+   "id": "G3-14",
+   "group": "G3",
+   "dirty": "https://www.ebay.com/sch/i.html?_from=R40&_nkw=Born+Pretty&_sacat=0&_pgn=5&rt=nc",
+   "clean": "https://www.ebay.com/sch/i.html?_nkw=Born+Pretty&_sacat=0&_pgn=5&rt=nc",
+   "stripped": [
+    "_from"
+   ],
+   "note": "Search page: only _from removed; query, category, page and rt are functional."
+  },
+  {
+   "id": "G3-15",
+   "group": "G3",
+   "dirty": "https://ebay.us/m/AbCdEf",
+   "clean": "https://ebay.us/m/AbCdEf",
+   "stripped": [],
+   "opaque_redirect": "ebay-short",
+   "note": "eBay share short link: cannot be expanded offline."
+  },
+  {
+   "id": "G3-16",
+   "group": "G3",
+   "dirty": "https://es.aliexpress.com/item/4000672272353.html?pvid=c4cdc770-f05a-4b7b-8a50-d8b81efff6c9&_t=gps-id:pcDetailBottomMoreThisSeller,scm-url:1007.13339.169870.0",
+   "clean": "https://es.aliexpress.com/item/4000672272353.html",
+   "stripped": [
+    "pvid",
+    "_t"
+   ]
+  },
+  {
+   "id": "G3-17",
+   "group": "G3",
+   "dirty": "https://www.aliexpress.com/item/1005002402123565.html?spm=a2g0o.productlist.0.0.6b2a3c1fXyZ&algo_pvid=df54ce03-45d0-42f5-a661-634290fe5f03&algo_exp_id=df54ce03-45d0-42f5-a661-634290fe5f03-3&pdp_npi=4%40dis%21NOK%21199.00&curPageLogUid=AbCdEf123&sku_id=12000020345678",
+   "clean": "https://www.aliexpress.com/item/1005002402123565.html?sku_id=12000020345678",
+   "stripped": [
+    "spm",
+    "algo_pvid",
+    "algo_exp_id",
+    "pdp_npi",
+    "curPageLogUid"
+   ],
+   "note": "sku_id (chosen variant) kept."
+  },
+  {
+   "id": "G3-18",
+   "group": "G3",
+   "dirty": "https://www.aliexpress.com/item/33014052863.html?aff_fcid=0f1e2d3c&aff_fsk=_DeAbCd&aff_platform=portals-tool&sk=_DeAbCd&aff_trace_key=0f1e2d3c-1700000000000-01234-_DeAbCd&terminal_id=a1b2c3d4e5&dp=p12840043004615122514&cv=21876",
+   "clean": "https://www.aliexpress.com/item/33014052863.html",
+   "clean_if_affiliate_kept": "https://www.aliexpress.com/item/33014052863.html?aff_fcid=0f1e2d3c&aff_fsk=_DeAbCd&aff_platform=portals-tool&sk=_DeAbCd&aff_trace_key=0f1e2d3c-1700000000000-01234-_DeAbCd&dp=p12840043004615122514&cv=21876",
+   "stripped": [
+    "aff_fcid",
+    "aff_fsk",
+    "aff_platform",
+    "sk",
+    "aff_trace_key",
+    "terminal_id",
+    "dp",
+    "cv"
+   ],
+   "note": "Affiliate landing URL: affiliate loses commission."
+  },
+  {
+   "id": "G3-19",
+   "group": "G3",
+   "dirty": "https://s.click.aliexpress.com/e/_pQN242z",
+   "clean": "https://s.click.aliexpress.com/e/_pQN242z",
+   "stripped": [],
+   "opaque_redirect": "aliexpress-short",
+   "note": "AliExpress affiliate short link: cannot be expanded offline."
+  },
+  {
+   "id": "G3-20",
+   "group": "G3",
+   "dirty": "https://www.temu.com/no/wireless-earbuds-g-601099512345678.html?_x_ads_channel=google&_x_ads_sub_channel=shopping&_x_ns_gid=601099512345678&_x_ns_site_id=no&_x_campaign=pmax&_x_cid=2000123&_bg_fs=1&_p_rfs=1&_x_sessn_id=abcd1234ef&refer_page_name=goods&refer_page_id=10032_1700000000000_abc",
+   "clean": "https://www.temu.com/no/wireless-earbuds-g-601099512345678.html",
+   "stripped": [
+    "_x_ads_channel",
+    "_x_ads_sub_channel",
+    "_x_ns_gid",
+    "_x_ns_site_id",
+    "_x_campaign",
+    "_x_cid",
+    "_bg_fs",
+    "_p_rfs",
+    "_x_sessn_id",
+    "refer_page_name",
+    "refer_page_id"
+   ]
+  },
+  {
+   "id": "G3-21",
+   "group": "G3",
+   "dirty": "https://www.temu.com/uk/led-strip-lights-g-601099598765432.html?refer_share_id=AbC123&refer_share_channel=copy_link&refer_share_suin=XYZ987&share_img=https%3A%2F%2Fimg.kwcdn.com%2Fa.jpg&from_share=1&g_site=1&g_lg=en&g_region=143&g_ccy=GBP&sku_id=17592186044416",
+   "clean": "https://www.temu.com/uk/led-strip-lights-g-601099598765432.html?sku_id=17592186044416",
+   "clean_if_asks_stripped": "https://www.temu.com/uk/led-strip-lights-g-601099598765432.html",
+   "stripped": [
+    "refer_share_id",
+    "refer_share_channel",
+    "refer_share_suin",
+    "share_img",
+    "from_share",
+    "g_site",
+    "g_lg",
+    "g_region",
+    "g_ccy"
+   ],
+   "asked": [
+    "sku_id"
+   ],
+   "note": "Shared from the Temu app; sku_id is 'ask' and kept in this output."
+  },
+  {
+   "id": "G3-22",
+   "group": "G3",
+   "dirty": "https://temu.to/m/uAbCdEfGh",
+   "clean": "https://temu.to/m/uAbCdEfGh",
+   "stripped": [],
+   "opaque_redirect": "temu-short",
+   "note": "Temu short link: cannot be expanded offline."
+  },
+  {
+   "id": "G3-23",
+   "group": "G3",
+   "dirty": "https://www.shein.com/Floral-Print-Dress-p-12345678.html?src_module=Women&src_tab_page_id=page_home1700000000000&mallCode=1&ici=CCCSN%3DWomenHomePage&scici=navbar_WomenHomePage~~tab01~~1",
+   "clean": "https://www.shein.com/Floral-Print-Dress-p-12345678.html",
+   "stripped": [
+    "src_module",
+    "src_tab_page_id",
+    "mallCode",
+    "ici",
+    "scici"
+   ]
+  },
+  {
+   "id": "G3-24",
+   "group": "G3",
+   "dirty": "https://www.shein.co.uk/Men-Hoodie-p-23456789.html?ref=www&rep=dir&ret=uk&from_country=no&phone_code=47",
+   "clean": "https://www.shein.co.uk/Men-Hoodie-p-23456789.html?rep=dir&ret=uk",
+   "stripped": [
+    "ref",
+    "from_country",
+    "phone_code"
+   ],
+   "note": "CORRECTED: from_country, phone_code and ref are listed for shein.co.uk by uBO and AdGuard, but rep and ret are only listed for shein.com (DandelionSprout), so they stay on shein.co.uk."
+  },
+  {
+   "id": "G3-25",
+   "group": "G3",
+   "dirty": "https://m.shein.com/Sneakers-p-34567890.html?userpath=-Shoes-Sneakers&srctype=category&adp=34567890&_t=1700000000",
+   "clean": "https://m.shein.com/Sneakers-p-34567890.html",
+   "stripped": [
+    "userpath",
+    "srctype",
+    "adp",
+    "_t"
+   ],
+   "note": "m.shein.com is a subdomain of shein.com, so the shein.com-only rules apply."
+  },
+  {
+   "id": "G3-26",
+   "group": "G3",
+   "dirty": "https://www.etsy.com/listing/667282692/valentines-day-gift-for-him?click_key=bf6cbe7aaa7a516aca264c505f4a8f1787758226%3A667282692&click_sum=a31c16d4&ref=hp_rv-2",
+   "clean": "https://www.etsy.com/listing/667282692/valentines-day-gift-for-him",
+   "stripped": [
+    "click_key",
+    "click_sum",
+    "ref"
+   ]
+  },
+  {
+   "id": "G3-27",
+   "group": "G3",
+   "dirty": "https://www.etsy.com/listing/984664013/personalized-leather-wallet?plkey=e61127eaa78c1a3d517e415d3e2014db7e43e6f5%3A984664013&pro=1&frs=1&sts=1&organic_search_click=1",
+   "clean": "https://www.etsy.com/listing/984664013/personalized-leather-wallet",
+   "stripped": [
+    "plkey",
+    "pro",
+    "frs",
+    "sts",
+    "organic_search_click"
+   ]
+  },
+  {
+   "id": "G3-28",
+   "group": "G3",
+   "dirty": "https://www.etsy.com/listing/906950188/handmade-green-and-gold-pendant?share_time=1607601937000&utm_source=Copy&utm_medium=ListingManager&utm_campaign=Share",
+   "clean": "https://www.etsy.com/listing/906950188/handmade-green-and-gold-pendant",
+   "stripped": [
+    "share_time",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign"
+   ],
+   "note": "utm_* come from the global list."
+  },
+  {
+   "id": "G3-29",
+   "group": "G3",
+   "dirty": "https://www.zalando.no/nike-sportswear-air-max-90-joggesko-ni112o0x1-a11.html?wmc=AFF49_NO_DE.1234567_890",
+   "clean": "https://www.zalando.no/nike-sportswear-air-max-90-joggesko-ni112o0x1-a11.html",
+   "stripped": [
+    "wmc"
+   ]
+  },
+  {
+   "id": "G3-30",
+   "group": "G3",
+   "dirty": "https://www.zalando.de/adidas-originals-sneaker-ad115o0f2-q11.html?wmc=CRM_DE_NL&tm_hem=0a1b2c3d4e&wt_cd=nl-20261010",
+   "clean": "https://www.zalando.de/adidas-originals-sneaker-ad115o0f2-q11.html",
+   "stripped": [
+    "wmc",
+    "tm_hem",
+    "wt_cd"
+   ]
+  },
+  {
+   "id": "G3-31",
+   "group": "G3",
+   "dirty": "https://www.zalando.co.uk/levis-jeans-le222n0ab-k11.html?cd1=newsletter&cd2=segmentA&wmc=SEM100_UK",
+   "clean": "https://www.zalando.co.uk/levis-jeans-le222n0ab-k11.html",
+   "stripped": [
+    "cd1",
+    "cd2",
+    "wmc"
+   ]
+  },
+  {
+   "id": "G3-32",
+   "group": "G3",
+   "dirty": "https://www.booking.com/hotel/se/storliens-fjallyor.no.html?aid=310020&label=gen173nr-1FCAEoggI46AdIM1gEaKcBiAEBmAExuAEXyAEM2AEB&sid=73644012d844e22d6900ad033e8fac97&all_sr_blocks=12345601_123456789_2_0_0&checkin=2026-12-27&checkout=2026-12-30&group_adults=2&no_rooms=1",
+   "clean": "https://www.booking.com/hotel/se/storliens-fjallyor.no.html?all_sr_blocks=12345601_123456789_2_0_0&checkin=2026-12-27&checkout=2026-12-30&group_adults=2&no_rooms=1",
+   "clean_if_affiliate_kept": "https://www.booking.com/hotel/se/storliens-fjallyor.no.html?aid=310020&label=gen173nr-1FCAEoggI46AdIM1gEaKcBiAEBmAExuAEXyAEM2AEB&all_sr_blocks=12345601_123456789_2_0_0&checkin=2026-12-27&checkout=2026-12-30&group_adults=2&no_rooms=1",
+   "stripped": [
+    "aid",
+    "label",
+    "sid"
+   ],
+   "note": "Affiliate (aid), label and session (sid) removed; dates, party and room selection kept."
+  },
+  {
+   "id": "G3-33",
+   "group": "G3",
+   "dirty": "https://www.booking.com/hotel/no/scandic-ornen.en-gb.html?aid=2123284&label=sample_label&adcamp=jL_yz6JoiZ71TVLssGgMXA&checkin=2026-11-06&checkout=2026-11-08",
+   "clean": "https://www.booking.com/hotel/no/scandic-ornen.en-gb.html?adcamp=jL_yz6JoiZ71TVLssGgMXA&checkin=2026-11-06&checkout=2026-11-08",
+   "clean_if_affiliate_kept": "https://www.booking.com/hotel/no/scandic-ornen.en-gb.html?aid=2123284&label=sample_label&adcamp=jL_yz6JoiZ71TVLssGgMXA&checkin=2026-11-06&checkout=2026-11-08",
+   "clean_if_asks_stripped": "https://www.booking.com/hotel/no/scandic-ornen.en-gb.html?checkin=2026-11-06&checkout=2026-11-08",
+   "stripped": [
+    "aid",
+    "label"
+   ],
+   "asked": [
+    "adcamp"
+   ],
+   "note": "aid and adcamp values from Booking's own click-out example; adcamp is 'ask' and kept in this output."
+  },
+  {
+   "id": "G3-34",
+   "group": "G3",
+   "dirty": "https://www.booking.com/hotel/gb/the-savoy.html?srpvid=a1b2c3d4e5f60001&redirected=1&group_adults=2",
+   "clean": "https://www.booking.com/hotel/gb/the-savoy.html?group_adults=2",
+   "stripped": [
+    "srpvid",
+    "redirected"
+   ]
+  },
+  {
+   "id": "G3-35",
+   "group": "G3",
+   "dirty": "https://www.airbnb.com/rooms/12345678?source_impression_id=p3_1700000000_AbCdEf&federated_search_id=0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b&search_type=filter_change&check_in=2026-12-01&check_out=2026-12-05&adults=2",
+   "clean": "https://www.airbnb.com/rooms/12345678?check_in=2026-12-01&check_out=2026-12-05&adults=2",
+   "stripped": [
+    "source_impression_id",
+    "federated_search_id",
+    "search_type"
+   ]
+  },
+  {
+   "id": "G3-36",
+   "group": "G3",
+   "dirty": "https://www.airbnb.co.uk/rooms/87654321?source=map_pin",
+   "clean": "https://www.airbnb.co.uk/rooms/87654321",
+   "stripped": [
+    "source"
+   ]
+  },
+  {
+   "id": "G3-37",
+   "group": "G3",
+   "dirty": "https://www.airbnb.de/rooms/11223344?adults=1&source_impression_id=p3_1690000000_XyZ",
+   "clean": "https://www.airbnb.de/rooms/11223344?adults=1",
+   "stripped": [
+    "source_impression_id"
+   ]
+  },
+  {
+   "id": "G3-38",
+   "group": "G3",
+   "dirty": "https://www.wayfair.com/furniture/pdp/mercury-row-desk-w001234567.html?_emr=abc123&emlid=987654&maiid=555&csnid=ABCDEF-1234&PID=affiliate-xyz&piid=1234567",
+   "clean": "https://www.wayfair.com/furniture/pdp/mercury-row-desk-w001234567.html?piid=1234567",
+   "clean_if_affiliate_kept": "https://www.wayfair.com/furniture/pdp/mercury-row-desk-w001234567.html?PID=affiliate-xyz&piid=1234567",
+   "stripped": [
+    "_emr",
+    "emlid",
+    "maiid",
+    "csnid",
+    "PID"
+   ],
+   "note": "piid is not on any list, so it is kept."
+  },
+  {
+   "id": "G3-39",
+   "group": "G3",
+   "dirty": "https://www.elkjop.no/product/data/kabler/APPLEMD463ZA/thunderbolt-til-gigabit-ethernet-adapter?utm_id=Pricecomparison2989_5_False&utm_medium=Pricecomparison&pjclid=AbC123xYz",
+   "clean": "https://www.elkjop.no/product/data/kabler/APPLEMD463ZA/thunderbolt-til-gigabit-ethernet-adapter",
+   "stripped": [
+    "utm_id",
+    "utm_medium",
+    "pjclid"
+   ],
+   "note": "Arrived from Prisjakt (pjclid)."
+  },
+  {
+   "id": "G3-40",
+   "group": "G3",
+   "dirty": "https://www.elgiganten.dk/product/lyd-hi-fi/hovedtelefoner/WH1000XM3B/sony-tradlose-hovedtelefoner?scid=Pricecomparison8084162610",
+   "clean": "https://www.elgiganten.dk/product/lyd-hi-fi/hovedtelefoner/WH1000XM3B/sony-tradlose-hovedtelefoner",
+   "stripped": [
+    "scid"
+   ]
+  },
+  {
+   "id": "G3-41",
+   "group": "G3",
+   "dirty": "https://www.komplett.no/product/1119114/tv-lyd-bilde/mediaspiller/xiaomi-mi-box-s?channable=013014696400313131393131340d",
+   "clean": "https://www.komplett.no/product/1119114/tv-lyd-bilde/mediaspiller/xiaomi-mi-box-s",
+   "stripped": [
+    "channable"
+   ]
+  },
+  {
+   "id": "G3-42",
+   "group": "G3",
+   "dirty": "https://www.finn.no/recommerce/forsale/item/402123456?alertType=ss&finnMail=agent&stored-id=68212345&ci=2",
+   "clean": "https://www.finn.no/recommerce/forsale/item/402123456?finnMail=agent&ci=2",
+   "stripped": [
+    "alertType",
+    "stored-id"
+   ],
+   "note": "finnMail and ci appear in a DandelionSprout example but no list removes them, so they stay."
+  },
+  {
+   "id": "G3-43",
+   "group": "G3",
+   "dirty": "https://shop.example.no/sale?utm_source=Newsletter&utm_campaign=autumn&mc_cid=a1b2c3d4e5&mc_eid=0f9e8d7c6b",
+   "clean": "https://shop.example.no/sale",
+   "stripped": [
+    "utm_source",
+    "utm_campaign",
+    "mc_cid",
+    "mc_eid"
+   ],
+   "note": "Mailchimp newsletter click: mc_eid identifies the subscriber."
+  },
+  {
+   "id": "G3-44",
+   "group": "G3",
+   "dirty": "https://www.example.com/blog/post?utm_campaign=Q4&_hsmi=331234567&_hsenc=p2ANqtz-8AbCdEfGhIjKl&utm_source=hs_email",
+   "clean": "https://www.example.com/blog/post",
+   "stripped": [
+    "utm_campaign",
+    "_hsmi",
+    "_hsenc",
+    "utm_source"
+   ],
+   "note": "HubSpot email click: _hsenc identifies the recipient."
+  },
+  {
+   "id": "G3-45",
+   "group": "G3",
+   "dirty": "https://shop.example.com/products/jacket?_kx=J8fjcn003Wy6b-3ILNlOyZXabW6dcFwTyeuxrowMers%3D.McN66&variant=4455",
+   "clean": "https://shop.example.com/products/jacket?variant=4455",
+   "stripped": [
+    "_kx"
+   ],
+   "note": "Klaviyo email click (value taken from Klaviyo's own help page); variant kept."
+  },
+  {
+   "id": "G3-46",
+   "group": "G3",
+   "dirty": "https://www.example.com/webinar?mkt_tok=NzYxLUtDSi0yMzEAAAGAbCdEf",
+   "clean": "https://www.example.com/webinar",
+   "stripped": [
+    "mkt_tok"
+   ],
+   "note": "Marketo email click."
+  },
+  {
+   "id": "G3-47",
+   "group": "G3",
+   "dirty": "https://news.example.com/article?vero_id=12345&vero_conv=AbC&oly_enc_id=1234A5678B&sfmc_id=987654321&et_rid=123456",
+   "clean": "https://news.example.com/article",
+   "stripped": [
+    "vero_id",
+    "vero_conv",
+    "oly_enc_id",
+    "sfmc_id",
+    "et_rid"
+   ]
+  },
+  {
+   "id": "G3-48",
+   "group": "G3",
+   "dirty": "https://www.example.com/offer?email=docs%40iterable.com&campaignId=39862",
+   "clean": "https://www.example.com/offer?email=docs%40iterable.com&campaignId=39862",
+   "clean_if_asks_stripped": "https://www.example.com/offer",
+   "stripped": [],
+   "asked": [
+    "email",
+    "campaignId"
+   ],
+   "note": "URL taken from Iterable's own Link Parameters article. Both are 'ask': show in red that the link contains an email address and let the user decide."
+  },
+  {
+   "id": "G3-49",
+   "group": "G3",
+   "dirty": "https://acme.lt.acemlna.com/Prod/link-tracker?redirectUrl=aHR0cHM6Ly93d3cuZXhhbXBsZS5jb20vcGFnZT91dG1fc291cmNlPUFjdGl2ZUNhbXBhaWduJnV0bV9tZWRpdW09ZW1haWwmdmdvX2VlPWFiYw%3D%3D&sig=AbCdEf&iat=1700000000&a=123456&account=acme&email=x&s=y&i=1A2A3A4",
+   "clean": "https://www.example.com/page",
+   "stripped": [
+    "utm_source",
+    "utm_medium",
+    "vgo_ee"
+   ],
+   "unwrapped": [
+    "activecampaign"
+   ],
+   "note": "ActiveCampaign wrapper: redirectUrl base64-decodes to https://www.example.com/page?utm_source=ActiveCampaign&utm_medium=email&vgo_ee=abc, then utm_* and vgo_ee are removed."
+  },
+  {
+   "id": "G3-50",
+   "group": "G3",
+   "dirty": "https://abcd1234.r.eu-west-1.awstrack.me/L0/https:%2F%2Fwww.example.com%2Fsale%3Fmc_cid%3Dabc/1/0102018f00000000-aaaaaaaa-bbbb/AbCdEf=123",
+   "clean": "https://www.example.com/sale",
+   "stripped": [
+    "mc_cid"
+   ],
+   "unwrapped": [
+    "aws-ses"
+   ],
+   "note": "Amazon SES click wrapper unwrapped offline from the path, then mc_cid removed."
+  },
+  {
+   "id": "G3-51",
+   "group": "G3",
+   "dirty": "https://example.us21.list-manage.com/track/click?u=0a1b2c3d4e5f&id=9f8e7d6c5b&e=1a2b3c4d5e",
+   "clean": "https://example.us21.list-manage.com/track/click?u=0a1b2c3d4e5f&id=9f8e7d6c5b&e=1a2b3c4d5e",
+   "stripped": [],
+   "opaque_redirect": "mailchimp-list-manage",
+   "note": "Mailchimp click tracker: destination is not in the URL; cannot unwrap offline, warn the user."
+  },
+  {
+   "id": "G3-52",
+   "group": "G3",
+   "dirty": "https://www.awin1.com/cread.php?awinmid=6220&awinaffid=123456&clickref=blogpost&ued=https%3A%2F%2Fwww.etsy.com%2Flisting%2F667282692%2Fvalentines-day-gift-for-him%3Fref%3Dhp_rv-2",
+   "clean": "https://www.etsy.com/listing/667282692/valentines-day-gift-for-him",
+   "stripped": [
+    "ref"
+   ],
+   "unwrapped": [
+    "awin"
+   ],
+   "note": "Awin affiliate wrapper unwrapped from ued=, then the Etsy ref removed. (Removed an unsourced claim about which network runs Etsy's affiliate programme.)"
+  },
+  {
+   "id": "G3-53",
+   "group": "G3",
+   "dirty": "https://www.example-shop.co.uk/product/123?awc=3661_1358445475_f396d719f0b67247f126a90bd2898cf0&sv1=affiliate&sv_campaign_id=123456&source=aw&clickref=post42",
+   "clean": "https://www.example-shop.co.uk/product/123?source=aw",
+   "clean_if_affiliate_kept": "https://www.example-shop.co.uk/product/123?awc=3661_1358445475_f396d719f0b67247f126a90bd2898cf0&sv1=affiliate&sv_campaign_id=123456&source=aw&clickref=post42",
+   "stripped": [
+    "awc",
+    "sv1",
+    "sv_campaign_id",
+    "clickref"
+   ],
+   "note": "Awin landing page; awc example value from Awin's docs. Awin documents source=aw as its channel marker, but source is a generic name used functionally by many sites, so it is kept."
+  },
+  {
+   "id": "G3-54",
+   "group": "G3",
+   "dirty": "https://www.anrdoezrs.net/click-1234567-10987654?url=https%3A%2F%2Fwww.example.com%2Fp%2F42%3Fcjevent%3Dabc123",
+   "clean": "https://www.example.com/p/42",
+   "clean_if_affiliate_kept": "https://www.example.com/p/42?cjevent=abc123",
+   "stripped": [
+    "cjevent"
+   ],
+   "unwrapped": [
+    "cj"
+   ],
+   "note": "CJ affiliate wrapper unwrapped from url=, then cjevent removed."
+  },
+  {
+   "id": "G3-55",
+   "group": "G3",
+   "dirty": "https://www.example.com/p/42?cjevent=8e2c1f60a3b311ef81a2000a0a1cb82b&cjdata=MXxOfDB8WXww",
+   "clean": "https://www.example.com/p/42",
+   "clean_if_affiliate_kept": "https://www.example.com/p/42?cjevent=8e2c1f60a3b311ef81a2000a0a1cb82b&cjdata=MXxOfDB8WXww",
+   "stripped": [
+    "cjevent",
+    "cjdata"
+   ]
+  },
+  {
+   "id": "G3-56",
+   "group": "G3",
+   "dirty": "https://click.linksynergy.com/deeplink?id=AbCdEfGhIjK&mid=24449&murl=https%3A%2F%2Fwww.example.com%2Fshoes%2F123",
+   "clean": "https://www.example.com/shoes/123",
+   "stripped": [],
+   "unwrapped": [
+    "rakuten-linksynergy"
+   ],
+   "note": "Rakuten affiliate wrapper unwrapped from murl=."
+  },
+  {
+   "id": "G3-57",
+   "group": "G3",
+   "dirty": "https://www.example.com/shoes/123?ranMID=24449&ranEAID=AbCdEfGhIjK&ranSiteID=AbCdEfGhIjK-0123456789abcdef",
+   "clean": "https://www.example.com/shoes/123",
+   "clean_if_affiliate_kept": "https://www.example.com/shoes/123?ranMID=24449&ranEAID=AbCdEfGhIjK&ranSiteID=AbCdEfGhIjK-0123456789abcdef",
+   "stripped": [
+    "ranMID",
+    "ranEAID",
+    "ranSiteID"
+   ]
+  },
+  {
+   "id": "G3-58",
+   "group": "G3",
+   "dirty": "https://example.sjv.io/c/1234567/890123/4567?u=https%3A%2F%2Fwww.example.com%2Fgear%2F9%3Firclickid%3DxYz%26irgwc%3D1",
+   "clean": "https://www.example.com/gear/9",
+   "clean_if_affiliate_kept": "https://www.example.com/gear/9?irclickid=xYz&irgwc=1",
+   "stripped": [
+    "irclickid",
+    "irgwc"
+   ],
+   "unwrapped": [
+    "impact"
+   ],
+   "note": "impact.com wrapper unwrapped from u=, then irclickid and irgwc removed."
+  },
+  {
+   "id": "G3-59",
+   "group": "G3",
+   "dirty": "https://prf.hn/click/camref:1101l3Ab/pubref:newcastle/destination:https://www.example.com/product/55",
+   "clean": "https://www.example.com/product/55",
+   "stripped": [],
+   "unwrapped": [
+    "partnerize"
+   ],
+   "note": "Partnerize: destination embedded in the path."
+  },
+  {
+   "id": "G3-60",
+   "group": "G3",
+   "dirty": "https://shareasale.com/r.cfm?b=123456&u=987654&m=12345&urllink=www.example.com%2Fproduct%2F77&afftrack=",
+   "clean": "https://www.example.com/product/77",
+   "stripped": [],
+   "unwrapped": [
+    "shareasale"
+   ],
+   "note": "ShareASale: urllink has no scheme, so https:// is prepended."
+  },
+  {
+   "id": "G3-61",
+   "group": "G3",
+   "dirty": "https://www.example.com/product/77?sscid=a1k7_abcde",
+   "clean": "https://www.example.com/product/77",
+   "clean_if_affiliate_kept": "https://www.example.com/product/77?sscid=a1k7_abcde",
+   "stripped": [
+    "sscid"
+   ]
+  },
+  {
+   "id": "G3-62",
+   "group": "G3",
+   "dirty": "https://track.adtraction.com/t/t?a=1234567&as=7654321&t=2&tk=1&url=https%3A%2F%2Fwww.example.no%2Fprodukt%2F12",
+   "clean": "https://www.example.no/produkt/12",
+   "stripped": [],
+   "unwrapped": [
+    "adtraction"
+   ],
+   "note": "Adtraction (Nordic) wrapper unwrapped from url=."
+  },
+  {
+   "id": "G3-63",
+   "group": "G3",
+   "dirty": "https://www.partner-ads.com/no/klikbanner.php?partnerid=12345&bannerid=67890&htmlurl=https%3A%2F%2Fwww.example.no%2Fvare%2F3",
+   "clean": "https://www.example.no/vare/3",
+   "stripped": [],
+   "unwrapped": [
+    "partner-ads"
+   ],
+   "note": "Partner-ads (Nordic) wrapper unwrapped from htmlurl=."
+  },
+  {
+   "id": "G3-64",
+   "group": "G3",
+   "dirty": "https://www.amazon.com/dp/B08RNHCZ3K?maas=maas_adg_api_8014460300101_static_12_26&ref_=aa_maas&aa_campaignid=3361_LTT_OfficeTour_US-B08RNHCZ3K-inf&aa_adgroupid=youtube_&aa_creativeid=US-ZMAJjR9On",
+   "clean": "https://www.amazon.com/dp/B08RNHCZ3K",
+   "stripped": [
+    "maas",
+    "ref_",
+    "aa_campaignid",
+    "aa_adgroupid",
+    "aa_creativeid"
+   ],
+   "note": "Amazon Attribution link from a YouTube video (DandelionSprout example). VERIFIER SUMMARY: no parameter row was dropped; every name was found in at least one cited list or platform document. Claims corrected: customid 'up to 256 characters' (eBay's docs say only 'Sub ID'); Partnerize removed from clickref (unsourced); mc_tc meaning now from MC4WP; vgo_ee now sourced (encrypted email address); provider labels for cstrackid (ChannelSight), rb_clickid (Olytics), ems_dl/emcs_t (Emarsys), cuid (Sovrn) come from AdGuard/uBO section comments; Vero and Tradedoubler source URLs replaced because the original ones return 404 or fail."
+  }
+ ]
+}

@@ -1,0 +1,133 @@
+# Zapstore publishing manifest (https://zapstore.dev/docs/publish).
+#
+# `pubkey` is load-bearing, not decoration: on a first publish the Zapstore relay
+# fetches this file from the repository and whitelists the key it finds here, so
+# it must stay identical to the key `zsp` signs with (SIGN_WITH). It is the
+# Stormberry AS nostr identity, the same one behind nostr.json at stormberry.as.
+# Checked on 12 October 2026: the signing key derives exactly this npub.
+#
+# Publish a release with the config file, and only once the release workflow has
+# finished and the GitHub release exists (zsp takes whatever release is there):
+#   SIGN_WITH=<nsec|bunker://...> zsp publish zapstore.yaml
+# Not `zsp publish -r ...`: that reads the repository instead of this file and
+# drops the tags, the licence and the website.
+repository: https://github.com/StormberryAS/CheckLink
+pubkey: npub1zz9w77p2jkn95t0st9tcuea8zdn2vknf0ctrwyd4g46w3kswdccqesr0pa
+
+name: CheckLink
+summary: "A second look at links and QR codes: remove tracking parts, on your device"
+description: |
+  CheckLink is a second look at links and QR codes. It shows what a link holds
+  before you share or open it: the parts that tell Google, Meta, Amazon and
+  others about your click are marked in red, each with who learns it and what
+  it tells. Untick anything you want to keep, then copy or share the clean
+  link. It reads QR codes too, from a picture or the camera, and says in plain
+  words what a code holds. It never opens the link it checks.
+
+  It asks for one Android permission, the camera, and only when you press Scan
+  with camera. There is no internet permission, so it cannot send what you
+  check anywhere, and no storage permission either: links and pictures come in
+  by pasting, the camera, Android's file picker or a share from another app,
+  and go out through the clipboard, a share, Android's save screen or Go to.
+  Check it yourself before installing:
+
+      aapt dump permissions <the APK you downloaded>
+
+  The only lines you should see are the package name and
+  android.permission.CAMERA.
+
+  - Paste, scan or share in. Paste a link, or text with a link in it, choose a
+    picture of a QR code, or press Scan with camera. Share a link or a picture
+    into CheckLink from any app, and Share clean link becomes the main button.
+  - The full link, with the tracking parts marked. Removed parts are red and
+    struck through, so colour is not the only signal. Each one also says
+    whether it is unique to this click or the same for everyone who got the
+    link.
+  - Your choice. Ticked parts are removed from the clean link; untick one to
+    keep it, for example an affiliate tag that pays someone you want to
+    support. Parts a page needs, such as a YouTube start time, are kept and
+    explained, with Remove anyway.
+  - Signs worth checking. Calm notes for a disguised address, a bare number in
+    place of a name, a name that looks like a known brand's, a short link
+    whose destination CheckLink cannot see, an address hidden inside another,
+    and a link that is not encrypted. "No warning signs found" comes with a
+    reminder that this does not prove a site is genuine.
+  - QR codes in plain words. A web address in a code gets the full link check.
+    Wi-Fi details, contacts, payment requests and app links are described.
+    Secrets, such as a Wi-Fi password, stay hidden until you press Show, and
+    copying a two-factor seed or a recovery phrase asks first. Payment
+    requests are shown, never paid.
+  - A QR code of the clean link. Make a QR code draws one on your device and
+    reads it back before it shows it, then Save picture or Share picture. It
+    is not offered for short links, sign-in links, links with personal details
+    or links with something to check.
+  - Go to opens the clean link in your browser, only when you press it, and
+    asks first when there is something to check.
+  - The camera reads a few frames a second on your device and drops them;
+    nothing is recorded. It stops when a code is found, when you stop it or
+    leave the app, and after two minutes without a code. While it is on, the
+    app keeps the screen out of screenshots and the recent-apps view.
+  - If you turn off JIT (the fast compiler) for CheckLink, for example in
+    GrapheneOS's Exploit protection settings, scanning still works, only more
+    slowly.
+
+  What it cannot do: a tracking part its dated rules do not name stays in the
+  link. It never opens a link, so it cannot see where a short link or a
+  redirect ends up. It cannot tell whether a site, a sender or an offer is
+  genuine, and a link with nothing to point out can still lead somewhere
+  harmful. Cleaning can break a link, so every removal can be undone and the
+  original is always there.
+
+  The app runs CheckLink's web page from inside the APK, offline. The build
+  checks that every bundled file is byte for byte the one in the source
+  repository, apart from one added line in index.html for the bridge to
+  Android. In English only.
+
+  The privacy page and the full disclaimer open from the app's footer.
+
+  This is a functioning prototype from Stormberry AS, MIT licensed, and 0.0.1
+  is its first, early release.
+
+tags:
+  - privacy
+  - links
+  - qrcode
+  - tracking
+  - offline
+
+license: MIT
+
+# The publisher's own site. CheckLink's web version, check.stormberry.as, has no
+# DNS record yet (12 October 2026), so naming it here would send people to an
+# address that does not answer. Point this at https://check.stormberry.as once
+# that site is live. The source repository is already named above.
+website: https://stormberry.as
+
+# The release text Zapstore shows for this version. Without this line zsp takes the
+# GitHub release body, which the workflow leaves to GitHub's generated notes. A plain
+# text file is used whole. Point it at the changelog of the versionCode being
+# released, and change the number at every release.
+release_notes: ./fastlane/metadata/android/en-US/changelogs/1.txt
+
+# The APK ships no raster icon (the launcher icon is an adaptive-icon XML built
+# from vectors), and a store front-end without a bitmap shows an empty tile. So
+# the icon is supplied here, rendered from favicon.svg by
+# android/tools/build-store-icon.py with the same scale and offset as the launcher.
+icon: ./fastlane/metadata/android/en-US/images/icon.png
+
+# Phone screenshots of the 0.0.1 release APK, captured on an Android 16 emulator
+# at 1080x1920, with made-up links on example.org and example.com only. zsp
+# uploads these to Blossom and references them from the app event.
+images:
+  - ./fastlane/metadata/android/en-US/images/phoneScreenshots/01-link-check.png
+  - ./fastlane/metadata/android/en-US/images/phoneScreenshots/02-clean-link.png
+  - ./fastlane/metadata/android/en-US/images/phoneScreenshots/03-make-qr-code.png
+  - ./fastlane/metadata/android/en-US/images/phoneScreenshots/04-qr-code-from-picture.png
+
+# No release_source: zsp pulls the APK straight from the GitHub release, so the
+# asset URL in the nostr event points at the same signed binary the release page
+# serves and the attestation covers. The release workflow uploads two files,
+# checklink-v<version>.apk and checklink-v<version>.apk.sha256 (the tag
+# android-v0.0.1 gives checklink-v0.0.1.apk). The pattern matches the APK and
+# never the .sha256 file. Keep it in step with .github/workflows/android-release.yml.
+match: "checklink-.*\\.apk$"

@@ -1,0 +1,96 @@
+{
+ "about": "Real links Marcos tested by hand on 2026-10-10, with the clean result he expects. Every change must keep these passing: tests/marcos-regression.test.mjs runs each one under node --test.",
+ "cases": [
+  {
+   "id": "M1-instagram-mdxt",
+   "status": "passing",
+   "dirty": "https://www.instagram.com/p/DeTqc0NDifd/?utm_source=ig_web_copy_link&mdxt=NTc4MTIwNjQ2YQ==",
+   "clean": "https://www.instagram.com/p/DeTqc0NDifd/",
+   "note": "mdxt is undocumented; the post is addressed by its path"
+  },
+  {
+   "id": "M2-youtube-time",
+   "status": "passing",
+   "dirty": "https://youtu.be/WgewEn1mFPs?si=x7DG-_JN6QGh1mJr&t=354",
+   "clean": "https://youtu.be/WgewEn1mFPs?t=354",
+   "note": "t=354 must stay; show it dotted as a start time (5:54) that does not identify anyone (the dotted kept-part explanation is interface work for a later build; the clean link already passes)"
+  },
+  {
+   "id": "M3-amazon-search",
+   "status": "passing",
+   "dirty": "https://www.amazon.com/Extra-Heavy-Moving-Strong-Zipper/dp/B0DGF616XN/ref=sr_1_8?crid=3LXMMVTKB3DYK&dib=eyJ2IjoiMSJ9.O7P6fl-54MFFtovUWTK857I2rKSNTLRFZpcNhEM77Uh0YsghE4VPJgdkBrTrHbBKg4TDXIZSUVyrAybCESPhbdjbKw1gCka1D6rLJ1mOxll9yz8OD49D7Y12Usr_mpW-WPpaJyiu3Cpig4wRkDMJ27-_kKm7cd2v5KyZeF75ySwfz1gdraDj5ajyn-Lva1RAmMG8YqFZp-vhWEer3-REYrOQBXndWQEAUGFeLlUClRWKKAFsT9vXSczDu7XtNOO3RXtl8EGojiZ-OynkD8aWHm2pEFBaCN2NBSLYbR-5GsA.atdKGtsRwWVR3ZqDkm_A-cbEWZvVkp8do8kdAy8Ed00&dib_tag=se&keywords=bag&qid=1791624410&sprefix=b%2Caps%2C338&sr=8-8",
+   "clean": "https://www.amazon.com/Extra-Heavy-Moving-Strong-Zipper/dp/B0DGF616XN",
+   "note": "Marcos: perfect"
+  },
+  {
+   "id": "M4-linkedin-post",
+   "status": "passing",
+   "dirty": "https://www.linkedin.com/posts/stephanenasser_how-often-does-cold-emailing-vcs-actually-share-7514317849218142217-dxtE/?highlightedUpdateUrn=urn%3Ali%3Aactivity%3A7514324157678018560&highlightedUpdateType=SOCIAL_SHARE&origin=SOCIAL_SHARE&utm_source=share&utm_medium=member_desktop&rcm=ACoAAAUqnPwBrDpPXO_qiHU709U3xmwDs9WK-JU",
+   "clean": "https://www.linkedin.com/posts/stephanenasser_how-often-does-cold-emailing-vcs-actually-share-7514317849218142217-dxtE/",
+   "note": "rcm is the sharer's member id (removed already); highlightedUpdateUrn/Type and origin point to the reshare, not needed for the post"
+  },
+  {
+   "id": "M5-google-search",
+   "status": "passing",
+   "dirty": "https://www.google.com/search?q=bag&sca_esv=c9511313c89d4e60&sxsrf=APpeQnvXIUvOGwtKHWF5NX4LKyLkmGx1Og%3A1791624734266&source=hp&ei=HgbKav7sDZatwPAPi6_fCQ&iflsig=ABILxe8AAAAAasoULjHzic-Favw3bkMvGr4F9PhgZ2Tn&ved=0ahUKEwj-8-qekq-XAxWWFhAIHYvXNwEQ4dUDCCY&uact=5&oq=bag&gs_lp=Egdnd3Mtd2l6IgNiYWcyBRAAGIAEMgUQABiABDIFEC4YgAQyBRAAGIAEMgUQLhiABDIFEC4YgAQyBRAAGIAEMgUQABiABDIFEAAYgAQyBRAAGIAESIELUOQHWKoKcAF4AJABAJgBQKABvAGqAQEzuAEDyAEA-AEBmAIDoALqAagCAMICCxAuGIAEGMcBGNEDmAMD8QV_hN8pFbcUHpIHATOgB84hsgcBM7gH6gHCBwcyLTEuMS4xyAcigAgB&sclient=gws-wiz",
+   "clean": "https://www.google.com/search?q=bag",
+   "note": "Marcos: perfect; source=hp removed only via Google's host rule"
+  },
+  {
+   "id": "M6-google-maps-place",
+   "status": "passing",
+   "dirty": "https://www.google.com/maps/place/Florv%C3%A5g+-flott+utsikt+mot+byen+-+Villa/@60.4104266,5.2142796,15z/data=!4m13!1m2!2m1!1sVacation+rentals!3m9!1s0x463cfcef6083f98b:0x98cdfe7dedd13b92!5m2!4m1!1i2!8m2!3d60.4211807!4d5.2337099!16s%2Fg%2F11nbmr1qs3!17BQ0FF?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D",
+   "clean": "https://www.google.com/maps/place/Florv%C3%A5g+-flott+utsikt+mot+byen+-+Villa/@60.4104266,5.2142796,15z/data=!4m13!1m2!2m1!1sVacation+rentals!3m9!1s0x463cfcef6083f98b:0x98cdfe7dedd13b92!5m2!4m1!1i2!8m2!3d60.4211807!4d5.2337099!16s%2Fg%2F11nbmr1qs3!17BQ0FF",
+   "note": "Marcos: correct. The data= path blob still holds the search ('!1sVacation+rentals'); left intact on purpose, an info note was proposed"
+  },
+  {
+   "id": "M7-google-maps-trail",
+   "status": "passing",
+   "dirty": "https://www.google.com/maps/place/Kleppest%C3%B8+Senter/@60.4082364,5.2236848,16.92z/data=!3m1!5s0x463cfceb359e19eb:0xab1d25537b68420d!4m15!1m8!3m7!1s0x463cfcbfe8e268df:0x32570ae48bb050ad!2sKleppest%C3%B8!3b1!8m2!3d60.4107183!4d5.2258428!16zL20vMDJyenBx!3m5!1s0x463cfceb4b000b89:0x6e38337ba04f4524!8m2!3d60.4103774!4d5.2268809!16s%2Fg%2F122fpxb0?entry=ttu&g_ep=EgoyMDI2MTAwNy4wIKXMDSoASAFQAw%3D%3D",
+   "clean": "https://www.google.com/maps/place/Kleppest%C3%B8+Senter/@60.4082364,5.2236848,16.92z/data=!3m1!5s0x463cfceb359e19eb:0xab1d25537b68420d!4m15!1m8!3m7!1s0x463cfcbfe8e268df:0x32570ae48bb050ad!2sKleppest%C3%B8!3b1!8m2!3d60.4107183!4d5.2258428!16zL20vMDJyenBx!3m5!1s0x463cfceb4b000b89:0x6e38337ba04f4524!8m2!3d60.4103774!4d5.2268809!16s%2Fg%2F122fpxb0",
+   "note": "data= blob carries an earlier place in the session (!2sKleppestø); left intact on purpose; supports the proposed Maps info note + pin-link offer"
+  },
+  {
+   "id": "M8-at-trick-userinfo",
+   "status": "passing",
+   "dirty": "http://convincing-business-related-page-name-pretending-to-be-on-google.com@kaspersky.com/blog/",
+   "clean": "http://kaspersky.com/blog/",
+   "note": "Analysis already right ('Goes to kaspersky.com', @-trick warning); the clean link must drop the disguise (userinfo), ticked by default, with a row explaining it; keep http as written, keep the not-encrypted note"
+  },
+  {
+   "id": "M9-bing-search",
+   "status": "passing",
+   "dirty": "https://www.bing.com/search?q=bag&form=QBLH&sp=-1&ghc=1&lq=0&pq=bag&sc=11-3&qs=n&sk=&cvid=530E0FE2A0144F4386F8A1B47BF7E1E4",
+   "clean": "https://www.bing.com/search?q=bag",
+   "note": "ghc and lq are undocumented; Bing /search keeps only result-shaping params (q, first, count, qft, filters, setlang, mkt, cc, safesearch)"
+  },
+  {
+   "id": "M10-duckduckgo-search",
+   "status": "passing",
+   "dirty": "https://duckduckgo.com/?ia=web&origin=funnel_home_website&t=h_&q=bag",
+   "clean": "https://duckduckgo.com/?q=bag",
+   "note": "t (source/partner code) and origin (funnel) are attribution; ia=web is the default tab. Keep q, kl, kp, df, and ia/iax only when not the default web tab. t is globally protected, so host-specific only"
+  },
+  {
+   "id": "M10b-duckduckgo-images-tab",
+   "status": "passing",
+   "dirty": "https://duckduckgo.com/?q=bag&t=h_&iax=images&ia=images",
+   "clean": "https://duckduckgo.com/?q=bag&iax=images&ia=images",
+   "note": "a non-default tab must survive"
+  },
+  {
+   "id": "M11-brave-search",
+   "status": "passing",
+   "dirty": "https://search.brave.com/search?q=bag&source=web",
+   "clean": "https://search.brave.com/search?q=bag",
+   "note": "source (web/desktop/android/ios) is globally protected, so Brave-specific; keep q, offset, tf"
+  },
+  {
+   "id": "M12-instagram-exln",
+   "status": "passing",
+   "dirty": "https://www.instagram.com/p/DdwU-n0CN7u/?utm_source=ig_web_copy_link&exln=NTc4MTIwNjQ2YQ==",
+   "clean": "https://www.instagram.com/p/DdwU-n0CN7u/",
+   "note": "exln carries the SAME value as mdxt in M1 (base64 '578120646a'), on a different post and day: a stable per-sharer value under a renamed parameter. Caught by the canonical rule, not by any list. Wording idea: when an Unrecognised value repeats across links, 'Looks unique to this click' understates it"
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  API 30 and below, where dataExtractionRules does not exist yet. Excludes everything:
+  `root` is the app's whole data directory (the WebView's storage, which holds only the
+  first-run notice's flag; CheckLink keeps no files of its own, apart from
+  the picture of a QR code on its way out, briefly, in cache/outgoing/).
+  Redundant on top of allowBackup="false", and that is the point.
+-->
+<full-backup-content>
+    <exclude domain="root" />
+    <exclude domain="external" />
+</full-backup-content>

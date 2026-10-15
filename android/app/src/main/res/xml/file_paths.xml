@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The FileProvider (stage 4b) can hand out ONE folder and nothing else in the app's storage:
+  cache/outgoing/, where the picture of a QR code is written, after PngCheck, just before it is
+  shared or saved (OutgoingFiles.DIR). Every other file of the app stays out of its reach.
+-->
+<paths>
+    <cache-path name="outgoing" path="outgoing/" />
+</paths>

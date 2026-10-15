@@ -1,0 +1,2 @@
+package: no.stormberry.checklink
+uses-permission: name='android.permission.CAMERA'

@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      ONE permission: the camera, for Scan with camera, and nothing else (spec section 5).
+
+      Android asks for it only on the first press of Scan with camera, never at start-up, and
+      the app works fully without it: paste, choose a picture and share-in all stay. The page
+      gets video only, and only for its own pages (CameraPermission.kt). required="false"
+      keeps the app installable on phones and tablets without a camera.
+
+      Pictures come in through the system file picker (Storage Access Framework) or a share
+      from another app; both hand over a one-off read grant for the chosen file, so no storage
+      permission is needed. The picture of a QR code goes out the same way (stage 4b): Android's
+      save screen writes where the person chooses, and a share hands the other app a one-off
+      read grant through the FileProvider below. There is no INTERNET permission, so the
+      WebView cannot reach the network at all, whatever the page tried.
+
+      The removals below strip these permissions back out if any dependency ever merges them
+      in. CI compares `aapt dump permissions` with android/expected-permissions.txt.
+    -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <!-- Declaring CAMERA makes Android imply android.hardware.camera as required unless it is
+         declared not required here too; without this the app would not install on a phone
+         with only a front camera, or none. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
+
+    <!--
+      androidx.core declares a private signature permission for its registerReceiver
+      compatibility shim. It grants nothing to anyone but this app, yet it still shows up in
+      `aapt dump permissions`. This app registers no broadcast receivers at all, so both
+      halves of it are removed.
+    -->
+    <permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+    <uses-permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+
+    <!--
+      NO BACKUP. allowBackup="false" disables cloud and adb backup; both rule files exclude
+      everything as well, because device-to-device transfer is not governed by allowBackup.
+    -->
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.CheckLink">
+
+        <!-- The WebView must not report usage metrics to Google. -->
+        <meta-data
+            android:name="android.webkit.WebView.MetricsOptOut"
+            android:value="true" />
+        <!--
+          Safe Browsing checks URLs against Google's lists, which means sending lookups off
+          the device. The WebView here can only load the bundled page and has no network
+          access, so the check has nothing to protect and is switched off.
+        -->
+        <meta-data
+            android:name="android.webkit.WebView.EnableSafeBrowsing"
+            android:value="false" />
+
+        <!--
+          configChanges keeps the activity, and with it the WebView and the link or picture
+          the user is checking, alive across rotation, resizing, keyboard, dark-mode,
+          language, text-size and bold-text changes. Recreating it would reload the page and
+          lose the work.
+
+          SEC-8 (Marcos, 2026-10-12, option A): taskAffinity="" together with
+          autoRemoveFromRecents="true". With no affinity, CheckLink's task cannot be claimed by
+          another app that declares CheckLink's affinity as its own, so a harmful app cannot slip
+          a screen of its own into CheckLink's task in Recents (task hijacking by affinity, known
+          as StrandHogg 1.0, on older Android). taskAffinity="" on its own is not invisible: the
+          emulator pass of 11 October 2026 found that after Back from a CheckLink opened from the
+          launcher, a later share-in made a second CheckLink card in Recents, and tapping that
+          card started a second copy of this activity. autoRemoveFromRecents="true" takes the
+          card away when CheckLink is closed with Back, and with it both problems (the emulator
+          runs of 12 October 2026). The cost, which Marcos accepted: CheckLink leaves Recents
+          when the person presses Back. singleTask stays, so share-in, the launcher and Recents
+          still find CheckLink's one task. tests/android-app.test.mjs requires the pair and no
+          other task affinity anywhere.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:autoRemoveFromRecents="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|fontScale|locale|layoutDirection|fontWeightAdjustment|colorMode|touchscreen"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.CheckLink">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Share a link, or text with a link in it, from any app (the page title and the
+                 address from a browser, a message from a messenger). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <!-- Share one picture of a QR code (a screenshot, a photo). PNG, JPEG and WebP
+                 only: the WebView cannot decode HEIC or HEIF. Keep in step with
+                 ImageTypes.SHARE_TYPES. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/png" />
+                <data android:mimeType="image/jpeg" />
+                <data android:mimeType="image/webp" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          androidx.profileinstaller adds an exported receiver for adb and benchmarking tools.
+          It is guarded by the DUMP permission, so no ordinary app could reach it, but it is
+          not needed either: the startup initialiser still installs the baseline profile.
+          Removing it keeps the exported surface to the launcher and the share targets.
+          Lint's MissingClass check looks at this source file, where the class name is
+          only a removal marker, so it is silenced for this one element.
+        -->
+        <receiver
+            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+            tools:ignore="MissingClass"
+            tools:node="remove" />
+
+        <!--
+          Stage 4b: hands the picture of a QR code to the app the person shares it with. It is
+          androidx's own FileProvider (androidx.core, already in the app), not exported: no app
+          can open anything through it unless CheckLink grants one address for one share. It
+          reaches only cache/outgoing/ (res/xml/file_paths.xml). Its authority is refused as a
+          share INTO CheckLink (IncomingPolicy.ownAuthorities), so nobody can send CheckLink
+          its own files back.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.outgoing"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+</manifest>

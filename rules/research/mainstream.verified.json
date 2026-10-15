@@ -1,0 +1,1079 @@
+{
+ "engines": [
+  {
+   "engine": "Google Search",
+   "hosts": [
+    "www.google.<tld> and google.<tld> for every Google ccTLD (google.com, google.co.uk, google.no, google.com.br ...); ClearURLs pattern (?:[a-z0-9-]+\\.)*?google(?:\\.[a-z]{2,}){1,}"
+   ],
+   "paths": [
+    "/search (all verticals: web, tbm=/udm= images, videos, news, shopping, books, local)",
+    "/webhp, / and /search with the query in the fragment (#q=...) and /s?q=... (Chromium alternate_urls, re-checked 2026-10-10)",
+    "/images?q=, /imghp (legacy entry points, redirect to /search?tbm=isch)",
+    "/advanced_search and /advanced_image_search are forms, not result pages (/advanced_image_search now redirects to /advanced_search?udm=2, observed 2026-10-10)",
+    "/wml/search (XML layout endpoint SearXNG requests with a Nokia user agent; rarely shared; same parameters)",
+    "Not result pages, unwrap instead: /url?q= or /url?url= (redirect), /aclk (ad click; ClearURLs leaves it alone), /amp/s/<url>"
+   ],
+   "functional": [
+    {
+     "name": "q",
+     "meaning": "Search query (operators such as site:, filetype:, quotes live inside it).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://github.com/searxng/searxng/blob/master/searx/engines/google.py; https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (search_url ...search?q={searchTerms})"
+    },
+    {
+     "name": "start",
+     "meaning": "Zero-based result offset (10 = page 2).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters (zero-based index, works with num); https://github.com/searxng/searxng/blob/master/searx/engines/google.py (start=(pageno-1)*10); https://deno.land/x/serpapi@1.1.1/src/engines/google.ts"
+    },
+    {
+     "name": "num",
+     "meaning": "Results per page.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://github.com/searxng/searxng/blob/master/searx/engines/google.py (comment: 'seems to have no effect (tested in google WEB & Images)'); https://embryo.com/blog/google-just-removed-num100/",
+     "condition": "Google stopped honouring num on web search in mid-September 2025 and SearXNG records no effect; kept because it is a results-shown parameter and harmless."
+    },
+    {
+     "name": "tbm",
+     "meaning": "Legacy vertical selector: isch (images), vid (videos), nws (news), shop (shopping), lcl (local), bks (books, inferred).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/google_images.py, https://github.com/searxng/searxng/blob/master/searx/engines/google_news.py, https://github.com/searxng/searxng/blob/master/searx/engines/google_videos.py (tbm isch / nws / vid, opened 2026-10-10); https://deno.land/x/serpapi@1.1.1/src/engines/google.ts (isch, lcl, vid, nws, shop); https://www.google.com/advanced_image_search (form observed 2026-10-10)",
+     "condition": "bks not in any opened source; inferred."
+    },
+    {
+     "name": "udm",
+     "meaning": "Current vertical or mode selector (14 = Web, 2 = Images, 50 = AI Mode, others observed). Mapping undocumented, so keep any value.",
+     "source": "https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (google search_intent_params ['si','gs_ssp','udm']); https://chromium.googlesource.com/chromium/src/+/refs/heads/main/third_party/search_engines_data/prepopulated_engines_schema.json (search_intent_params = 'the parameters making up the engine's canonical search URL in addition to the search terms'); https://www.google.com/advanced_image_search (form observed 2026-10-10) (udm=2 replaces the image search form); https://tedium.co/2025/03/14/udm14-search-hack-google-ai-testing/",
+     "condition": "Value meanings other than 2 (Images) and 14 (Web) rest on secondary sources."
+    },
+    {
+     "name": "hl",
+     "meaning": "Interface (host) language; also influences results.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://github.com/searxng/searxng/blob/master/searx/engines/google.py (always sent); https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc ({google:language} inserts hl from the browser locale)",
+     "condition": "Chrome adds hl automatically from the sharer's browser locale; still functional (changes interface and some results)."
+    },
+    {
+     "name": "gl",
+     "meaning": "Country boost (two-letter code).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters ('boosts search results whose country of origin matches'); https://github.com/searxng/searxng/blob/master/searx/engines/google.py (notes gl is mandatory for Google News)"
+    },
+    {
+     "name": "lr",
+     "meaning": "Restrict to language(s): lang_xx, | separated.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://github.com/searxng/searxng/blob/master/searx/engines/google.py; https://www.google.com/advanced_search (form observed 2026-10-10) (hidden lr with 46 lang_xx options)"
+    },
+    {
+     "name": "cr",
+     "meaning": "Restrict to country: countryXX.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://github.com/searxng/searxng/blob/master/searx/engines/google.py; https://www.google.com/advanced_search (form observed 2026-10-10) (hidden cr with 237 countryXX options)"
+    },
+    {
+     "name": "safe",
+     "meaning": "SafeSearch: active or off on web (CSE documents off/medium/high; images uses images/active).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters (off, medium, high); https://github.com/searxng/searxng/blob/master/searx/engines/google.py (off/medium/high); https://github.com/searxng/searxng/blob/master/searx/engines/google_images.py (images/active); https://deno.land/x/serpapi@1.1.1/src/engines/google.ts (active, off)"
+    },
+    {
+     "name": "tbs",
+     "meaning": "Packed filters, comma separated: qdr:h|d|w|m|y (time), cdr:1,cd_min:M/D/YYYY,cd_max:... (custom range), li:1 (Verbatim), sbd:1 (sort by date), image filters isz:, itp:, ic:, isc:, sur: (licence). Keep the whole value.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/google.py (tbs=qdr:d|w|m|y); https://www.google.com/advanced_search (form observed 2026-10-10) (hidden tbs; licence field declared data-name=sur data-tbs=true); https://www.google.com/advanced_image_search (form observed 2026-10-10); https://deno.land/x/serpapi@1.1.1/src/engines/google.ts"
+    },
+    {
+     "name": "filter",
+     "meaning": "0 disables the similar/omitted-results filter.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://deno.land/x/serpapi@1.1.1/src/engines/google.ts ('1 (default) to enable these filters, or 0 to disable')"
+    },
+    {
+     "name": "nfpr",
+     "meaning": "1 excludes results for the auto-corrected query (searches the query as typed).",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/google.ts ('Exclude Auto-corrected Results'); https://cloro.dev/blog/google-search-parameters/",
+     "condition": "Secondary sources only; Google blocked live checks from this network (CAPTCHA, 2026-10-10). Plausibly functional; kept."
+    },
+    {
+     "name": "pws",
+     "meaning": "0 disables personalised results.",
+     "source": "https://www.googlewatchblog.de/2025/01/google-websuche-so-koennt-ihr-die-personalisierung-temporaer-abschalten-neutrale-ergebnisse-erhalten/",
+     "condition": "Secondary source only; not verifiable live from this network. Plausibly functional; kept."
+    },
+    {
+     "name": "as_q",
+     "meaning": "Advanced search: all these words.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://www.google.com/advanced_search (form observed 2026-10-10) (field 'All of these words')"
+    },
+    {
+     "name": "as_epq",
+     "meaning": "Advanced search: exact phrase.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://www.google.com/advanced_search (form observed 2026-10-10) (field 'This exact word or phrase')"
+    },
+    {
+     "name": "as_oq",
+     "meaning": "Advanced search: any of these words.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://deno.land/x/serpapi@1.1.1/src/engines/google.ts",
+     "condition": "No longer on the google.com form; kept because CSE and SerpApi document it."
+    },
+    {
+     "name": "as_eq",
+     "meaning": "Advanced search: none of these words.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://www.google.com/advanced_search (form observed 2026-10-10) (field 'None of these words')"
+    },
+    {
+     "name": "as_nlo",
+     "meaning": "Numeric range start.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://deno.land/x/serpapi@1.1.1/src/engines/google.ts",
+     "condition": "No longer on the google.com form."
+    },
+    {
+     "name": "as_nhi",
+     "meaning": "Numeric range end.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://deno.land/x/serpapi@1.1.1/src/engines/google.ts",
+     "condition": "No longer on the google.com form."
+    },
+    {
+     "name": "as_qdr",
+     "meaning": "Time period (d, w, m, y with optional count).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://www.google.com/advanced_search (form observed 2026-10-10) (hidden as_qdr; options w, m, y)"
+    },
+    {
+     "name": "as_sitesearch",
+     "meaning": "Site or domain restriction.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://www.google.com/advanced_search (form observed 2026-10-10) (field 'Site or domain')"
+    },
+    {
+     "name": "as_dt",
+     "meaning": "Include (i) or exclude (e) as_sitesearch.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://deno.land/x/serpapi@1.1.1/src/engines/google.ts"
+    },
+    {
+     "name": "as_filetype",
+     "meaning": "File type.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://www.google.com/advanced_search (form observed 2026-10-10) and https://www.google.com/advanced_image_search (form observed 2026-10-10) (hidden as_filetype)"
+    },
+    {
+     "name": "as_rights",
+     "meaning": "Usage-rights filter (cc_publicdomain, cc_attribute ...).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters"
+    },
+    {
+     "name": "as_lq",
+     "meaning": "Pages linking to a URL.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://deno.land/x/serpapi@1.1.1/src/engines/google.ts"
+    },
+    {
+     "name": "as_rq",
+     "meaning": "Pages related to a URL.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/google.ts (as_rq documented there; corrected: the CSE page does not list as_rq)"
+    },
+    {
+     "name": "as_occt",
+     "meaning": "Where terms occur (any, title, body, url, links). Legacy advanced-search field.",
+     "source": "Inferred: legacy field, absent from https://www.google.com/advanced_search (form observed 2026-10-10)",
+     "condition": "Inferred; harmless to keep with the as_* family."
+    },
+    {
+     "name": "as_st",
+     "meaning": "Hidden marker (value y) on the advanced image search form; effect unclear, harmless to keep with the as_* family.",
+     "source": "https://www.google.com/advanced_image_search (form observed 2026-10-10)",
+     "condition": "Inferred effect."
+    },
+    {
+     "name": "imgsz",
+     "meaning": "Image size filter.",
+     "source": "https://www.google.com/advanced_image_search (form observed 2026-10-10); https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters"
+    },
+    {
+     "name": "imgar",
+     "meaning": "Image aspect-ratio filter.",
+     "source": "https://www.google.com/advanced_image_search (form observed 2026-10-10)"
+    },
+    {
+     "name": "imgc",
+     "meaning": "Image colour mode (mono, gray, color).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters",
+     "condition": "Documented for Programmable Search; on google.com the image form now packs colour into tbs (ic:, isc:). Kept as harmless."
+    },
+    {
+     "name": "imgcolor",
+     "meaning": "Dominant image colour.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters",
+     "condition": "As imgc."
+    },
+    {
+     "name": "imgtype",
+     "meaning": "Image type (clipart, face, lineart, news, photo).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters",
+     "condition": "As imgc; google.com packs type into tbs (itp:)."
+    },
+    {
+     "name": "ijn",
+     "meaning": "Google Images page number (100 images per page).",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/google.ts"
+    },
+    {
+     "name": "si",
+     "meaning": "Opaque token carrying the disambiguated search intent (knowledge-panel tab or entity).",
+     "source": "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/third_party/search_engines_data/prepopulated_engines_schema.json; https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (search_intent_params); https://deno.land/x/serpapi@1.1.1/src/engines/google.ts ('Google Cached Search Parameters ID ... encrypted search parameters')",
+     "condition": "Opaque blob; dropping it loses entity disambiguation."
+    },
+    {
+     "name": "gs_ssp",
+     "meaning": "Opaque token from an entity autocomplete suggestion that pins the chosen entity.",
+     "source": "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/third_party/search_engines_data/prepopulated_engines_schema.json; https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (search_intent_params)",
+     "condition": "CONFLICT: ClearURLs strips gs_[a-z]* which includes gs_ssp. Exempt gs_ssp from any gs_* wildcard."
+    },
+    {
+     "name": "kgmid",
+     "meaning": "Knowledge Graph entity id; forces results for that entity.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/google.ts"
+    },
+    {
+     "name": "uule",
+     "meaning": "Encoded searcher location; changes local results.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/google.ts",
+     "condition": "PRIVACY: reveals the sharer's location. Functional; consider a location-strip option."
+    },
+    {
+     "name": "ludocid",
+     "meaning": "Google business (CID) id; opens that place panel.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/google.ts"
+    },
+    {
+     "name": "lsig",
+     "meaning": "Companion id for the place knowledge panel.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/google.ts"
+    },
+    {
+     "name": "ibp",
+     "meaning": "Opens a special panel, e.g. htl;jobs (Jobs) or htl;events (Events).",
+     "source": "Inferred from observed Google Jobs/Events URLs; no primary source.",
+     "condition": "Inferred."
+    },
+    {
+     "name": "htidocid",
+     "meaning": "Selected job/event listing inside an ibp panel.",
+     "source": "Inferred.",
+     "condition": "Inferred; only meaningful with ibp."
+    },
+    {
+     "name": "ie",
+     "meaning": "Input encoding of the query string (default latin1 per CSE).",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (ie={inputEncoding}); https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (rule '! ||google.*/search$removeparam=ie' disabled with the comment 'Breaks codepage in Google Search')",
+     "condition": "Keep only when the value is not UTF-8 (utf8/utf-8, any case)."
+    }
+   ],
+   "nonfunctional": [
+    {
+     "name": "ei",
+     "meaning": "Search event/session id.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "ved",
+     "meaning": "Click/element tracking token.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "oq",
+     "meaning": "Original typed query before autocomplete.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc (HandleReplacement oq)"
+    },
+    {
+     "name": "aqs",
+     "meaning": "Assisted query stats (Chrome omnibox).",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "gs_lcrp",
+     "meaning": "Chrome searchbox stats.",
+     "source": "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc; https://rules2.clearurls.xyz/data.minify.json (gs_[a-z]*); https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "gs_lp / gs_l / gs_lcp / gs_ivs / gs_rn / other gs_* (except gs_ssp)",
+     "meaning": "Autocomplete and how-you-typed telemetry.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json (gs_[a-z]*); https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (gs_l, gs_lp, gs_lcp, gs_lcrp); https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc (gs_rn)"
+    },
+    {
+     "name": "sourceid",
+     "meaning": "Issuing client (chrome, chrome-mobile).",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc"
+    },
+    {
+     "name": "client",
+     "meaning": "Partner/distribution code (firefox-b-d, firefox-b-1-d, ubuntu, safari ...).",
+     "source": "https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/search-config-v2/records (client={partnerCode}); https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc"
+    },
+    {
+     "name": "channel",
+     "meaning": "Partner channel code (fs, entpr, experiment values).",
+     "source": "https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/search-config-v2/records"
+    },
+    {
+     "name": "rlz",
+     "meaning": "Chrome/Toolbar promotion and install attribution.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc"
+    },
+    {
+     "name": "sxsrf",
+     "meaning": "Anti-CSRF/session token.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json"
+    },
+    {
+     "name": "sca_esv / sca_upv",
+     "meaning": "Server-side client attribution values.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json (sca_(?:esv|upv)); https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (sca_esv); note: https://github.com/searxng/searxng/blob/master/searx/engines/google.py sends a dummy sca_esv=1 on every request, which looks browser-like but carries no result meaning"
+    },
+    {
+     "name": "sclient",
+     "meaning": "Which search box produced the query (gws-wiz, gws-wiz-serp, img).",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "source",
+     "meaning": "Entry point (hp, lnms, lnt ...).",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "sa",
+     "meaning": "Click type marker (N, X ...).",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "uact",
+     "meaning": "User-action counter.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json"
+    },
+    {
+     "name": "iflsig",
+     "meaning": "I'm Feeling Lucky signature.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "fbs",
+     "meaning": "Front-end state blob.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "biw / bih / dpr",
+     "meaning": "Viewport width, height and device-pixel ratio.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json (bi[a-z]*, dpr)"
+    },
+    {
+     "name": "btnK / btnI / btnG",
+     "meaning": "Submit button pressed (btnI = I'm Feeling Lucky redirect).",
+     "source": "https://rules2.clearurls.xyz/data.minify.json (btn[a-z]*); https://sources.debian.org/src/surfraw/2.3.0-2/elvi/"
+    },
+    {
+     "name": "oe",
+     "meaning": "Output encoding of the XML result; does not change results.",
+     "source": "https://developers.google.com/custom-search/docs/xml_results#wsRequestParameters; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "cd / cad / usg / esrc / vet / sei / gfe_* / gws_* / atyp / je / dcr / _u / ictx / cshid / pcampaignid",
+     "meaning": "Click, redirect and session telemetry.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json"
+    },
+    {
+     "name": "uds / sstk / subid",
+     "meaning": "Filter-chip state blob, session token, partner sub-id.",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "pf / psi",
+     "meaning": "Prefetch source and search-session token appended by Chromium.",
+     "source": "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc"
+    },
+    {
+     "name": "ucbcb",
+     "meaning": "Consent-flow marker Google appended on redirect (observed by the first pass).",
+     "source": "Observed live by the first pass; classification inferred. Not re-checkable on 2026-10-10 (Google CAPTCHA)."
+    },
+    {
+     "name": "authuser",
+     "meaning": "Signed-in account index; reveals multiple accounts, no effect on public results.",
+     "source": "https://www.google.com/advanced_search (form observed 2026-10-10) (hidden authuser, empty value); classification inferred."
+    },
+    {
+     "name": "newwindow / stick / spell / prmd / tbo / zx / lei / vssid / mstk / csui",
+     "meaning": "UI preferences, entity-link helpers and click-state tokens.",
+     "source": "Inferred; no primary source."
+    }
+   ],
+   "tests": [
+    {
+     "dirty": "https://www.google.com/search?q=bag&oq=bag&gs_lcrp=EgZjaHJvbWUyBggAEEUYOdIBBzM4N2owajeoAgCwAgA&sourceid=chrome&ie=UTF-8",
+     "clean": "https://www.google.com/search?q=bag"
+    },
+    {
+     "dirty": "https://www.google.co.uk/search?q=walking+boots&sca_esv=3f1c2a9b&sxsrf=AE3TifN1xYz&ei=Zx4kZ8yAbC&ved=0ahUKEwjQ&uact=5&oq=walking+boots&gs_lp=Egxnd3Mtd2l6&sclient=gws-wiz-serp&udm=2&tbs=qdr:w&hl=en-GB&gl=uk&start=20&biw=1536&bih=730&dpr=1.25",
+     "clean": "https://www.google.co.uk/search?q=walking+boots&udm=2&tbs=qdr:w&hl=en-GB&gl=uk&start=20"
+    },
+    {
+     "dirty": "https://www.google.no/search?as_q=fjord&as_epq=norwegian+coast&as_sitesearch=no&lr=lang_no&cr=countryNO&safe=active&tbm=nws&nfpr=1&filter=0&client=firefox-b-d&channel=entpr&rlz=1C1GCEA_enNO1000NO1000&source=lnms&sa=X&authuser=0&ie=Shift_JIS",
+     "clean": "https://www.google.no/search?as_q=fjord&as_epq=norwegian+coast&as_sitesearch=no&lr=lang_no&cr=countryNO&safe=active&tbm=nws&nfpr=1&filter=0&ie=Shift_JIS"
+    }
+   ],
+   "notes": "VERIFICATION 2026-10-10 (every URL cited was opened that day unless marked inferred): google.com/search returned a CAPTCHA ('unusual traffic') to headless Chromium and HTTP 403 to curl from this network, so Google parameters were verified against documents, not live result diffs. Opened and checked: Google CSE XML reference (q, start, num, hl, gl, lr, cr, safe, filter, ie, oe, as_q/as_epq/as_oq/as_eq/as_nlo/as_nhi/as_qdr/as_sitesearch/as_dt/as_lq/as_filetype/as_rights, imgsz/imgtype/imgc/imgcolor all present; as_rq absent, so its source is now SerpApi); live google.com/advanced_search form (as_q, as_epq, as_eq, as_sitesearch, as_filetype, as_qdr, lr, cr, tbs, authuser; licence packed into tbs via data-tbs=true); advanced image form (now /advanced_search?udm=2: as_st=y, tbm=isch, imgsz, imgar, cr, as_filetype, tbs carrying isc/ic/itp/sur); Chromium prepopulated_engines.json (search_intent_params si, gs_ssp, udm; alternate_urls) and template_url.cc (replacement params clid, client, gp, gs_lcrp, gs_rn, hl, oq, pf, psi, rlz, source, sourceid); SearXNG google*.py; SerpApi google.ts; ClearURLs and AdGuard rules; Firefox search-config-v2 (client, channel). No functional parameter was demoted; no non-functional one was promoted. Source corrections: as_rq (SerpApi, not CSE); udm gains the advanced_image_search redirect as evidence; num gains SearXNG's 'no effect' comment. All 3 tests pass the reference cleaner built from these keep-lists. Keep-list: q, start, num, tbm, udm, hl, gl, lr, cr, safe, tbs, filter, nfpr, pws, every as_*, imgsz/imgar/imgc/imgcolor/imgtype, ijn, si, gs_ssp, kgmid, uule, ludocid, lsig, ibp, htidocid, plus ie only when not UTF-8. Not added: CSE-only hq (appends terms), c2coff (Chinese variants) and sort, because they belong to Programmable Search (cse.google.com) rather than google.com/search; unknown names are dropped by default. Fragments #imgrc=, #vhid=, #lrd= select an item inside the page (inferred); #q= carries the query on /webhp and /. Google Lens result pages (/search?vsrid=...&lns_mode=...&udm=26) depend on session ids and cannot be canonicalised (inferred). ClearURLs also strips 'site' and 'ie' unconditionally; 'site' is not a /search parameter. Out of scope but related: news.google.com (hl, gl, ceid functional) and scholar.google.com (q, start, hl, as_sdt, as_vis, as_ylo, as_yhi per SearXNG google_scholar.py)."
+  },
+  {
+   "engine": "Microsoft Bing",
+   "hosts": [
+    "www.bing.com",
+    "bing.com",
+    "cn.bing.com (redirects non-Chinese visitors to www.bing.com/search?...&mkt=zh-CN, observed 2026-10-10)",
+    "<any>.bing.com (ClearURLs pattern (?:[a-z0-9-]+\\.)*?bing(?:\\.[a-z]{2,}){1,})"
+   ],
+   "paths": [
+    "/search (web; 'All' tab, and the 'Web' tab with webscp=1)",
+    "/images/search (images; view=detailV2 opens one image)",
+    "/videos/search and /videos/riverview/relatedvideo (videos; view=detail or mid= opens one video)",
+    "/news/search (news)",
+    "/copilotsearch (Bing 'AI Mode' tab: /copilotsearch?q=...&FORM=CSSCOP, observed 2026-10-10; q is the only functional parameter seen)",
+    "Out of scope but linked from the tab bar: /maps?q=, /travel/search?q=...&m=flights (observed 2026-10-10)",
+    "XHR endpoints (SearXNG), rarely shared: /images/async, /videos/asyncv2, /news/infinitescrollajax",
+    "Not result pages, unwrap instead: /ck/a?...&u=a1<base64url target> (strip 'a1', base64url-decode, per SearXNG bing.py; decoded live tab links 2026-10-10)"
+   ],
+   "functional": [
+    {
+     "name": "q",
+     "meaning": "Search query (supports Bing advanced operators).",
+     "source": "https://github.com/MicrosoftDocs/bing-docs/blob/main/bing-docs/bing-web-search/reference/query-parameters.md; https://github.com/searxng/searxng/blob/master/searx/engines/bing.py; https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (search_url ...search?q={searchTerms})"
+    },
+    {
+     "name": "first",
+     "meaning": "One-based result offset (11 = page 2).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/bing_images.py, https://github.com/searxng/searxng/blob/master/searx/engines/bing_news.py, https://github.com/searxng/searxng/blob/master/searx/engines/bing_videos.py (first=); https://github.com/searxng/searxng/blob/7af922c9df/searx/engines/bing.py; live 2026-10-10: Bing's own paging links are /search?q=bag&first=11&FORM=PERE; /news/search?q=fjord&first=11 returned a different result set (Jaccard 0.24 against page 1)",
+     "condition": "Web paging cannot be checked from a script (Bing returned page 1 for first=11 to curl and headless Chromium, matching SearXNG's note that web paging is unsupported for bots); verified on news."
+    },
+    {
+     "name": "count",
+     "meaning": "Results per page; only a suggestion, may be ignored on web.",
+     "source": "https://github.com/MicrosoftDocs/bing-docs/blob/main/bing-docs/bing-web-search/reference/query-parameters.md; https://github.com/searxng/searxng/blob/master/searx/engines/bing_images.py (count=35); https://deno.land/x/serpapi@1.1.1/src/engines/bing.ts; live 2026-10-10: /news/search?q=fjord&count=30 returned 14 items instead of 12 (Jaccard 0.86), and Bing copies count=30 into its own date-filter links",
+     "condition": "Only a suggestion; web effect not isolated."
+    },
+    {
+     "name": "setlang",
+     "meaning": "Interface language (en or en-GB); also shifts results.",
+     "source": "https://github.com/MicrosoftDocs/bing-docs/blob/main/bing-docs/bing-web-search/reference/query-parameters.md; https://github.com/searxng/searxng/blob/master/searx/engines/bing.py; live 2026-10-10: /news/search?q=fjord&setlang=de returned German sources (spiegel.de, fernsehserien.de), Jaccard 0.00 against the baseline"
+    },
+    {
+     "name": "cc",
+     "meaning": "Country the results come from.",
+     "source": "https://github.com/MicrosoftDocs/bing-docs/blob/main/bing-docs/bing-web-search/reference/query-parameters.md; https://github.com/searxng/searxng/blob/master/searx/engines/bing.py; live 2026-10-10: /news/search?q=fjord&cc=gb changed the result set (Jaccard 0.50 against a baseline whose dummy variants all scored 1.00) and cc=de scored 0.71; on web cc=GB returned the same UK set as mkt=en-GB"
+    },
+    {
+     "name": "mkt",
+     "meaning": "Market (language-country, e.g. en-GB); Bing's recommended primary locale signal.",
+     "source": "https://github.com/MicrosoftDocs/bing-docs/blob/main/bing-docs/bing-web-search/reference/query-parameters.md; https://github.com/searxng/searxng/blob/master/searx/engines/bing.py; https://github.com/searxng/searxng/blob/master/searx/engines/bing_news.py; live 2026-10-10: /news/search?q=fjord&mkt=en-GB scored Jaccard 0.50 and mkt=de-DE 0.71 against the stable baseline; cn.bing.com adds mkt=zh-CN on redirect"
+    },
+    {
+     "name": "setmkt",
+     "meaning": "Sets the market preference (e.g. setmkt=en-GB).",
+     "source": "Live 2026-10-10: /news/search?q=fjord&setmkt=de-DE produced the same change as mkt=de-DE (Jaccard 0.71); on web setmkt=en-GB returned the same set as mkt=en-GB, and Bing copied setmkt into its own filter links",
+     "condition": "Upgraded from inferred to observed."
+    },
+    {
+     "name": "adlt",
+     "meaning": "SafeSearch: off, moderate, strict.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/bing.py; live 2026-10-10: /search?q=porn+videos&adlt=strict returned no organic results while adlt=off returned 10 with 21 adult-site links; /images/search?q=nude&adlt=strict showed 'SafeSearch: Strict' and no results"
+    },
+    {
+     "name": "filters",
+     "meaning": "Web display filters. Date: ex1:\"ez1\" (24 h), ex1:\"ez2\" (week), ex1:\"ez3\" (month), ex1:\"ez5_<from>_<to>\" (custom range, days since 1970); also carousel filters (ufn:, sid:, catguid:). Keep whole value.",
+     "source": "Live 2026-10-10: Bing's own 'Past 24 hours' etc. links are /search?q=bag&filters=ex1%3a%22ez1%22&FORM=000017, ez2, ez3, ez5_20371_20736; https://github.com/searxng/searxng/blob/7af922c9df/searx/engines/bing.py",
+     "condition": "Result change not measurable from a script (Bing serves unrelated filler results to bots); kept on the strength of Bing's own links. Not the same as SerpApi's 'filters' option, which is SerpApi's SafeSearch alias."
+    },
+    {
+     "name": "qft",
+     "meaning": "Vertical filter chips. Images: +filterui:imagesize-*, color2-*, photo-*, aspect-*, face-*, age-lt<min>, license-*. Videos: +filterui:duration-*, videoage-lt<min>, filterhint-shortvideo, price-free. News: interval=\"4\" (past hour), \"7\" (24 h), \"8\" (7 days), \"9\" (30 days), sortbydate=\"1\".",
+     "source": "Live 2026-10-10: /news/search?q=fjord&qft=sortbydate%3d%221%22 (Jaccard 0.13) and qft=interval%3d%229%22 (Jaccard 0.43) changed results, identical with or without form=; images and videos pages link qft=+filterui:imagesize-large, +filterui:duration-short etc.; https://github.com/searxng/searxng/blob/master/searx/engines/bing_images.py; https://github.com/searxng/searxng/blob/master/searx/engines/bing_videos.py; https://github.com/searxng/searxng/blob/master/searx/engines/bing_news.py; https://deno.land/x/serpapi@1.1.1/src/engines/bing_images.ts; https://deno.land/x/serpapi@1.1.1/src/engines/bing_news.ts"
+    },
+    {
+     "name": "nvaug",
+     "meaning": "News category, e.g. [NewsVertical Category=\"rt_Business\"].",
+     "source": "Live 2026-10-10: category links on /news/search; /news/search?q=fjord&nvaug=[NewsVertical Category=\"rt_World\"] returned a different set (Jaccard 0.00)"
+    },
+    {
+     "name": "ubiroff",
+     "meaning": "1 shows results Bing hid as possibly inaccessible to the viewer.",
+     "source": "Live 2026-10-10: /news/search?q=fjord carries a 'Show inaccessible results' link to /news/search?q=fjord&ubiroff=1; adding ubiroff=1 changed the result set (Jaccard 0.85, reproducible)",
+     "condition": "NEW: moved from non-functional (was 'UI state flag')."
+    },
+    {
+     "name": "webscp",
+     "meaning": "1 selects Bing's 'Web' tab (web results only), distinct from the default 'All' tab.",
+     "source": "Live 2026-10-10: the tab bar on /search, /images/search, /videos/search and /news/search links 'Web' to /search?q=...&webscp=1&FORM=HDRWSC and 'All' to /search?q=...&FORM=HDRSC1",
+     "condition": "NEW: moved from non-functional. Result difference not isolated live; kept because it is a tab selector."
+    },
+    {
+     "name": "format",
+     "meaning": "format=rss returns the same results as RSS.",
+     "source": "Live 2026-10-10: /search?format=rss&q=bag returned Content-Type text/xml with an <rss> document",
+     "condition": "Changes representation, not the result set; keep."
+    },
+    {
+     "name": "view",
+     "meaning": "Detail view: images detailV2, videos detail/shortvideo.",
+     "source": "Live 2026-10-10: /images/search?view=detailV2&...&id=...&mediaurl=... and /videos/search?view=shortvideo links",
+     "condition": "Only meaningful with id/mediaurl (images) or mid (videos)."
+    },
+    {
+     "name": "id",
+     "meaning": "Image identifier in the images detail view.",
+     "source": "Live 2026-10-10: image-detail links",
+     "condition": "Images detail view only; minimal kept set inferred."
+    },
+    {
+     "name": "mediaurl",
+     "meaning": "Source image URL in the images detail view.",
+     "source": "Live 2026-10-10: image-detail links",
+     "condition": "Images detail view only; minimal kept set inferred."
+    },
+    {
+     "name": "mid",
+     "meaning": "Video identifier on detail/riverview pages.",
+     "source": "Live 2026-10-10: /videos/riverview/relatedvideo?q=fjord&mid=... links",
+     "condition": "Videos detail only."
+    },
+    {
+     "name": "ensearch",
+     "meaning": "ensearch=1 switches cn.bing.com to the international index.",
+     "source": "Inferred; no primary source found.",
+     "condition": "Inferred; untestable from Norway because cn.bing.com redirects to www.bing.com."
+    }
+   ],
+   "nonfunctional": [
+    {
+     "name": "cvid",
+     "meaning": "Conversation/session id.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; live 2026-10-10: no change on /news/search"
+    },
+    {
+     "name": "form / FORM",
+     "meaning": "Form/entry-point code (QBLH, PERE, IRFLTR, VRFLTR, PTFTNR, YFNR, NSBABR, HDRSC1-6, MOZLBR, CHROMI ...).",
+     "source": "https://rules2.clearurls.xyz/data.minify.json (referralMarketing form); https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/search-config-v2/records (form=MOZLBR etc.); https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (FORM=CHROMI on the image-upload URL; corrected from CHROMN); live 2026-10-10: removing FORM/form left news results identical (NSBABR, PTFTNR, YFNR)"
+    },
+    {
+     "name": "PC / pc",
+     "meaning": "Partner code (Firefox {partnerCode}, MOZI ...).",
+     "source": "https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/search-config-v2/records (pc); live 2026-10-10: PC=U316 no change on news. Corrected: the current Chromium file has no PC for Bing."
+    },
+    {
+     "name": "sk",
+     "meaning": "Suggestion state.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json"
+    },
+    {
+     "name": "sp",
+     "meaning": "Suggestion position.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json"
+    },
+    {
+     "name": "sc",
+     "meaning": "Suggestion/typed-character count.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json"
+    },
+    {
+     "name": "qs",
+     "meaning": "Query-suggestion type.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json"
+    },
+    {
+     "name": "qp",
+     "meaning": "Suggestion helper.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json"
+    },
+    {
+     "name": "pq",
+     "meaning": "Partial query as typed (prefix of q).",
+     "source": "Inferred from https://github.com/AdguardTeam/AdguardFilters/issues/215377; https://github.com/searxng/searxng/blob/7af922c9df/searx/engines/bing.py sent pq=query because 'sometimes on page 4 we get results from page 1' for automated paging, which does not affect a single page load"
+    },
+    {
+     "name": "ghc / lq / ghsh / ghacc / ghpl",
+     "meaning": "Search-box and suggestion telemetry.",
+     "source": "Inferred from https://github.com/AdguardTeam/AdguardFilters/issues/215377"
+    },
+    {
+     "name": "FPIG / IG / rdr / rdrig / toWww / redig",
+     "meaning": "Page-impression GUIDs and redirect markers.",
+     "source": "Live 2026-10-10: FPIG appears in Bing's own paging links; classification inferred."
+    },
+    {
+     "name": "qpvt",
+     "meaning": "Echo of the query on the 'All' date-filter toggle.",
+     "source": "Live 2026-10-10: /search?q=bag&FORM=000017&qpvt=bag; classification inferred."
+    },
+    {
+     "name": "sid",
+     "meaning": "Session id on Bing's language-switch links.",
+     "source": "Live 2026-10-10: /news/search?...&setlang=nb&sid=...; adding sid left news results identical."
+    },
+    {
+     "name": "fsm",
+     "meaning": "Flag on 'Related Products' shopping links (with FORM=SHOPSO).",
+     "source": "Live 2026-10-10: /images/search?q=Fjord+Cruise&qft=...&fsm=1&FORM=SHOPSO; classification inferred."
+    },
+    {
+     "name": "mcid",
+     "meaning": "Container id on video riverview links (mid is kept).",
+     "source": "Live 2026-10-10: /videos/riverview/relatedvideo?...&mid=...&mcid=...; classification inferred."
+    },
+    {
+     "name": "cw / ch",
+     "meaning": "Client viewport width and height on image searches.",
+     "source": "Inferred."
+    },
+    {
+     "name": "thid / ccid / cdnurl / simid / ck / itb / selectedIndex / exph / expw",
+     "meaning": "Thumbnail id, cache ids, hash, carousel index and dimensions on image-detail links (id and mediaurl are kept).",
+     "source": "Live 2026-10-10: ccid, thid, cdnurl, exph, expw on image-detail links; classification inferred."
+    },
+    {
+     "name": "ru / mmscn / churl",
+     "meaning": "Return URL, scenario and channel URL on video links.",
+     "source": "Live 2026-10-10: mmscn=stvo and churl on riverview links; classification inferred."
+    },
+    {
+     "name": "shtp / shid / shtk / shdk / shhk",
+     "meaning": "Share-button tracking tokens.",
+     "source": "Inferred; no source found."
+    }
+   ],
+   "tests": [
+    {
+     "dirty": "https://www.bing.com/search?q=bag&form=QBLH&sp=-1&ghc=1&lq=0&pq=bag&sc=11-3&qs=n&sk=&cvid=530E0FE2A0144F4386F8A1B47BF7E1E4",
+     "clean": "https://www.bing.com/search?q=bag"
+    },
+    {
+     "dirty": "https://www.bing.com/search?q=bergen+weather&filters=ex1%3a%22ez1%22&first=11&FORM=PERE&pq=bergen+wea&sc=10-11&sk=&cvid=0D3A1F2B9C8E4D7A&ghsh=0&ghacc=0&ghpl=&mkt=en-GB&adlt=strict&PC=U316",
+     "clean": "https://www.bing.com/search?q=bergen+weather&filters=ex1%3a%22ez1%22&first=11&mkt=en-GB&adlt=strict"
+    },
+    {
+     "dirty": "https://www.bing.com/news/search?q=fjord&qft=sortbydate%3d%221%22&ubiroff=1&form=YFNR&setlang=en-GB&cc=GB&sid=2D8F838A01F36AD33349946400D76BDA&PC=U316&cvid=9F2E",
+     "clean": "https://www.bing.com/news/search?q=fjord&qft=sortbydate%3d%221%22&ubiroff=1&setlang=en-GB&cc=GB"
+    }
+   ],
+   "notes": "VERIFICATION 2026-10-10 (every URL cited was opened that day unless marked inferred): Bing answered curl, but web and image/video result lists from a script are unreliable (a dummy parameter alone gave Jaccard 0.00 on images and videos, and web filters returned unrelated filler), so live diffs were taken on /news/search, which was stable (three dummy variants identical). Confirmed live: q, first (news), count (news), setlang, cc, mkt, setmkt, adlt, qft (news), nvaug, ubiroff, format=rss; confirmed from Bing's own links: filters, qft for images and videos, view/id/mediaurl/mid, webscp. Confirmed non-functional live on news: cvid, sid, PC, FORM/form. Changes from the first pass: ubiroff and webscp moved to functional; setmkt upgraded from inferred to observed; sid and mcid added to non-functional; Chromium source corrected (FORM=CHROMI on the image-upload URL, no PC in the current file); test 3 replaced with a news URL that exercises the live-verified parameters (the images test from the first pass still holds: keep q, qft, first, setlang, cc). Preserve raw encoding of qft and filters (qft uses + as a literal separator; filters carries quoted values); never re-encode. Old SearXNG sent FORM=PERE/PERE<n> and pq with first because automated paging was unreliable without them, and AdGuard commented out '$removeparam=FORM,domain=bing.com' after issue 215377 (blank pages with in-browser rewriting). An offline cleaner loads the URL once, so dropping FORM is fine; first=11 alone could not be confirmed on web because Bing ignores paging for scripted clients. SearXNG maps 'day' to interval=\"4\" (past hour) deliberately; its docstring says the difference between last day and last week is marginal (first pass called this a bug; corrected). API-only names (offset, freshness, safeSearch, responseFilter, answerCount, promote, textDecorations, textFormat) belong to the retired Bing Web Search API v7, not bing.com URLs; treat as unknown (dropped). Visual-search pages (iss=sbi or cbir=sbi with imgurl) depend on an uploaded image and are not canonicalisable (inferred)."
+  },
+  {
+   "engine": "Yahoo Search",
+   "hosts": [
+    "search.yahoo.com",
+    "<cc>.search.yahoo.com (uk, de, fr, espanol, it, nl, be, ch, at, se, no, dk, fi, gr, tr, pl, ro, ca, br, ar, mx, co, cl, pe, ve, in, id, ph, sg, th, vn, au, nz, ie, za, hk, tw, emea, malaysia) per SearXNG yahoo.py region2domain and Chromium",
+    "images.search.yahoo.com and <cc>.images.search.yahoo.com (regional form inferred; both returned HTTP 500 to curl on 2026-10-10)",
+    "video.search.yahoo.com",
+    "news.search.yahoo.com",
+    "Separate company and rule set: search.yahoo.co.jp (LY Corporation)"
+   ],
+   "paths": [
+    "/search (web; also news on news.search.yahoo.com)",
+    "/news/search on news.search.yahoo.com (used by Yahoo's own news paging links, observed 2026-10-10)",
+    "/search/images (images)",
+    "/search/video (videos)",
+    "/local/s (Yahoo Local tab: search.yahoo.com/local/s?p=..., observed 2026-10-10)",
+    "/yhs/search (partner-hosted search; inferred)",
+    "Any of these with ;_ylt=...;_ylu=...;_ylc=... matrix segments appended to the path (strip them; present on every Yahoo link observed 2026-10-10)",
+    "Not result pages, unwrap instead: r.search.yahoo.com/_ylt=.../RV=2/RE=.../RO=10/RU=<percent-encoded target>/RK=2/RS=... (SearXNG parse_url cuts between /RU= and /RK or /RS; observed 2026-10-10)"
+   ],
+   "functional": [
+    {
+     "name": "p",
+     "meaning": "Search query.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yahoo.py; https://github.com/searxng/searxng/blob/master/searx/engines/yahoo_news.py; https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json; https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts; live 2026-10-10"
+    },
+    {
+     "name": "b",
+     "meaning": "One-based result offset (page 2 is b=8 on web at 7 per page, b=11 on news at 10 per page; images/videos step 60).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yahoo.py; https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts; https://deno.land/x/serpapi@1.1.1/src/engines/yahoo_images.ts; live 2026-10-10: Yahoo's own paging links use b=8, 15, 22 on web and b=11, 21, 31 on news; search?p=bag&b=8 returned a different organic set from page 1, and news b=11 overlapped page 1 by 3 of 10"
+    },
+    {
+     "name": "pz",
+     "meaning": "Results per page, sent with b on paging links.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yahoo.py (pz=7 with b=pageno*7+1); live 2026-10-10: Yahoo's own paging links carry pz=7 (web) and pz=10 (news)",
+     "condition": "Live 2026-10-10: removing pz left the organic list identical on web (b=8, b=11) and news (b=11), and pz=20 did not add results. Plausibly a page-size echo; kept as harmless."
+    },
+    {
+     "name": "n",
+     "meaning": "Results per page (legacy).",
+     "source": "https://sources.debian.org/src/surfraw/2.3.0-2/elvi/",
+     "condition": "Legacy; live 2026-10-10 n=20 left the list unchanged. Kept as harmless."
+    },
+    {
+     "name": "btf",
+     "meaning": "Time filter: d (day), w (week), m (month).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yahoo.py; live 2026-10-10: Yahoo's own 'Past day/week/month' links are search?p=bag&fr2=time&btf=d|w|m; btf=d returned a different organic set"
+    },
+    {
+     "name": "vm",
+     "meaning": "SafeSearch: r (strict), i (moderate), p (off).",
+     "source": "https://search.yahoo.com/preferences/preferences (select name=vm with options r, i, p, observed 2026-10-10); https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts; live 2026-10-10: search?p=xxx+videos&vm=r returned 'We did not find results ... because SafeSearch is active', vm=p returned adult sites",
+     "condition": "SearXNG sends vm inside the sB preference cookie rather than the URL; the URL form works too (live)."
+    },
+    {
+     "name": "vl",
+     "meaning": "Result language: lang_xx.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts; https://github.com/searxng/searxng/blob/master/searx/engines/yahoo.py (sends vl inside the sB cookie, not the URL)",
+     "condition": "Live 2026-10-10: vl=lang_fr and vl=lang_de with fl=1 left results unchanged via the URL. Plausibly honoured only from the cookie; kept as harmless."
+    },
+    {
+     "name": "fl",
+     "meaning": "Language-filter switch (1 when vl is used).",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts; https://github.com/searxng/searxng/blob/master/searx/engines/yahoo.py (sB cookie)",
+     "condition": "Only meaningful with vl; same caveat."
+    },
+    {
+     "name": "vc",
+     "meaning": "Country restriction (two-letter).",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts",
+     "condition": "Live 2026-10-10: vc=fr and vc=de showed no visible effect. Kept as plausibly functional."
+    },
+    {
+     "name": "vs",
+     "meaning": "Domain/TLD restriction (e.g. .com,.org).",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts; live 2026-10-10: search?p=bag&vs=.no returned only .no sites (bag.no, bagorama.no)"
+    },
+    {
+     "name": "vf",
+     "meaning": "File-format filter (pdf, txt, all).",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts",
+     "condition": "Live 2026-10-10: vf=pdf on 'annual report 2025' still returned HTML pages. Kept as plausibly functional."
+    },
+    {
+     "name": "imgsz / imgc / imgty / imga / imgf / imgt / imgl",
+     "meaning": "Images: size, colour, type, layout, people, time, usage rights.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yahoo_images.ts",
+     "condition": "Not live-verified: images.search.yahoo.com returned HTTP 500 to curl on 2026-10-10."
+    },
+    {
+     "name": "durs / vage / vres / vsite",
+     "meaning": "Videos: length, age, resolution, source site.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yahoo_videos.ts; live 2026-10-10: Yahoo's own video filter links use durs=short|medium|long, vage=day|week|month|year, vres=360p|480p|720p|1080p and vsite; durs=long and vage=day changed the result set"
+    },
+    {
+     "name": "ei",
+     "meaning": "Input encoding of p.",
+     "source": "https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (ei={inputEncoding}); https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/search-config-v2/records (ei=UTF-8 for Yahoo! JAPAN, ei=EUC-JP for Yahoo! JAPAN Auctions)",
+     "condition": "Keep only when not UTF-8. Live 2026-10-10: ei=UTF-8 had no effect."
+    }
+   ],
+   "nonfunctional": [
+    {
+     "name": "fr",
+     "meaning": "Source/partner code (crmas, crmas_sfp, mozff, yfp-t, sfp, yhs-*).",
+     "source": "https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (fr=crmas / crmas_sfp); https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/search-config-v2/records (fr={partnerCode} and fr=mozff on Yahoo! JAPAN); https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (fr on yahoo.co.jp); live 2026-10-10: fr=yfp-t left the organic list identical"
+    },
+    {
+     "name": "fr2",
+     "meaning": "Secondary source code (sb-top, piv-web, time, p:s,v:i ...).",
+     "source": "Live 2026-10-10: fr2=sb-top on web and fr2=p:s,v:i on video filter links made no difference. Edge: SerpApi documents fr2 values like p:s,v:w,m:trendingdomain_center that expand page modules (layout only): https://deno.land/x/serpapi@1.1.1/src/engines/yahoo.ts"
+    },
+    {
+     "name": ";_ylt / ;_ylu / ;_ylc / ;_ylv",
+     "meaning": "Click-tracking matrix parameters in the path, not the query string.",
+     "source": "Observed on every Yahoo link 2026-10-10"
+    },
+    {
+     "name": "iscqry",
+     "meaning": "Empty first-page marker from the search box.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yahoo.py; live 2026-10-10: no effect"
+    },
+    {
+     "name": "bct / xargs / pstart",
+     "meaning": "Paging helper flags (pstart is the running result counter).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yahoo.py (bct, xargs); live 2026-10-10: Yahoo's own paging links carry bct=0&xargs=0&pstart=7; removing all three left web and news results identical"
+    },
+    {
+     "name": "fp",
+     "meaning": "Search-box flag.",
+     "source": "Live 2026-10-10: fp=1 had no effect; classification otherwise inferred."
+    },
+    {
+     "name": "guccounter / guce_referrer / guce_referrer_sig",
+     "meaning": "Consent-redirect bookkeeping.",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/general_url.txt"
+    },
+    {
+     "name": "ncid / src",
+     "meaning": "Campaign and source ids on yahoo.com.",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (||yahoo.com^$removeparam=ncid and =src)"
+    },
+    {
+     "name": "type / hspart / hsimp / param1..param4",
+     "meaning": "Partner/toolbar distribution codes.",
+     "source": "Inferred; no primary source."
+    },
+    {
+     "name": "toggle / cop / nojs",
+     "meaning": "Search-box and UI flags.",
+     "source": "Inferred; no primary source."
+    }
+   ],
+   "tests": [
+    {
+     "dirty": "https://search.yahoo.com/search;_ylt=AwrFQXYZ123abc;_ylc=X1MDMjc2NjY3OQRfcgMy?p=bag&fr=yfp-t&fr2=sb-top&ei=UTF-8&fp=1&iscqry=",
+     "clean": "https://search.yahoo.com/search?p=bag"
+    },
+    {
+     "dirty": "https://uk.search.yahoo.com/search?p=bag&b=11&pz=10&bct=0&xargs=0&pstart=10&btf=w&vm=r&fr=crmas&fr2=piv-web&guccounter=1&guce_referrer=aHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS8&guce_referrer_sig=AQAAAKx",
+     "clean": "https://uk.search.yahoo.com/search?p=bag&b=11&pz=10&btf=w&vm=r"
+    },
+    {
+     "dirty": "https://video.search.yahoo.com/search/video;_ylt=AwrE.abc123;_ylu=Y29sbwNldS13ZXN0LTE?p=fjord&fr2=p%3As%2Cv%3Ai&durs=long&vage=week&fr=crmas_sfp&ei=UTF-8",
+     "clean": "https://video.search.yahoo.com/search/video?p=fjord&durs=long&vage=week"
+    }
+   ],
+   "notes": "VERIFICATION 2026-10-10 (every URL cited was opened that day unless marked inferred): search.yahoo.com, news.search.yahoo.com and video.search.yahoo.com served results to curl once a cookie jar followed the /_bv/v.gif 307 hop (the first pass reported curl failing). Each variant used a fresh cookie jar and was compared on the organic list (ads, Bing click links and Yahoo-internal links removed); dummy-free baselines were stable. Confirmed live: p, b, btf, vm (via URL), vs, durs, vage. Not confirmed live but kept as plausibly functional with notes: pz, n, vl, fl, vc, vf, image filters (images host returned HTTP 500), vres, vsite. Confirmed non-functional live: fr, fr2, ei=UTF-8, fp, iscqry, bct, xargs, pstart. Corrections: SearXNG sends vm, vl and fl in the sB preference cookie, not as URL parameters, so the first pass's SearXNG citation for them as URL parameters was imprecise (SerpApi and the live vm test carry them now); Yahoo web pages show 7 organic results per page, so page 2 is b=8 (b=11 still works as an offset); pstart added to non-functional; test 2 gains pstart; test 3 now uses a video URL with live-verified filters (the first pass's images test still holds under these rules: keep p, imgsz, imgty, imgl). Strip ;_ylt=/;_ylu=/;_ylc= path segments before query processing (they sit between the path and '?'). DataForSEO claims tbs=qdr: and vm=0/1 for Yahoo; not adopted. Yahoo! JAPAN (search.yahoo.co.jp) is a different engine: p query, ei encoding (conditional), b offset; fr and frtype are tracking per AdGuard and Firefox (fr=mozff)."
+  },
+  {
+   "engine": "Yandex",
+   "hosts": [
+    "yandex.ru",
+    "yandex.com",
+    "yandex.com.tr",
+    "yandex.by",
+    "yandex.kz",
+    "yandex.uz",
+    "ya.ru",
+    "any yandex.<tld> (ClearURLs pattern (?:[a-z0-9-]+\\.)*?(?:yandex(?:\\.[a-z]{2,}){1,}|ya\\.ru))"
+   ],
+   "paths": [
+    "/search/ (desktop), /search/touch/ (phone), /search/pad/ (tablet) per Chromium YandexSearchPathFromDeviceFormFactor (template_url.cc, opened 2026-10-10)",
+    "/yandsearch (legacy, surfraw)",
+    "/images/search (observed 2026-10-10), /images/touch/search (touch form inferred), /gorsel/search (yandex.com.tr images; Chromium image_url and live SERP links 2026-10-10)",
+    "/video/search (observed 2026-10-10)",
+    "/search/site/ (site-search widget; searchid selects the site)",
+    "Not result pages: /showcaptcha, /clck/jsredir and /clck/safeclick (click redirects), /search/direct (ads), /video/preview/<id> (single video preview)"
+   ],
+   "functional": [
+    {
+     "name": "text",
+     "meaning": "Search query.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yandex.py; https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (search_url ...?text={searchTerms}); https://deno.land/x/serpapi@1.1.1/src/engines/yandex.ts"
+    },
+    {
+     "name": "p",
+     "meaning": "Zero-based page number (1 = page 2).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yandex.py; https://deno.land/x/serpapi@1.1.1/src/engines/yandex.ts; https://developers.oxylabs.io/~/changes/867/guides-for-scraper-apis/forming-urls; live 2026-10-10: yandex.com.tr/search/?text=kedi&p=1 shared no organic result with page 1; yandex.com/images/search?text=fjord&p=1 likewise"
+    },
+    {
+     "name": "lr",
+     "meaning": "Region id (213 Moscow, 11508 Istanbul, 11316 Novosibirsk ...); selects the regional ranking formula and local results.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yandex.ts ('Determines the rules for ranking documents'); https://yandex.cloud/en/docs/search-api/concepts/get-request (redirects to aistudio.yandex.ru; unreachable from this network on 2026-10-10); live 2026-10-10: yandex.com.tr/search/?text=kedi&lr=11508 switched the page state to lr 11508 and changed the results (Jaccard 0.26); yandex.com/images/search?text=fjord&lr=213 switched the interface to Russian",
+     "condition": "CONFLICT and PRIVACY: ClearURLs removes lr on all Yandex hosts, and Yandex auto-appends it from IP geolocation (every SERP link observed 2026-10-10 carried lr=10467, the Oslo region of this network), so it reveals the sharer's approximate city. Functional under CheckLink's policy; flag as location-revealing."
+    },
+    {
+     "name": "rstr",
+     "meaning": "Restrict to region, value -<region id>.",
+     "source": "https://developers.oxylabs.io/~/changes/867/guides-for-scraper-apis/forming-urls; live 2026-10-10: yandex.com.tr/search/?text=kedi&rstr=-11508 returned Istanbul-local news (Jaccard 0.00)"
+    },
+    {
+     "name": "lang",
+     "meaning": "Result language filter (ru, en, be, fr, de, id, kk, tt, tr, uk).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yandex.py (site-search endpoint); live 2026-10-10: yandex.com.tr/search/?text=kedi&lang=en replaced the Turkish result set with international .com results (Jaccard 0.00), so it works on the main SERP too"
+    },
+    {
+     "name": "numdoc",
+     "meaning": "Results per page.",
+     "source": "https://developers.oxylabs.io/~/changes/867/guides-for-scraper-apis/forming-urls",
+     "condition": "Live 2026-10-10: numdoc=30 and numdoc=50 still returned 10 organic results on yandex.com.tr. Kept as plausibly functional and harmless."
+    },
+    {
+     "name": "within",
+     "meaning": "Time filter: 77 = past 24 hours (live), 777 = custom range with from_*/to_*; other codes (1 = 2 weeks, 2 = month) inferred. Also a filter on /video/search.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yandex.py (within=777 with from_*/to_* on the site-search endpoint); live 2026-10-10: within=77 on yandex.com.tr replaced the evergreen results with recent news items (Jaccard 0.00); /video/search has a filter button data-name=within"
+    },
+    {
+     "name": "from_day / from_month / from_year / to_day / to_month / to_year",
+     "meaning": "Custom date range bounds used with within=777.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yandex.py; live 2026-10-10: within=777 with these bounds changed the result set (Jaccard 0.05) while within=777 alone did not"
+    },
+    {
+     "name": "isize / iw / ih",
+     "meaning": "Images: size (large, medium, small, wallpaper, eq with exact iw x ih).",
+     "source": "Live 2026-10-10: yandex.com/images advancedSearch filter order ['isize','iorient','type','icolor','itype','recent','site']; isize=large and isize=eq&iw=1920&ih=1080 appear in the page's active-filter state and change results; https://github.com/bobokvsky/yandex-images-download/blob/master/yandex_images_download/downloader.py"
+    },
+    {
+     "name": "iorient",
+     "meaning": "Images: orientation (horizontal, vertical, square).",
+     "source": "Live 2026-10-10: listed filter; iorient=vertical shown as active and changed results; https://github.com/bobokvsky/yandex-images-download/blob/master/yandex_images_download/downloader.py"
+    },
+    {
+     "name": "icolor",
+     "meaning": "Images: colour (color, gray, red, orange, cyan, yellow, green, blue, violet, white, black).",
+     "source": "Live 2026-10-10: listed filter; icolor=red shown as active and changed results",
+     "condition": "Corrected: the old client's 'color' is not recognised (moved to non-functional)."
+    },
+    {
+     "name": "type",
+     "meaning": "Images: image kind (photo, clipart, lineart, face, demotivator).",
+     "source": "Live 2026-10-10: type=photo, type=clipart and type=lineart shown as active and changed results; type=png is ignored",
+     "condition": "Corrected: the first pass left type/itype unresolved; the old yandex-images-download client sends them the other way round."
+    },
+    {
+     "name": "itype",
+     "meaning": "Images: file format (jpg, png, gifan).",
+     "source": "Live 2026-10-10: itype=png returned only .png images and itype=gifan only GIFs, both shown as active; itype=lineart is ignored"
+    },
+    {
+     "name": "recent",
+     "meaning": "Images: recent=7D (last 7 days).",
+     "source": "Live 2026-10-10: listed filter; recent=7D shown as active and returned images dated 2026-10; https://deno.land/x/serpapi@1.1.1/src/engines/yandex_images.ts"
+    },
+    {
+     "name": "site",
+     "meaning": "Restrict to a source site (images filter and web search).",
+     "source": "Live 2026-10-10: images site=flickr.com returned only staticflickr.com images; yandex.com.tr/search/?text=kedi&site=wikipedia.org returned only wikipedia.org; Yandex's own tab links carry site=; https://deno.land/x/serpapi@1.1.1/src/engines/yandex_images.ts"
+    },
+    {
+     "name": "family",
+     "meaning": "family=yes forces the strict family filter.",
+     "source": "Live 2026-10-10: yandex.com/images/search?text=sex&family=yes returned 'No matching results' while the same query without it returned adult images",
+     "condition": "Upgraded from inferred; on web the effect on a neutral query was within noise."
+    },
+    {
+     "name": "nomisspell",
+     "meaning": "1 disables spelling correction (images).",
+     "source": "https://github.com/bobokvsky/yandex-images-download/blob/master/yandex_images_download/downloader.py; live 2026-10-10: Yandex's own related-tag links on /images/search carry nomisspell=1",
+     "condition": "Effect not isolated live (test misspelling was not corrected either way); kept."
+    },
+    {
+     "name": "noreask",
+     "meaning": "noreask=1 disables query auto-correction or re-asking.",
+     "source": "Live 2026-10-10: Yandex adds noreask=1 to its own entity refinement links (/search/?text=Kedi&lr=10467&noreask=1&ento=...) and to the video tab template",
+     "condition": "Effect not isolated live; kept because Yandex emits it on its own result links."
+    },
+    {
+     "name": "ento",
+     "meaning": "Opaque entity token from Yandex's refinement chips; pins the chosen entity.",
+     "source": "Live 2026-10-10: yandex.com.tr/search/?text=kedi links /search/?text=Kedimsiler&lr=10467&noreask=1&ento=0oCglydXcz...",
+     "condition": "NEW. Analogous to Google's si/kgmid; effect not isolated live."
+    },
+    {
+     "name": "promo",
+     "meaning": "promo=force_neuro opens the 'Yandex AI' tab instead of classic results.",
+     "source": "Live 2026-10-10: the yandex.com/images tab template defines 'Yandex AI' as /search?text=[$query]&source=tabbar&promo=force_neuro",
+     "condition": "NEW. Keep only when the value is force_neuro; other values are inferred to be promotional tracking."
+    },
+    {
+     "name": "rpt / url / cbir_id",
+     "meaning": "Image viewer and reverse image search: rpt=imageview with url= (or an uploaded image's cbir_id) for reverse search; rpt=simage opens the viewer on one image.",
+     "source": "https://chromium.googlesource.com/external/search_engines_data/+/refs/heads/main/definitions/prepopulated_engines.json (image_url ...images/search?rpt=imageview); https://deno.land/x/serpapi@1.1.1/src/engines/yandex_images.ts; live 2026-10-10: SERP links /gorsel/search?...&rpt=simage&img_url=...&pos=0",
+     "condition": "cbir_id inferred."
+    },
+    {
+     "name": "img_url / pos",
+     "meaning": "Image shown in the viewer and its position (with rpt=simage).",
+     "source": "Live 2026-10-10: yandex.com.tr SERP image links",
+     "condition": "NEW. Only meaningful with rpt=simage."
+    },
+    {
+     "name": "duration / hd",
+     "meaning": "Videos: duration (short, medium, long) and HD only.",
+     "source": "https://deno.land/x/serpapi@1.1.1/src/engines/yandex_videos.ts; live 2026-10-10: /video/search filter button data-name=duration, and duration=short sets it pressed",
+     "condition": "hd is not a filter in the current Yandex video interface and hd=1 showed no state; kept as harmless."
+    },
+    {
+     "name": "searchid",
+     "meaning": "Site-search widget instance id.",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yandex.py",
+     "condition": "Only on /search/site/."
+    }
+   ],
+   "nonfunctional": [
+    {
+     "name": "clid",
+     "meaning": "Distribution/partner referral id (Chrome {yandex:referralID}, e.g. 1836588, 2270455).",
+     "source": "https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/search_engines/template_url.cc (YANDEX_REFERRAL_ID -> clid); https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (://yandex.$removeparam=clid); live 2026-10-10: no change on web or images"
+    },
+    {
+     "name": "from",
+     "meaning": "Entry point (os, tabbar ...).",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (||yandex.*/news/$removeparam=from); live 2026-10-10: from=os and from=tabbar gave no consistent change on web or images. Corrected: the current Chromium file has no from= for Yandex."
+    },
+    {
+     "name": "source",
+     "meaning": "Entry-point attribution (tabbar, serp, related-query-serp, serp_navig).",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (://yandex.$removeparam=source); observed on Yandex's own links 2026-10-10"
+    },
+    {
+     "name": "redircnt",
+     "meaning": "Redirect counter/timestamp appended by Yandex.",
+     "source": "https://rules2.clearurls.xyz/data.minify.json (Yandex rules: lr, redircnt)"
+    },
+    {
+     "name": "suggest_reqid",
+     "meaning": "Autocomplete request id.",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (||yandex.*/search/)"
+    },
+    {
+     "name": "search_source / search_domain",
+     "meaning": "Entry-point attribution (e.g. dzen_desktop_safe).",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "banerid / did",
+     "meaning": "Banner and device ids.",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (||yandex.*/search/)"
+    },
+    {
+     "name": "source-serpid",
+     "meaning": "SERP id on image links.",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (||yandex.*/images/); live 2026-10-10: no change on images"
+    },
+    {
+     "name": "parent-reqid",
+     "meaning": "Parent request id carried between tabs.",
+     "source": "Live 2026-10-10: on Yandex's own image and video tab links; adding it left image results unchanged."
+    },
+    {
+     "name": "stype",
+     "meaning": "Search-type echo on image viewer links (stype=image).",
+     "source": "Live 2026-10-10: SERP image links; classification inferred."
+    },
+    {
+     "name": "msid / mlid / stid / persistent_id",
+     "meaning": "News/sport session and story ids.",
+     "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    },
+    {
+     "name": "src",
+     "meaning": "Suggest source (suggest_B, suggest_T ...).",
+     "source": "Inferred; live 2026-10-10: included in a tracker set that left results unchanged."
+    },
+    {
+     "name": "rnd",
+     "meaning": "Random nonce on Yandex links.",
+     "source": "Live 2026-10-10: /search/?text=kedi&lr=10467&rnd=20686; classification inferred."
+    },
+    {
+     "name": "color / commercial",
+     "meaning": "Old client names not recognised by yandex.com/images.",
+     "source": "https://github.com/bobokvsky/yandex-images-download/blob/master/yandex_images_download/downloader.py sends them; live 2026-10-10: neither appears in the page's advancedSearch filter list or active-filter state, and color=red returned the baseline images. Moved from functional."
+    },
+    {
+     "name": "win / ncrnd / rdrnd / ui / uuid",
+     "meaning": "Partner window id, random nonces and client ids.",
+     "source": "Inferred."
+    },
+    {
+     "name": "tmpl_version / web / frame / search_client",
+     "meaning": "Rendering flags of the /search/site/ widget (keep searchid).",
+     "source": "https://github.com/searxng/searxng/blob/master/searx/engines/yandex.py; classification inferred."
+    },
+    {
+     "name": "sk",
+     "meaning": "Signature/CSRF key on some Yandex URLs.",
+     "source": "Inferred. AdGuard warns not to strip sk on Yandex Disk (not search): https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+    }
+   ],
+   "tests": [
+    {
+     "dirty": "https://yandex.ru/search/?text=bag&lr=213&clid=2270455&src=suggest_B&suggest_reqid=829178239176012345678901234567&search_source=dzen_desktop_safe&redircnt=1791626295.1",
+     "clean": "https://yandex.ru/search/?text=bag&lr=213"
+    },
+    {
+     "dirty": "https://yandex.com/search/?text=fjord+cruise&p=2&lang=en&within=777&from_day=1&from_month=9&from_year=2026&to_day=10&to_month=10&to_year=2026&numdoc=20&from=os&clid=1836588&banerid=0500000134&did=12345",
+     "clean": "https://yandex.com/search/?text=fjord+cruise&p=2&lang=en&within=777&from_day=1&from_month=9&from_year=2026&to_day=10&to_month=10&to_year=2026&numdoc=20"
+    },
+    {
+     "dirty": "https://yandex.com.tr/gorsel/search?text=kedi&isize=large&iorient=horizontal&type=photo&itype=png&recent=7D&source-serpid=Ab12Cd34&parent-reqid=1791628274085287-1881819672073123653&source=tabbar&from=tabbar&clid=1836588",
+     "clean": "https://yandex.com.tr/gorsel/search?text=kedi&isize=large&iorient=horizontal&type=photo&itype=png&recent=7D"
+    }
+   ],
+   "notes": "VERIFICATION 2026-10-10 (every URL cited was opened that day unless marked inferred): yandex.com/search, yandex.ru and ya.ru served a CAPTCHA to curl, but yandex.com.tr/search, yandex.com/images/search and yandex.com/video/search served full pages, so web parameters were tested on yandex.com.tr and image parameters on yandex.com. Yandex Images exposes its own filter definition (advancedSearch.filters.order = isize, iorient, type, icolor, itype, recent, site) and echoes recognised URL filters in advancedSearch.filters.active, which gave a direct test of each name. Web comparisons used the external organic list; dummy-parameter baselines were identical, with one recurring alternative backend variant (Jaccard 0.82) treated as noise. Confirmed live: text, p, lr, rstr, lang, within (77, and 777 with bounds), isize/iw/ih, iorient, icolor, type, itype, recent, site (images and web), family (images), duration (video). Kept with notes: numdoc (not honoured), nomisspell, noreask, ento, promo=force_neuro, hd, rpt/img_url/pos. Confirmed non-functional live: clid, from, source-serpid, parent-reqid. Corrections: type = image kind and itype = file format (reverse of the old client); color and commercial are not recognised and moved to non-functional; lang and within work on the main SERP, while SearXNG uses them on /search/site/; from no longer appears in Chromium's Yandex definition; source, parent-reqid, stype and rnd added as non-functional; ento, promo (force_neuro only) and img_url/pos added as functional; test 3 extended with type, itype, parent-reqid and source. Decision needed on lr: test 1 assumes CheckLink keeps it as functional. If CheckLink follows ClearURLs on privacy grounds, the expected clean URL becomes https://yandex.ru/search/?text=bag; Yandex re-adds lr from the recipient's own IP on load, so stripping costs only the sharer's region choice. The Yandex Search API reference (yandex.cloud, now aistudio.yandex.ru) reset connections from this network and the Wayback Machine rate-limited, so lr rests on SerpApi's copy of Yandex's wording plus the live tests."
+  }
+ ]
+}

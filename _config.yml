@@ -1,0 +1,54 @@
+# GitHub Pages serves check.stormberry.as from this repository root.
+#
+# Without this file Jekyll publishes the WHOLE repository, so the tooling scripts, the
+# README and the licence were all reachable from the live site. Nothing here was secret,
+# these repos are public, but source and tooling have no business being served next to
+# the product.
+#
+# Same rules as the estate-wide sweep of 2026-09-05, which followed finding
+# scheduler.stormberry.as/index.dev.html live, a second working rendering of that app.
+#
+# Jekyll's `exclude` REPLACES its defaults rather than adding to them, which is why
+# node_modules/ and package files are listed even though nothing installs them: the
+# shipped app has no dependencies, and the test runner is Node's own.
+#
+# src/ is NOT excluded: app.js imports the engine (src/link-core.js) at runtime, and the
+# engine imports the generated rule table (src/rules.js). The page never fetches rules.
+#
+# rules/ and tools/ ARE excluded: rules/ holds the verified rule sources and the test
+# corpus, tools/ the generator that turns them into src/rules.js before publishing.
+# Neither is read by the page.
+#
+# Stage 2: vendor/ (the QR decoder, loaded by the decoder worker) and licences/ (the
+# licence texts of everything third-party the page ships) are published. third_party/ is
+# NOT: it holds the raw Public Suffix List and the recovery-phrase word lists (BIP-39, Monero,
+# SLIP-39) that tools/vendor.mjs turns into src/psl.js, src/bip39.js and src/wordlists.js.
+# Stage 4b adds the QR encoder: vendor/qrcodegen-8329a71/qrcodegen.js is published (app.js
+# loads it through src/qr-make.js), and its TypeScript source in third_party/qrcodegen/ is not.
+#
+# privacy.html, disclaimer.html with its disclaimer.css, gate.js and gate.css (stage 5) are
+# NOT excluded: the footer links to the two pages, which the first-run notice (gate.js) links
+# to as well ("Read the full disclaimer" opens disclaimer.html). og-image.png is published for
+# link previews. DISCLAIMER.md IS excluded: it is the source build-disclaimers.py renders into
+# disclaimer.html, and nothing on the site links to it (unlike some older apps, whose notice
+# once linked the .md file by name).
+#
+# android/, fastlane/ and zapstore.yaml hold the Android app's build and store files. The app
+# bundles the web files from this root at build time; nothing in those folders is part of the
+# website. (.github/ needs no entry: Jekyll never publishes dot folders.)
+exclude:
+  - LICENSE
+  - NOTICE
+  - README.md
+  - DISCLAIMER.md
+  - bump_assets.py
+  - rules/
+  - tools/
+  - tests/
+  - third_party/
+  - package.json
+  - package-lock.json
+  - node_modules/
+  - android/
+  - fastlane/
+  - zapstore.yaml

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Toasts: Android shows at most two lines (about 70 characters on a phone), so each
+         message stays at 66 characters or fewer (decision Q4, 11 October 2026). -->
+    <string name="app_name">CheckLink</string>
+    <string name="share_chooser">Share clean link</string>
+    <!-- Stage 4b: the picture of a QR code of the clean link. The app says it once the file is
+         written, because the page hears back as soon as Android's save screen opens. "Picture",
+         as on the page's buttons and lines (Save picture, "The picture could not be saved.").
+         The share sheet shows its own heading for a picture ("Sharing image") from Android 10
+         on, so share_qr_chooser is seen only on older Android. -->
+    <string name="share_qr_chooser">Share QR code</string>
+    <string name="qr_saved">Saved the picture of the QR code.</string>
+    <string name="qr_save_failed">The picture could not be saved.</string>
+    <string name="no_app_for_link">No app on this device can open that link.</string>
+    <string name="no_app_for_files">No app on this device can pick files.</string>
+    <string name="no_settings">Settings did not open. Go to Settings, then Apps, then CheckLink.</string>
+    <string name="shared_text_empty">There was no text to check in what was shared.</string>
+    <string name="shared_text_cut">The shared text was long, so only its first part was read.</string>
+    <string name="shared_picture_type">Only PNG, JPEG and WebP pictures can be read. Try a screenshot.</string>
+    <string name="shared_picture_large">The shared picture is larger than 40 MB, too large to read.</string>
+    <string name="read_failed">The shared picture could not be read.</string>
+    <string name="webview_too_old">Parts of CheckLink need a newer Android System WebView. Update it.</string>
+    <string name="page_crashed">CheckLink stopped and reloaded. Share or paste your link again.</string>
+</resources>

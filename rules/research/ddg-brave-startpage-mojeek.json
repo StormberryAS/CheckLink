@@ -1,0 +1,773 @@
+{
+  "group": "ddg-brave-startpage-mojeek",
+  "generated": "2026-10-10",
+  "purpose": "CheckLink canonical search-result URLs: keep only parameters that change what results are shown; remove everything else by default.",
+  "method": "Primary sources first: engine help pages and preference/advanced forms, official API docs, the engines' own apps and front-end bundles, SearXNG engine modules (commit f4822b3fc467), other open-source clients (degoog), filter lists (AdGuard, uBO, DandelionSprout, Brave clean-urls, ClearURLs), plus read-only live GET probes from a VPN egress on 2026-10-10. Items marked inferred are not confirmed by a primary source.",
+  "kept_param_order": "Tests preserve the original order of kept parameters.",
+  "engines": [
+    {
+      "engine": "DuckDuckGo",
+      "hosts": [
+        "duckduckgo.com",
+        "www.duckduckgo.com",
+        "html.duckduckgo.com",
+        "lite.duckduckgo.com",
+        "noai.duckduckgo.com",
+        "safe.duckduckgo.com",
+        "duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion"
+      ],
+      "paths": [
+        "/ (result page only when q is present; without q it is the homepage). Applies to duckduckgo.com, www, noai, safe and the onion host",
+        "/html and /html/ (non-JavaScript results; duckduckgo.com/html and html.duckduckgo.com/html/)",
+        "/lite and /lite/ (non-JavaScript lite results; duckduckgo.com/lite and lite.duckduckgo.com/lite/)",
+        "NOT result pages: /l/ (outbound redirector, unwrap uddg), /y.js (ad click), /d.js /i.js /v.js /news.js (JSON APIs), /settings, /params, /bang, /ac/"
+      ],
+      "functional": [
+        {
+          "name": "q",
+          "meaning": "Search query (may contain operators such as site:, filetype:, !bangs).",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/settings/params/ (example https://duckduckgo.com/?q=search&kp=-1&kl=us-en); https://github.com/duckduckgo/apple-browsers/blob/main/iOS/Core/AppURLs.swift (Param.search = \"q\"); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo.py"
+        },
+        {
+          "name": "kl",
+          "meaning": "Region for results: xa-ar ... vn-vi, wt-wt = no region (full list on the help page). DuckDuckGo's own settings dictionary describes it as 'Changes the preferred region for search results'.",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/settings/params/; https://duckduckgo.com/dist/util/u.9a6f65eb56a1d2e8cbab.js (settings dictionary kl); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo.py; live observation 2026-10-10: kl=de-de turned into bing_market=de-DE in the d.js call"
+        },
+        {
+          "name": "kp",
+          "meaning": "Safe search: 1 = strict, -1 = moderate, -2 = off.",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/features/safe-search/; https://duckduckgo.com/duckduckgo-help-pages/settings/params/; live observation 2026-10-10: kp=-2 became ex=-2 in the d.js call"
+        },
+        {
+          "name": "kad",
+          "meaning": "Display language (interface language) such as en_GB, nb_NO; default wt_WT (browser language). The front end also puts it first when ranking result languages.",
+          "source": "https://duckduckgo.com/dist/util/u.9a6f65eb56a1d2e8cbab.js (kad: 'Changes the language for elements like buttons, settings, and labels', name 'Display Language'); https://duckduckgo.com/dist/d.bf060419ed940a233888.js (LANGUAGE_KEY:\"kad\", resultLanguages ordering); https://duckduckgo.com/bang.js (bang 'duckgoes' uses kad=es_ES)",
+          "condition": "interface language; keep"
+        },
+        {
+          "name": "df",
+          "meaning": "Date filter: d, w, m, y, or a custom range YYYY-MM-DD..YYYY-MM-DD.",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/features/dates/ (feature); https://duckduckgo.com/dist/d.bf060419ed940a233888.js (DDG.Data.HiddenFields DATE_FILTER:\"df\", Past day/week/month/year ids d/w/m/y); https://duckduckgo.com/dist/g.edb8e6b509facf195f5c.js (custom range built as from..to in ISO dates); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo.py (time_range_dict d/w/m/y); https://duckduckgo.com/bang.js (bang 'day' = df=d); live observation 2026-10-10: html.duckduckgo.com form has select name=df with d/w/m/y"
+        },
+        {
+          "name": "ia",
+          "meaning": "Vertical or instant-answer id. Only meaningful as a vertical when the resolved vertical is not web: images (with iax=images), videos (with iax=videos), news (with iar=news), shopping (with iax=shopping), recipes (with iax=recipes), chat (ia=chat opens Duck.ai). ia=web and instant-answer ids (about, calculator, definition, answer, qa, weather, ...) do not change the result set.",
+          "source": "https://duckduckgo.com/dist/wpm.main.6ef5bbf2bfce334a5036.js (getValidVerticalId: chat if ia=chat; maps_expanded if iaxm; images if ia=images&iax=images or only iar=images; videos likewise; shopping likewise; recipes if ia=recipes&iax=recipes; news if ia=news&iar=news or only iar=news; else web); https://duckduckgo.com/bang.js (ddgi ia=images&iax=images, ddgv iar=videos&iax=videos&ia=videos, ddgn iar=news&ia=news, chat ia=chat)",
+          "condition": "keep only when the resolved vertical is images, videos, news, shopping, recipes or chat; drop when it resolves to web (the owner's test: ia=web is dropped)"
+        },
+        {
+          "name": "iax",
+          "meaning": "Expanded vertical paired with ia (images, videos, shopping, recipes).",
+          "source": "https://duckduckgo.com/dist/wpm.main.6ef5bbf2bfce334a5036.js; https://duckduckgo.com/bang.js (ddgi, dim, il)",
+          "condition": "keep together with ia when they jointly select images, videos, shopping or recipes (images-tab test keeps ia=images&iax=images)"
+        },
+        {
+          "name": "iar",
+          "meaning": "'IA requery' vertical rewrite (images, videos, news, shopping). Selects the vertical on its own when ia and iax are absent; required with ia=news.",
+          "source": "https://duckduckgo.com/dist/d.bf060419ed940a233888.js (HiddenFields IA_REQUERY:\"iar\"); https://github.com/duckduckgo/Android/blob/develop/common/common-utils/src/main/java/com/duckduckgo/common/utils/AppUrl.kt (VERTICAL_REWRITE = \"iar\"); https://github.com/duckduckgo/Android/blob/develop/app/src/main/java/com/duckduckgo/app/browser/omnibar/QueryUrlConverter.kt (appends iar for images, videos, news, shopping); https://duckduckgo.com/dist/wpm.main.6ef5bbf2bfce334a5036.js; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo_extra.py (fetch_vqd uses iar=images)",
+          "condition": "keep when it is the only vertical signal (no ia, no iax) or when ia=news; drop when ia+iax already decide the vertical"
+        },
+        {
+          "name": "iaxm",
+          "meaning": "Maps vertical (values seen: maps, directions). Any non-empty value resolves to the maps vertical.",
+          "source": "https://duckduckgo.com/bang.js (bang 'ddgm' = iaxm=maps); https://duckduckgo.com/dist/wpm.main.6ef5bbf2bfce334a5036.js (iaxm -> maps_expanded; switch on maps/directions)"
+        },
+        {
+          "name": "iaf",
+          "meaning": "Image or video filter facets as key:value pairs, e.g. size:imagesize-large (size, colour, type, layout, licence facets exist in the UI). Exact token vocabulary beyond the documented example is inferred.",
+          "source": "https://duckduckgo.com/bang.js (bang 'il' = ia=images&iax=images&iaf=size%3Aimagesize-large); https://duckduckgo.com/dist/g.edb8e6b509facf195f5c.js (iaf kept as a hidden field and cleared when leaving images/videos; UI strings for size, colour, layout, licence)",
+          "condition": "images or videos vertical only"
+        },
+        {
+          "name": "sites",
+          "meaning": "Restricts results to a domain; DuckDuckGo rewrites it into a site: operator.",
+          "source": "https://duckduckgo.com/bang.js (bang 'aamulehti' uses sites=www.aamulehti.fi); live observation 2026-10-10: duckduckgo.com/?q=bag&sites=wikipedia.org produced d.js?q=bag%20site%3Awikipedia.org (not honoured on html.duckduckgo.com)"
+        },
+        {
+          "name": "kbj",
+          "meaning": "Hide AI-generated images: filters known AI spam sites from image results.",
+          "source": "https://duckduckgo.com/dist/util/u.9a6f65eb56a1d2e8cbab.js (kbj: 'Filters out known AI spam sites from image search results'); https://duckduckgo.com/duckduckgo-help-pages/results/how-to-filter-out-ai-images-in-duckduckgo-search-results/",
+          "condition": "affects image results; keep"
+        },
+        {
+          "name": "ds",
+          "meaning": "Date sort hidden field (sort results by date). Values not confirmed.",
+          "source": "https://duckduckgo.com/dist/d.bf060419ed940a233888.js (HiddenFields DATE_SORT:\"ds\")",
+          "condition": "inferred; keep if present"
+        },
+        {
+          "name": "bbox",
+          "meaning": "Map viewport bounding box for the maps vertical (also strict_bbox).",
+          "source": "https://duckduckgo.com/dist/g.edb8e6b509facf195f5c.js (bbox and strict_bbox are tracked as history/URL keys with iaxm)",
+          "condition": "inferred; keep only together with iaxm"
+        },
+        {
+          "name": "s",
+          "meaning": "Result offset on the non-JS html/lite pages (page 2 = 10, then +15 per page). dc (display counter, offset plus a small constant) is submitted with it.",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo.py; live observation 2026-10-10: next-page form on html/lite carries s=10 and dc=13",
+          "condition": "only on /html and /lite; keep s and dc together. Page 2+ also needs vqd, which is a non-functional token, so cleaned page-2 links may be bot-challenged"
+        },
+        {
+          "name": "dc",
+          "meaning": "Display counter submitted with s on html/lite next-page forms (SearXNG: offset + 1).",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo.py; live observation 2026-10-10",
+          "condition": "only on /html and /lite, together with s"
+        },
+        {
+          "name": "strict_bbox",
+          "meaning": "Strict variant of the maps bounding box.",
+          "source": "https://duckduckgo.com/dist/g.edb8e6b509facf195f5c.js",
+          "condition": "inferred; keep only together with iaxm"
+        }
+      ],
+      "nonfunctional": [
+        {
+          "name": "t",
+          "meaning": "Partner/source code used to share ad revenue and count anonymous usage (h_ homepage, ffab/ffsb Firefox, brave, ddg_android, ...).",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/privacy/t/; https://duckduckgo.com/duckduckgo-help-pages/settings/params/ ('Source: a string to identify the source'); https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; https://github.com/uBlockOrigin/uAssets/blob/master/filters/privacy-removeparam.txt; https://github.com/brave/brave-core/blob/master/components/search_engines/brave_prepopulated_engines.cc (t=brave); https://github.com/duckduckgo/Android/blob/develop/common/common-utils/src/main/java/com/duckduckgo/common/utils/AppUrl.kt; https://github.com/duckduckgo/apple-browsers/blob/main/iOS/Core/AppURLs.swift (removingInternalSearchParameters removes t)"
+        },
+        {
+          "name": "origin",
+          "meaning": "Marketing funnel attribution (funnel_home_website, funnel_help_website, ...).",
+          "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; https://github.com/uBlockOrigin/uAssets/blob/master/filters/privacy-removeparam.txt; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo.py docstring; https://duckduckgo.com/dist/wpm.main.6ef5bbf2bfce334a5036.js (regex ^funnel_...)"
+        },
+        {
+          "name": "atb",
+          "meaning": "Install cohort ('add to browser') attribution.",
+          "source": "https://github.com/duckduckgo/Android/blob/develop/app/src/main/java/com/duckduckgo/app/browser/DuckDuckGoRequestRewriter.kt; https://github.com/duckduckgo/apple-browsers/blob/main/iOS/Core/AppURLs.swift (removed by removingInternalSearchParameters); note https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt keeps its atb rule commented out only because in-browser stripping broke the DDG extension redirect"
+        },
+        {
+          "name": "set_atb",
+          "meaning": "Retention cohort.",
+          "source": "https://github.com/duckduckgo/Android/blob/develop/common/common-utils/src/main/java/com/duckduckgo/common/utils/AppUrl.kt"
+        },
+        {
+          "name": "natb",
+          "meaning": "New-install ATB marker written into the URL by the front end.",
+          "source": "https://duckduckgo.com/dist/wpm.main.6ef5bbf2bfce334a5036.js; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+        },
+        {
+          "name": "cp",
+          "meaning": "Click-pixel state written by the front end.",
+          "source": "https://duckduckgo.com/dist/wpm.main.6ef5bbf2bfce334a5036.js; https://duckduckgo.com/dist/d.bf060419ed940a233888.js; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+        },
+        {
+          "name": "va",
+          "meaning": "Extension variant marker (cleared by the front end).",
+          "source": "https://duckduckgo.com/dist/d.bf060419ed940a233888.js"
+        },
+        {
+          "name": "exti",
+          "meaning": "Extension-install state marker.",
+          "source": "https://duckduckgo.com/dist/d.bf060419ed940a233888.js"
+        },
+        {
+          "name": "from",
+          "meaning": "Telemetry/referrer marker.",
+          "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; https://github.com/uBlockOrigin/uAssets/blob/master/filters/privacy-removeparam.txt; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+        },
+        {
+          "name": "vis",
+          "meaning": "Telemetry marker.",
+          "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; https://github.com/uBlockOrigin/uAssets/blob/master/filters/privacy-removeparam.txt"
+        },
+        {
+          "name": "perf_id",
+          "meaning": "Performance telemetry id.",
+          "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; https://github.com/uBlockOrigin/uAssets/blob/master/filters/privacy-removeparam.txt"
+        },
+        {
+          "name": "parent_perf_id",
+          "meaning": "Performance telemetry id.",
+          "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt; https://github.com/uBlockOrigin/uAssets/blob/master/filters/privacy-removeparam.txt"
+        },
+        {
+          "name": "experiment_*",
+          "meaning": "A/B test assignments.",
+          "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt"
+        },
+        {
+          "name": "ko",
+          "meaning": "Header display (1, s, -1, -2); apps send ko=-1 to hide the header.",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/settings/params/; https://github.com/duckduckgo/Android/blob/develop/app/src/main/java/com/duckduckgo/app/browser/DuckDuckGoRequestRewriter.kt; https://github.com/duckduckgo/apple-browsers/blob/main/iOS/Core/AppURLs.swift"
+        },
+        {
+          "name": "kbg",
+          "meaning": "Hide Duck.ai entry points (-1).",
+          "source": "https://github.com/duckduckgo/apple-browsers/blob/main/iOS/Core/AppURLs.swift; https://github.com/duckduckgo/Android/blob/develop/common/common-utils/src/main/java/com/duckduckgo/common/utils/AppUrl.kt"
+        },
+        {
+          "name": "dindextoken",
+          "meaning": "Search token added by the iOS app.",
+          "source": "https://github.com/duckduckgo/apple-browsers/blob/main/iOS/Core/AppURLs.swift"
+        },
+        {
+          "name": "kah",
+          "meaning": "'Stores the previous region that was set' (state, not a filter).",
+          "source": "https://duckduckgo.com/dist/util/u.9a6f65eb56a1d2e8cbab.js"
+        },
+        {
+          "name": "k1",
+          "meaning": "Advertisements on/off (display preference; does not change organic results).",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/settings/params/; https://duckduckgo.com/dist/util/u.9a6f65eb56a1d2e8cbab.js"
+        },
+        {
+          "name": "kz, kc, kav, kn, kf, kaf, kac",
+          "meaning": "Instant answers auto-open, image auto-load, infinite scroll, new window, favicons, full URLs, autosuggest (display).",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/settings/params/"
+        },
+        {
+          "name": "kd, kh, kg, k5",
+          "meaning": "Redirect, HTTPS, GET/POST address bar, video playback (privacy/behaviour preferences).",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/settings/params/"
+        },
+        {
+          "name": "kj, kx, k7, k8, k9, kaa, kae, ks, kw, km, ka, ku, kt, kv, kaj",
+          "meaning": "Colours, theme, size, width, placement, fonts, underline, page numbers, units (look and feel).",
+          "source": "https://duckduckgo.com/duckduckgo-help-pages/settings/params/"
+        },
+        {
+          "name": "kai, kbh, kbi, kbe, kbl, kbd, kbf, kk, kat, kar, kay, kbk",
+          "meaning": "URL placement, site names, compact results, Search Assist and Explore More frequency, keyboard shortcuts, location prompt, map rendering, navigation app (display/AI-feature preferences).",
+          "source": "https://duckduckgo.com/dist/util/u.9a6f65eb56a1d2e8cbab.js"
+        },
+        {
+          "name": "iai",
+          "meaning": "Selected item in the images/videos/maps detail pane (view state; result set unchanged).",
+          "source": "https://duckduckgo.com/dist/g.edb8e6b509facf195f5c.js; https://duckduckgo.com/dist/wpm.main.6ef5bbf2bfce334a5036.js"
+        },
+        {
+          "name": "bang",
+          "meaning": "Marker that the query came from a !bang (bang=true with ia=chat).",
+          "source": "https://duckduckgo.com/bang.js (inferred)"
+        },
+        {
+          "name": "assiston",
+          "meaning": "Forces the Search Assist AI answer (display, not results).",
+          "source": "https://duckduckgo.com/bang.js (bang 'assist'; inferred)"
+        },
+        {
+          "name": "vqd",
+          "meaning": "Validation query digest (anti-bot token tied to query and User-Agent).",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo.py; https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (stripped on y.js)"
+        },
+        {
+          "name": "b, nextParams, v, o, api",
+          "meaning": "Form plumbing on html/lite (empty submit button, continuation, API selector, output format).",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/duckduckgo.py; live observation 2026-10-10"
+        }
+      ],
+      "notes": "Vertical rule (from DuckDuckGo's own front-end resolver): resolve (ia, iax, iar, iaxm) to a vertical; if it is web, drop all four; otherwise keep only the parameters that participate in the resolution (images/videos/shopping/recipes: ia+iax; news: ia+iar; iar alone when ia and iax are absent; maps: iaxm, plus bbox/strict_bbox; chat: ia=chat). Default-valued functional parameters (kl=wt-wt, kp=-1, kad=wt_WT) may be kept or dropped; keeping is safe. The /l/?uddg= redirector is a wrapper, not a result page: unwrap uddg (ClearURLs redirection rule, https://github.com/ClearURLs/Rules/blob/master/data.min.json). /y.js ad-click links carry ad_provider, ad_domain, click_metadata, iurl, ad_type, vqd (AdGuard/uBO strip them). Non-JS hosts: help page https://duckduckgo.com/duckduckgo-help-pages/features/non-javascript/ links duckduckgo.com/html and /lite; noai.duckduckgo.com is the same search with AI features off (https://duckduckgo.com/duckduckgo-help-pages/ai-features/about-noaiduckduckgocom/). DuckDuckGo's front-end bundle URLs are content-hashed and will change; they were read on 2026-10-10. kl, kp, kad, df are also stored as cookies (l, p, ad, df), so a cleaned URL can still render differently for a viewer with saved settings.",
+      "tests": [
+        {
+          "dirty": "https://duckduckgo.com/?ia=web&origin=funnel_home_website&t=h_&q=bag",
+          "clean": "https://duckduckgo.com/?q=bag"
+        },
+        {
+          "dirty": "https://duckduckgo.com/?q=bag&t=h_&iar=images&iax=images&ia=images&atb=v451-1",
+          "clean": "https://duckduckgo.com/?q=bag&iax=images&ia=images"
+        },
+        {
+          "dirty": "https://duckduckgo.com/?q=bag&kl=no-no&kp=-2&df=w&kad=nb_NO&kae=d&ko=-1&natb=v451-1&cp=atbhc&t=ffab&ia=web",
+          "clean": "https://duckduckgo.com/?q=bag&kl=no-no&kp=-2&df=w&kad=nb_NO"
+        },
+        {
+          "dirty": "https://duckduckgo.com/?q=bag&t=h_&iar=news&ia=news&origin=funnel_home_website",
+          "clean": "https://duckduckgo.com/?q=bag&iar=news&ia=news"
+        },
+        {
+          "dirty": "https://html.duckduckgo.com/html/?q=bag&kl=uk-en&df=2026-01-01..2026-03-31&b=",
+          "clean": "https://html.duckduckgo.com/html/?q=bag&kl=uk-en&df=2026-01-01..2026-03-31"
+        }
+      ]
+    },
+    {
+      "engine": "Brave Search",
+      "hosts": [
+        "search.brave.com",
+        "search.brave4u7jddbv7cyviptqjc7jusxh72uik7zt6adtckl5f4nwy2v72qd.onion"
+      ],
+      "paths": [
+        "/search (web)",
+        "/images",
+        "/videos",
+        "/news",
+        "/goggles (web re-ranked by a Goggle)",
+        "/ask (Ask Brave AI answer page; q only)",
+        "NOT result pages: /api/suggest, /settings, /help, /goggles/discover"
+      ],
+      "functional": [
+        {
+          "name": "q",
+          "meaning": "Search query (supports operators and !bangs).",
+          "source": "https://search.brave.com/opensearch.xml; https://search.brave.com/opensearch.ask.xml; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/brave.py; https://api-dashboard.search.brave.com/app/documentation/web-search/query"
+        },
+        {
+          "name": "offset",
+          "meaning": "Zero-based page index (offset=1 is page 2); Brave serves about 10 pages.",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/brave.py (offset = pageno-1, max_page 10); https://api-dashboard.search.brave.com/app/documentation/web-search/query (offset 0-9); live observation 2026-10-10: next-page links /search, /videos, /news, /goggles use offset=1&spellcheck=0"
+        },
+        {
+          "name": "spellcheck",
+          "meaning": "spellcheck=0 disables automatic query correction (Brave's own pagination links add it so later pages keep the original query).",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/brave.py (brave_spellcheck); live observation 2026-10-10: page data lists spellcheck in its URL dependencies and spellcheck=0 set spellcheck:false"
+        },
+        {
+          "name": "tf",
+          "meaning": "Time filter: pd, pw, pm, py, at (any time, default) or a custom range YYYY-MM-DDtoYYYY-MM-DD.",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/brave.py (time_range_map pd/pw/pm/py); https://api-dashboard.search.brave.com/app/documentation/web-search/query (freshness, same values incl. custom range); live observation 2026-10-10: tf=pw and tf=2025-01-01to2025-02-01 were reflected as timeFilter"
+        },
+        {
+          "name": "country",
+          "meaning": "Result country, two-letter lowercase code (all = no country).",
+          "source": "https://api-dashboard.search.brave.com/app/documentation/web-search/query (country); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/brave.py (country cookie); live observation 2026-10-10: country=de set country:\"de\" on /search and /images"
+        },
+        {
+          "name": "search_lang",
+          "meaning": "Language of results (ISO 639-1).",
+          "source": "https://api-dashboard.search.brave.com/app/documentation/web-search/query (search_lang); live observation 2026-10-10: search_lang=de set searchLang:\"de\""
+        },
+        {
+          "name": "lang",
+          "meaning": "Interface language (lang=de switched the UI to de-de).",
+          "source": "live observation 2026-10-10 (inferred from behaviour; ui_lang and language were not honoured via URL)",
+          "condition": "interface language; keep"
+        },
+        {
+          "name": "safesearch",
+          "meaning": "Adult filter: off, moderate (default), strict.",
+          "source": "https://api-dashboard.search.brave.com/app/documentation/web-search/query; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/brave.py (safesearch cookie values); live observation 2026-10-10: safesearch=off and safesearch=strict were reflected"
+        },
+        {
+          "name": "goggles_id",
+          "meaning": "URL of a Goggle (.goggle file) that re-ranks or filters results.",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/brave.py (goggles_id); https://github.com/brave/goggles-quickstart; live observation 2026-10-10: page data lists goggles_id among its URL dependencies"
+        },
+        {
+          "name": "view",
+          "meaning": "Local results/map view state listed among the page's URL dependencies.",
+          "source": "live observation 2026-10-10 (search_params [q, summary, goggles_id, view, map_src])",
+          "condition": "inferred and unverified; keep if present, or drop under a strict policy"
+        }
+      ],
+      "nonfunctional": [
+        {
+          "name": "source",
+          "meaning": "Entry-point attribution: web, relatedQueries, vcluster, llmSuggest, desktop, android, ios, newtab, newtab_v1b.",
+          "source": "https://github.com/brave/adblock-lists/blob/master/brave-lists/clean-urls.json (Brave's own clean-urls list strips source on search.brave.com); https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt; https://github.com/brave/brave-core/blob/master/components/search_engines/brave_prepopulated_engines.cc; https://github.com/brave/brave-core/blob/master/components/brave_search/common/brave_search_utils.cc"
+        },
+        {
+          "name": "origin",
+          "meaning": "UI origin marker (e.g. origin=search).",
+          "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt"
+        },
+        {
+          "name": "summary",
+          "meaning": "AI summariser toggle (display; inferred).",
+          "source": "live observation 2026-10-10 (URL dependency of the page)"
+        },
+        {
+          "name": "map_src",
+          "meaning": "Which UI element opened the map (inferred).",
+          "source": "live observation 2026-10-10 (URL dependency of the page)"
+        },
+        {
+          "name": "action",
+          "meaning": "action=makeDefault, Brave browser 'make default' conversion marker.",
+          "source": "https://github.com/brave/brave-core/blob/master/components/brave_search_conversion/constants.h"
+        },
+        {
+          "name": "ui_lang, units",
+          "meaning": "API parameters; not honoured via the web URL (ignored on 2026-10-10).",
+          "source": "https://api-dashboard.search.brave.com/app/documentation/web-search/query; live observation 2026-10-10"
+        }
+      ],
+      "notes": "Brave also reads country, safesearch, ui_lang, useLocation and summarizer from cookies (SearXNG brave.py), so cleaned URLs may still render per-viewer settings. SearXNG states paging and tf only apply to /search and /goggles; on 2026-10-10 /videos and /news also paginated with offset, and /videos and /news reported tf in page data. owner's test: search.brave.com/search?q=bag&source=web becomes ?q=bag.",
+      "tests": [
+        {
+          "dirty": "https://search.brave.com/search?q=bag&source=web",
+          "clean": "https://search.brave.com/search?q=bag"
+        },
+        {
+          "dirty": "https://search.brave.com/search?q=bag&offset=1&spellcheck=0&source=desktop",
+          "clean": "https://search.brave.com/search?q=bag&offset=1&spellcheck=0"
+        },
+        {
+          "dirty": "https://search.brave.com/images?origin=search&q=bag&source=web&safesearch=strict&country=de",
+          "clean": "https://search.brave.com/images?q=bag&safesearch=strict&country=de"
+        },
+        {
+          "dirty": "https://search.brave.com/news?q=bag&source=relatedQueries&tf=2026-01-01to2026-02-01",
+          "clean": "https://search.brave.com/news?q=bag&tf=2026-01-01to2026-02-01"
+        },
+        {
+          "dirty": "https://search.brave.com/goggles?q=rust&goggles_id=https%3A%2F%2Fraw.githubusercontent.com%2Fbrave%2Fgoggles-quickstart%2Fmain%2Fgoggles%2Frust_programming.goggle&source=web",
+          "clean": "https://search.brave.com/goggles?q=rust&goggles_id=https%3A%2F%2Fraw.githubusercontent.com%2Fbrave%2Fgoggles-quickstart%2Fmain%2Fgoggles%2Frust_programming.goggle"
+        }
+      ]
+    },
+    {
+      "engine": "Startpage",
+      "hosts": [
+        "www.startpage.com",
+        "startpage.com"
+      ],
+      "paths": [
+        "/sp/search (current; GET and POST)",
+        "/do/search, /do/dsearch (still used by browsers, e.g. Brave's prepopulated engine)",
+        "/do/metasearch.pl, /do/m/mobilesearch (legacy, seen in DuckDuckGo bangs)",
+        "NOT result pages: /sp/captcha*, /sp/captcha-block, /osuggestions, /do/settings, /do/mypage.pl, /.within.website/ (Anubis challenge)"
+      ],
+      "functional": [
+        {
+          "name": "query",
+          "meaning": "Search query; q is accepted as an alias.",
+          "source": "https://support.startpage.com/hc/en-us/articles/4520913488148-Search-strings (https://www.startpage.com/sp/search?query=%s); https://support.startpage.com/hc/en-us/articles/4520868432788-Make-Startpage-your-default-search-engine-on-Firefox-mobile-Android (/sp/search?q=%s); https://www.startpage.com/sp/cdn/opensearch/en/opensearch.xml; https://github.com/brave/brave-core/blob/master/components/search_engines/brave_prepopulated_engines.cc (/do/search?q=); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py"
+        },
+        {
+          "name": "q",
+          "meaning": "Alias of query, used by browser search strings (/sp/search?q=, /do/search?q=).",
+          "source": "https://support.startpage.com/hc/en-us/articles/4520868432788-Make-Startpage-your-default-search-engine-on-Firefox-mobile-Android; https://github.com/brave/brave-core/blob/master/components/search_engines/brave_prepopulated_engines.cc; https://duckduckgo.com/bang.js (snih, spnl)"
+        },
+        {
+          "name": "cat",
+          "meaning": "Vertical: web, pics (images; SearXNG sends images), video, news.",
+          "source": "https://www.startpage.com/sp/cdn/opensearch/en/opensearch.xml (cat=web); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py (web, news, images); https://github.com/degoog-org/official-extensions/blob/main/engines/startpage-images/const/serp.js (pics); https://github.com/degoog-org/official-extensions/blob/main/engines/startpage-videos/const/serp.js (video); https://github.com/degoog-org/official-extensions/blob/main/engines/startpage-news/const/serp.js (news); https://duckduckgo.com/bang.js (spi cat=pics, spv cat=video)"
+        },
+        {
+          "name": "page",
+          "meaning": "Page number (2, 3, ...; about 18 pages served).",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py (args page, max_page 18); https://github.com/degoog-org/official-extensions/blob/main/engines/startpage/request.js"
+        },
+        {
+          "name": "language",
+          "meaning": "Search language, as Startpage language names (english, deutsch, espanol, ...).",
+          "source": "https://www.startpage.com/sp/cdn/opensearch/en/opensearch.xml (language=english); https://support.startpage.com/hc/en-us/articles/4521469334036-How-to-get-search-results-tailored-for-your-region ('Search Language ... promotes results based on that preference'); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py; https://duckduckgo.com/bang.js (sde language=deutsch)"
+        },
+        {
+          "name": "lui",
+          "meaning": "Interface language (same naming as language).",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py (lui with cookie language_ui); live observation 2026-10-10: Startpage itself appended language=english&lui=english&t=device&sc=... when redirecting a bare /sp/search?query=bag&cat=web",
+          "condition": "interface language; keep"
+        },
+        {
+          "name": "with_date",
+          "meaning": "Time filter: h, d, w, m, y.",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py (d/w/m/y); https://github.com/degoog-org/official-extensions/blob/main/engines/startpage/const/serp.js (TIME_MAP adds h); https://duckduckgo.com/bang.js (syear with_date=y)"
+        },
+        {
+          "name": "qadf",
+          "meaning": "Family (safe search) filter: none, moderate, heavy.",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py (safesearch_dict); https://github.com/searxng/searxng/commit/323ce76004; https://github.com/degoog-org/official-extensions/blob/main/engines/startpage/const/serp.js (SAFE_MAP off->none, on->heavy)"
+        },
+        {
+          "name": "qsr",
+          "meaning": "Region filter, Startpage region codes such as en-GB_GB, de_DE, or all.",
+          "source": "https://github.com/degoog-org/official-extensions/blob/main/engines/startpage/request.js (qsr = regionPreference, e.g. en-GB_GB); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py (qsr=all alongside cookie search_results_region); https://support.startpage.com/hc/en-us/articles/4521469334036-How-to-get-search-results-tailored-for-your-region (region filter on the results page)",
+          "condition": "parameter name to feature mapping is inferred from client code"
+        },
+        {
+          "name": "with_region",
+          "meaning": "Legacy region filter (countryCH, countryNO).",
+          "source": "https://duckduckgo.com/bang.js (bangs sch, sno)",
+          "condition": "legacy /do/ URLs"
+        },
+        {
+          "name": "l",
+          "meaning": "Legacy language selector (nihongo, nederlands).",
+          "source": "https://duckduckgo.com/bang.js (bangs snih, spnl)",
+          "condition": "legacy /do/ URLs; inferred"
+        }
+      ],
+      "nonfunctional": [
+        {
+          "name": "sc",
+          "meaning": "Anti-bot code scraped from the search form (timestamp-like); regenerated per request.",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py (get_sc_code); https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt ($removeparam=sc on startpage.com)"
+        },
+        {
+          "name": "segment",
+          "meaning": "Partner/traffic segment: startpage.udog, startpage.brave, startpage.vivaldi.1, organic.",
+          "source": "https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (||startpage.$removeparam=segment); https://github.com/brave/brave-core/blob/master/components/search_engines/brave_prepopulated_engines.cc; https://github.com/searxng/searxng/commit/b73ac81815; https://github.com/degoog-org/official-extensions/blob/main/engines/startpage/request.js"
+        },
+        {
+          "name": "pl",
+          "meaning": "Placement/source: opensearch, ext-ff, chrome.",
+          "source": "https://www.startpage.com/sp/cdn/opensearch/en/opensearch.xml; https://github.com/searxng/searxng/commit/df238e944c; https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (rule disabled after https://github.com/DandelionSprout/adfilt/issues/582: in 2022 Startpage blocked trimmed opensearch searches)"
+        },
+        {
+          "name": "source",
+          "meaning": "Attribution.",
+          "source": "https://github.com/AdguardTeam/AdguardFilters/blob/master/TrackParamFilter/sections/specific.txt (app.startpage.com); https://github.com/DandelionSprout/adfilt/blob/master/LegitimateURLShortener.txt (startpage.com)"
+        },
+        {
+          "name": "t",
+          "meaning": "Theme (device, dark, ...); display only.",
+          "source": "https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/startpage.py (form field t=device); live observation 2026-10-10 (inferred meaning)"
+        },
+        {
+          "name": "abp, abd, abe",
+          "meaning": "Ad-blocker detection flags.",
+          "source": "https://github.com/searxng/searxng/commit/323ce76004; https://github.com/searxng/searxng/commit/b73ac81815"
+        },
+        {
+          "name": "prfe, prf",
+          "meaning": "Settings bundle (Settings URL). It can carry region, search language and family filter, but it is an opaque mix of mostly display preferences and works as a settings fingerprint.",
+          "source": "https://support.startpage.com/hc/en-us/articles/4616565301524-What-is-the-Settings-URL; https://support.startpage.com/hc/en-us/articles/4616244515476-How-do-I-keep-my-settings-without-using-cookies; https://duckduckgo.com/bang.js (spp, spit use prf)"
+        },
+        {
+          "name": "cmd",
+          "meaning": "Legacy command field (process_search, gen_page).",
+          "source": "https://duckduckgo.com/bang.js; live observation 2026-10-10"
+        },
+        {
+          "name": "extVersion, engine0, SuggestOn",
+          "meaning": "Legacy extension version, backend selector, suggestions toggle.",
+          "source": "https://github.com/searxng/searxng/commit/df238e944c; https://duckduckgo.com/bang.js"
+        }
+      ],
+      "notes": "Startpage is heavily bot-protected (Anubis proof-of-work, sc code, captcha). A cleaned URL without sc/pl/segment is still the documented search string (https://support.startpage.com/hc/en-us/articles/4520913488148-Search-strings), but some clients and IPs (VPN egress was blocked on 2026-10-10) get the captcha page; issue https://github.com/DandelionSprout/adfilt/issues/582 shows Startpage once blocked trimmed opensearch URLs. Region and family filter are also stored in the preferences cookie (search_results_region, disable_family_filter), so results can differ per viewer. prfe is classed non-functional by default; CheckLink could offer an opt-in to keep it. Live SERP could not be inspected from this network (captcha-block redirect), so qsr and t meanings rest on client code.",
+      "tests": [
+        {
+          "dirty": "https://www.startpage.com/sp/search?query=bag&cat=web&pl=opensearch&language=english",
+          "clean": "https://www.startpage.com/sp/search?query=bag&cat=web&language=english"
+        },
+        {
+          "dirty": "https://www.startpage.com/sp/search?language=english&lui=english&t=device&query=bag&cat=web&sc=2MMOuFQUrfchZqKPJnWItJ&segment=startpage.udog&abd=1&abe=1&page=2",
+          "clean": "https://www.startpage.com/sp/search?language=english&lui=english&query=bag&cat=web&page=2"
+        },
+        {
+          "dirty": "https://www.startpage.com/do/search?q=bag&segment=startpage.brave&with_date=w&qadf=heavy&qsr=en-GB_GB&prfe=36c84513558a2d34bf0d89ea505333ad",
+          "clean": "https://www.startpage.com/do/search?q=bag&with_date=w&qadf=heavy&qsr=en-GB_GB"
+        },
+        {
+          "dirty": "https://www.startpage.com/sp/search?query=bag&cat=pics&pl=ext-ff&extVersion=1.3.0",
+          "clean": "https://www.startpage.com/sp/search?query=bag&cat=pics"
+        }
+      ]
+    },
+    {
+      "engine": "Mojeek",
+      "hosts": [
+        "www.mojeek.com",
+        "mojeek.com"
+      ],
+      "paths": [
+        "/search (all verticals: web by default, fmt=images, fmt=news, fmt=sst for Substack, Focus via foc_t)",
+        "NOT result pages: /, /images, /news, /blogs, /focus/ (vertical homepages without q), /preferences, /advanced.html, /captcha/*"
+      ],
+      "functional": [
+        {
+          "name": "q",
+          "meaning": "Search query (operators: site:, since:, before:, inurl:, intitle:, intext:, inanchor:).",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html; https://www.mojeek.com/opensearch.xml; https://www.mojeek.com/support/search-operators.html; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/mojeek.py"
+        },
+        {
+          "name": "qm",
+          "meaning": "Words to exclude ('none of these words').",
+          "source": "https://www.mojeek.com/advanced.html; https://www.mojeek.com/support/api/search/request_parameters.html"
+        },
+        {
+          "name": "s",
+          "meaning": "Start position. API docs: 1 = first result, 11 = first result of page 2 at 10 per page. SearXNG sends s=10 for page 2.",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/mojeek.py"
+        },
+        {
+          "name": "t",
+          "meaning": "Results per page (5 to 40; default 10). Defines the page window together with s.",
+          "source": "https://www.mojeek.com/advanced.html; https://www.mojeek.com/preferences; https://www.mojeek.com/support/api/search/request_parameters.html",
+          "condition": "keep: changes which results appear on the page"
+        },
+        {
+          "name": "site",
+          "meaning": "Restrict to one site.",
+          "source": "https://www.mojeek.com/advanced.html; https://www.mojeek.com/support/api/search/request_parameters.html; https://www.mojeek.com/support/search-operators.html"
+        },
+        {
+          "name": "since",
+          "meaning": "Last-modified since: day, month, year or YYYYMMDD.",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html; https://www.mojeek.com/support/search-operators.html; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/mojeek.py"
+        },
+        {
+          "name": "before",
+          "meaning": "Last-modified before: day, month, year or YYYYMMDD.",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html; https://www.mojeek.com/support/search-operators.html"
+        },
+        {
+          "name": "datewr",
+          "meaning": "Date weight ratio; 100 ranks by date.",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html"
+        },
+        {
+          "name": "safe",
+          "meaning": "Safe search: 0 or 1.",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html; https://www.mojeek.com/preferences; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/mojeek.py"
+        },
+        {
+          "name": "reg",
+          "meaning": "Restrict to pages from a region: eu, de, fr, uk (case varies).",
+          "source": "https://www.mojeek.com/preferences ('Only show search results from this location'); https://www.mojeek.com/advanced.html; https://www.mojeek.com/support/api/search/request_parameters.html"
+        },
+        {
+          "name": "arc",
+          "meaning": "Preferred location for results (ISO country code, none, or auto).",
+          "source": "https://www.mojeek.com/preferences ('Set the preferred location for search results'); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/mojeek.py (region_param arc)"
+        },
+        {
+          "name": "lb",
+          "meaning": "Preferred language for results (language boost, ISO 639-1).",
+          "source": "https://www.mojeek.com/preferences; https://www.mojeek.com/support/api/search/request_parameters.html; https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/mojeek.py (language_param lb)"
+        },
+        {
+          "name": "lbb",
+          "meaning": "Strength of the language boost (1 to 100).",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html"
+        },
+        {
+          "name": "rb",
+          "meaning": "Region boost country (ISO 3166-1 alpha-2).",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html",
+          "condition": "API-documented; web support inferred"
+        },
+        {
+          "name": "rbb",
+          "meaning": "Strength of the region boost (1 to 100).",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html",
+          "condition": "API-documented; web support inferred"
+        },
+        {
+          "name": "lr",
+          "meaning": "Restrict to a language (beta).",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html",
+          "condition": "API-documented; web support inferred"
+        },
+        {
+          "name": "si",
+          "meaning": "Maximum results per domain (0 = unlimited).",
+          "source": "https://www.mojeek.com/advanced.html; https://www.mojeek.com/support/api/search/request_parameters.html"
+        },
+        {
+          "name": "clufmt",
+          "meaning": "Clustering format (1 to 5, 0 disables).",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html",
+          "condition": "API-documented; web support inferred"
+        },
+        {
+          "name": "fi",
+          "meaning": "Domains to include (comma separated).",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html",
+          "condition": "API-documented; web support inferred"
+        },
+        {
+          "name": "fe",
+          "meaning": "Domains to exclude (comma separated).",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html",
+          "condition": "API-documented; web support inferred"
+        },
+        {
+          "name": "fmt",
+          "meaning": "Vertical on the web UI: images, news, sst (Substack). On the API the same name selects json/xml output.",
+          "source": "https://www.mojeek.com/images (hidden fmt=images); https://www.mojeek.com/blogs (hidden fmt=sst); https://github.com/searxng/searxng/blob/f4822b3fc46726bb259d14c6332b702c76b98f82/searx/engines/mojeek.py (fmt=images/news)"
+        },
+        {
+          "name": "sst",
+          "meaning": "Substack tab flag submitted with fmt=sst.",
+          "source": "https://www.mojeek.com/blogs (hidden sst=1); https://www.mojeek.com/preferences",
+          "condition": "keep only with fmt=sst; inferred"
+        },
+        {
+          "name": "foc_t",
+          "meaning": "Mojeek Focus topic (Cybersecurity, Encyclopedias, Recipes, SmallWeb, TechNews, ...): restricts results to a curated domain set.",
+          "source": "https://www.mojeek.com/focus/"
+        },
+        {
+          "name": "lang",
+          "meaning": "Site (interface) language: en, de, fr.",
+          "source": "https://www.mojeek.com/preferences",
+          "condition": "interface language; keep"
+        },
+        {
+          "name": "imgpr",
+          "meaning": "Image provider for image results: openverse (default) or pixabay.",
+          "source": "https://www.mojeek.com/preferences",
+          "condition": "images vertical"
+        }
+      ],
+      "nonfunctional": [
+        {
+          "name": "theme, hp, autocomp",
+          "meaning": "Theme, minimal homepage, autocomplete (Mojeek's own cookieless example strips to these display settings).",
+          "source": "https://www.mojeek.com/preferences; https://www.mojeek.com/support/search/cookieless.html"
+        },
+        {
+          "name": "qsbu, qsba, qss[]",
+          "meaning": "Search Choice buttons/bar and which other engines to list.",
+          "source": "https://www.mojeek.com/preferences"
+        },
+        {
+          "name": "date, cdate, size",
+          "meaning": "Show last-modified date, crawl date, document size in results.",
+          "source": "https://www.mojeek.com/preferences; https://www.mojeek.com/support/api/search/request_parameters.html; https://www.mojeek.com/advanced.html"
+        },
+        {
+          "name": "tlen, dlen",
+          "meaning": "Title and snippet length.",
+          "source": "https://www.mojeek.com/preferences; https://www.mojeek.com/support/api/search/request_parameters.html"
+        },
+        {
+          "name": "rp_i",
+          "meaning": "Tidy URL style.",
+          "source": "https://www.mojeek.com/preferences"
+        },
+        {
+          "name": "spell",
+          "meaning": "Show alternative spelling suggestions (display only; query unchanged).",
+          "source": "https://www.mojeek.com/preferences"
+        },
+        {
+          "name": "newtab, ref",
+          "meaning": "Open in new tab; referrer protection.",
+          "source": "https://www.mojeek.com/preferences"
+        },
+        {
+          "name": "mal, sumb, sumt, ib, tn",
+          "meaning": "AI summary box position, summarise button, summary tab, infoboxes, number of news items alongside results.",
+          "source": "https://www.mojeek.com/preferences"
+        },
+        {
+          "name": "tab",
+          "meaning": "Preferences page tab.",
+          "source": "https://www.mojeek.com/preferences"
+        },
+        {
+          "name": "api_key",
+          "meaning": "Search API credential; must never survive cleaning.",
+          "source": "https://www.mojeek.com/support/api/search/request_parameters.html"
+        }
+      ],
+      "notes": "Mojeek keeps preferences either in a cookie or as URL parameters (cookieless mode), so shared result URLs often carry a full preference set; only the result-shaping ones above should survive. The SERP is behind an ALTCHA proof-of-work captcha (SearXNG mojeek.py), so the web-side behaviour of API-only parameters (rb, rbb, lr, clufmt, fi, fe) could not be confirmed; they are kept as functional because they can only change results. arc and lb are also read from cookies of the same name.",
+      "tests": [
+        {
+          "dirty": "https://www.mojeek.com/search?q=bag&theme=dark&autocomp=0&hp=minimal",
+          "clean": "https://www.mojeek.com/search?q=bag"
+        },
+        {
+          "dirty": "https://www.mojeek.com/search?q=bag&s=11&t=20&lb=en&arc=no&safe=1&tlen=68&dlen=160&date=1&newtab=1",
+          "clean": "https://www.mojeek.com/search?q=bag&s=11&t=20&lb=en&arc=no&safe=1"
+        },
+        {
+          "dirty": "https://www.mojeek.com/search?q=bag&fmt=images&imgpr=pixabay&qsba=1&qss%5B%5D=Brave&qss%5B%5D=DuckDuckGo",
+          "clean": "https://www.mojeek.com/search?q=bag&fmt=images&imgpr=pixabay"
+        },
+        {
+          "dirty": "https://www.mojeek.com/search?q=bag&since=20260101&before=20260301&reg=uk&site=bbc.co.uk&rp_i=1&mal=2",
+          "clean": "https://www.mojeek.com/search?q=bag&since=20260101&before=20260301&reg=uk&site=bbc.co.uk"
+        },
+        {
+          "dirty": "https://www.mojeek.com/search?q=privacy&fmt=sst&sst=1&theme=light",
+          "clean": "https://www.mojeek.com/search?q=privacy&fmt=sst&sst=1"
+        }
+      ]
+    }
+  ]
+}

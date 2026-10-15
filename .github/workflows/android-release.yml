@@ -1,0 +1,411 @@
+name: Android release
+
+# Adapted from MetadataScrubber's workflow for CheckLink (stage 4, 11 October 2026), and split
+# into two jobs in stage 4b (decision SEC-6, 11 October 2026). It has not run yet: the
+# repository is not on GitHub until stage 5.
+#
+# Tagged android-v* only, and nothing else starts it: there is no manual run, so no branch can
+# ever reach the signing secrets. The repo also serves the web app at check.stormberry.as, so
+# the prefix keeps app releases from colliding with anything the site ever tags.
+#
+# TWO JOBS, so that build tools never come near the app's signing key or GitHub's signing token:
+#
+#   build    runs the tests, the web checks and lint, and has Gradle build the release APK
+#            UNSIGNED. It can only read the repository: no secret, no key, no password, and no
+#            token that can write or sign anything. Gradle, and everything it downloads
+#            (plugins, libraries and their build code), runs here and nowhere else.
+#
+#   release  runs NO Gradle and no code from the build. It takes the unsigned APK as data and
+#            checks it BEFORE the key is decoded: exactly the permissions in
+#            android/expected-permissions.txt, the camera optional, not debuggable, the version
+#            the tag names, and every web file in it byte for byte against the tagged commit.
+#            Then it aligns and signs that same file with Google's zipalign and apksigner, using
+#            the permanent key from the "release" environment, and checks the result: one signer,
+#            CheckLink's pinned certificate, and the same files as the APK it checked. Only then
+#            does it attest and publish. The tokens that write (contents) and sign the
+#            provenance record (id-token) exist in this job alone.
+#
+# What the split does not cover: the release job signs the code the build job compiled, so a
+# build dependency that went bad could still put its own code into classes.dex. The checks above
+# cover the permissions, the manifest's flags and the web files, not the compiled code. The build
+# is reproducible (the same sha256 twice, stage 4b), which allows a second, independent build to
+# be compared later.
+#
+# ONE-TIME SET-UP ON GITHUB, before the first tag (repository Settings):
+#   1. Environments, New environment, named exactly: release
+#   2. In it, "Deployment branches and tags": Selected branches and tags, then add a rule of
+#      type Tag with the name pattern android-v* (and no branch rule).
+#   3. In it, Environment secrets: KEYSTORE_BASE64 (the .p12 file, base64-encoded),
+#      KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD. None of them as a repository secret.
+# Steps 1 to 3 keep the key from every branch, but not from a tag: GitHub runs the workflow file
+# of the tagged commit, so anyone who can push an android-v* tag (a stolen token, for one) could
+# point it at a commit whose release job sends the key elsewhere. Two more settings close that
+# (stage 4b review S5):
+#   4. In the release environment, "Required reviewers": the account that publishes releases. Each
+#      release then waits for one click on the run's page before the key is handed over.
+#   5. Rules, Rulesets, New tag ruleset, for tags matching android-v*: restrict creations, updates
+#      and deletions, with only that account allowed to bypass.
+on:
+  push:
+    tags: ["android-v*"]
+
+# Nothing by default; each job asks for exactly what it needs.
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: android
+
+    # Every action is pinned to a full commit hash, with its release in the comment. A tag
+    # such as v6 can be moved to other code; a commit hash cannot. setup-gradle matters most
+    # here: it installs an init script into every later Gradle run. To update a pin, resolve
+    # the new release with
+    #   git ls-remote https://github.com/<owner>/<repo>.git 'refs/tags/<tag>*'
+    # and take the ^{} line for an annotated tag. A new release must be at least 14 days old.
+    steps:
+      # No credentials are left in .git/config for the build to find. Only HEAD is needed (the
+      # release check compares the bundled web files with the committed ones), so no history.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # No Gradle cache: nothing another run left behind can change what this build reads
+      # (stage 4b review S6).
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-disabled: true
+
+      # The runner ships an Android SDK, but not necessarily platform 37.1, and its
+      # bundled sdkmanager may be too old to know that package exists. Refresh
+      # cmdline-tools first, then install, and let the output show if it fails.
+      - name: Install SDK packages the runner may not have
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKMANAGER" ] || SDKMANAGER="$(command -v sdkmanager)"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "cmdline-tools;latest" > /dev/null
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platforms;android-37.1" "build-tools;36.0.0"
+
+      # verifyWebAssets fails unless every bundled web file is byte-identical to the one the
+      # website serves (index.html may differ only by the single injected bridge line);
+      # verifyWebAssetsCommitted fails unless each also equals the copy in the tagged commit
+      # (on a CI runner it also fails when there is no git checkout).
+      - name: Test, check the bundled web app and lint
+        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:verifyWebAssets :app:verifyWebAssetsCommitted :app:lintRelease
+
+      # -PunsignedRelease=true is the only way the build makes a release APK without signing
+      # it, and the build refuses it if a signing password is anywhere in reach.
+      - name: Build the release APK, unsigned
+        run: ./gradlew --no-daemon -PunsignedRelease=true :app:assembleRelease
+
+      # Only the APK leaves this job. The release job checks everything else against the
+      # tagged commit itself, so nothing else the build wrote is trusted.
+      - name: Make sure it is unsigned, and set it aside
+        run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/release/app-release-unsigned.apk
+          [ -s "$APK" ] || { echo "::error::$APK was not built"; exit 1; }
+          if "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify "$APK" > /dev/null 2>&1; then
+            echo "::error::the build job made a signed APK; it must never hold a key"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/handover"
+          cp "$APK" "$RUNNER_TEMP/handover/checklink-unsigned.apk"
+          sha256sum "$RUNNER_TEMP/handover/checklink-unsigned.apk"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: checklink-unsigned
+          path: ${{ runner.temp }}/handover/checklink-unsigned.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/android-v')
+    runs-on: ubuntu-latest
+    # The signing secrets live in this environment, which only android-v* tags may use.
+    environment: release
+    permissions:
+      contents: write        # create the release
+      id-token: write        # sign the provenance attestation
+      attestations: write    # publish it
+    defaults:
+      run:
+        working-directory: android
+
+    # No Gradle, no setup-gradle and no build output but the APK. Every tool here is Google's
+    # (zipalign, apksigner, aapt2 from build-tools 36.0.0) or the runner's own.
+    steps:
+      # The tagged commit, for expected-permissions.txt, NOTICE and the web files the APK
+      # must carry byte for byte. Nothing in it is run.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install build-tools 36.0.0 (zipalign, apksigner, aapt2)
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKMANAGER" ] || SDKMANAGER="$(command -v sdkmanager)"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "build-tools;36.0.0"
+          for t in zipalign apksigner aapt2; do
+            [ -x "$ANDROID_HOME/build-tools/36.0.0/$t" ] || { echo "::error::build-tools 36.0.0 has no $t"; exit 1; }
+          done
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: checklink-unsigned
+          path: ${{ runner.temp }}/handover
+
+      # Everything about what the APK holds is checked BEFORE the key is decoded, on the very file
+      # the build job handed over (stage 4b review S6): a bad APK never comes near the key. Fails
+      # if the APK declares any permission beyond android/expected-permissions.txt (the package
+      # line and CAMERA, nothing else), if its web app is not exactly the tagged website, or if
+      # the tag does not match its version.
+      - name: Check the unsigned APK (permissions, camera, debuggable, version and web files)
+        run: |
+          set -euo pipefail
+          APK="$RUNNER_TEMP/handover/checklink-unsigned.apk"
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
+
+          # FAIL CLOSED. `dump permissions` must print exactly what
+          # android/expected-permissions.txt holds: the package line and the one CAMERA
+          # line. The output is compared whole, so any other uses-permission or
+          # permission line fails, and so does an aapt2 that cannot read the APK (set -e
+          # stops on its exit status before the comparison).
+          AAPT="$BUILD_TOOLS/aapt2"
+          DUMP=$("$AAPT" dump permissions "$APK")
+          EXPECTED_PERMISSIONS=$(cat expected-permissions.txt)
+          if [ "$DUMP" != "$EXPECTED_PERMISSIONS" ]; then
+            echo "::error::APK permissions differ from android/expected-permissions.txt"
+            echo "expected:"
+            printf '%s\n' "$EXPECTED_PERMISSIONS"
+            echo "actual:"
+            printf '%s\n' "$DUMP"
+            exit 1
+          fi
+          echo "Verified: exactly the permissions in expected-permissions.txt (the camera only)."
+
+          # The camera must stay optional, so phones and tablets without one can install
+          # the app (uses-feature required="false" for camera.any and camera).
+          BADGING=$("$AAPT" dump badging "$APK")
+          if printf '%s\n' "$BADGING" | grep -E "^\s*uses-feature: name='android\.hardware\.camera" ; then
+            echo "::error::the APK requires a camera; it must declare camera features required=\"false\""
+            exit 1
+          fi
+          echo "Verified: the camera is optional."
+
+          # A release build must never be debuggable.
+          if printf '%s\n' "$BADGING" | grep -q "^application-debuggable"; then
+            echo "::error::the release APK is debuggable"
+            exit 1
+          fi
+          echo "Verified: not debuggable."
+
+          # A tag must match the version inside the APK, or the release would publish a
+          # misnamed binary that Zapstore and Obtainium cannot offer as an update.
+          VERSION_NAME=$(printf '%s\n' "$BADGING" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)
+          VERSION_CODE=$(printf '%s\n' "$BADGING" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p" | head -1)
+          echo "APK versionName $VERSION_NAME, versionCode $VERSION_CODE"
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+            if [ "v$VERSION_NAME" != "${GITHUB_REF_NAME#android-}" ]; then
+              echo "::error::tag $GITHUB_REF_NAME does not match the APK's versionName $VERSION_NAME; bump versionName and versionCode in android/app/build.gradle.kts"
+              exit 1
+            fi
+            echo "Verified: tag matches versionName."
+          fi
+
+          # The bundled web app and the licence texts must be inside the APK: the page, its
+          # module, the bridge, the privacy page, the disclaimer and the first-run notice (stage
+          # 5), the engine, the decoder worker and the decoder itself, the QR
+          # code maker and its encoder (stage 4b), the app's own licence files, and every
+          # licence text NOTICE names (read from NOTICE, so a new one is checked without
+          # editing this list).
+          for f in web/index.html web/app.js web/style.css web/android-bridge.js web/favicon.svg \
+                   web/privacy.html web/disclaimer.html web/disclaimer.css web/gate.js web/gate.css \
+                   web/src/link-core.js web/src/rules.js web/src/psl.js web/src/qr-inspect.js \
+                   web/src/qr-worker.js web/src/qr-decode.js web/src/worker-lockdown.js \
+                   web/src/qr-make.js web/vendor/qrcodegen-8329a71/qrcodegen.js \
+                   web/vendor/zxing-wasm-3.1.4/es/reader/index.js web/vendor/zxing-wasm-3.1.4/es/share.js \
+                   web/vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js web/fonts/inter/inter.css \
+                   licences/Apache-2.0.txt licences/CheckLink-MIT.txt licences/THIRD-PARTY.txt; do
+            unzip -l "$APK" "assets/$f" > /dev/null || { echo "::error::assets/$f missing from the APK"; exit 1; }
+          done
+          NAMED=$(grep -o 'licences/[A-Za-z0-9._-]*\.txt' ../NOTICE | sort -u)
+          [ -n "$NAMED" ] || { echo "::error::NOTICE names no licence files"; exit 1; }
+          for f in $NAMED; do
+            unzip -l "$APK" "assets/web/$f" > /dev/null || { echo "::error::assets/web/$f (named in NOTICE) missing from the APK"; exit 1; }
+          done
+          echo "Verified: web app and licences bundled ($(printf '%s\n' "$NAMED" | wc -l) licence texts named in NOTICE)."
+
+          # EVERY web file, byte for byte, against the tagged commit and not against anything
+          # the build job wrote. The expected set is the app's include list
+          # (WebAssets.INCLUDES in android/app/build.gradle.kts; a test keeps the two equal)
+          # read from this checkout, plus the bridge script. The APK's assets/web/ must hold
+          # exactly that set; each file must equal the commit's copy, index.html apart from
+          # the one injected bridge line, and android-bridge.js must equal android/web-overlay.
+          shopt -s globstar nullglob
+          EXPECTED_WEB=$(cd .. && for f in index.html app.js style.css favicon.svg \
+                                         privacy.html disclaimer.html disclaimer.css gate.js gate.css \
+                                         src/**/*.js vendor/**/*.js \
+                                         fonts/**/*.css fonts/**/*.woff2 \
+                                         switcher-icons/*.svg licences/*.txt; do
+                           [ -f "$f" ] && printf '%s\n' "$f"
+                         done; echo android-bridge.js)
+          EXPECTED_WEB=$(printf '%s\n' "$EXPECTED_WEB" | sort -u)
+          IN_APK=$(unzip -Z1 "$APK" | sed -n 's#^assets/web/##p' | grep -v '/$' | sort -u)
+          if [ "$EXPECTED_WEB" != "$IN_APK" ]; then
+            echo "::error::the APK's web files are not exactly the tagged website's"
+            diff <(printf '%s\n' "$EXPECTED_WEB") <(printf '%s\n' "$IN_APK") || true
+            exit 1
+          fi
+          TAG_LINE='<script src="android-bridge.js"></script>'
+          WEB_FILES=0
+          while IFS= read -r f; do
+            case "$f" in
+              android-bridge.js)
+                unzip -p "$APK" "assets/web/$f" | cmp -s - web-overlay/android-bridge.js \
+                  || { echo "::error::assets/web/android-bridge.js differs from android/web-overlay"; exit 1; } ;;
+              index.html)
+                [ "$(unzip -p "$APK" assets/web/index.html | grep -cx "[[:space:]]*$TAG_LINE")" = 1 ] \
+                  || { echo "::error::index.html must carry the bridge line exactly once"; exit 1; }
+                unzip -p "$APK" assets/web/index.html | grep -vx "[[:space:]]*$TAG_LINE" | cmp -s - ../index.html \
+                  || { echo "::error::index.html differs from the tagged one by more than the bridge line"; exit 1; } ;;
+              *)
+                unzip -p "$APK" "assets/web/$f" | cmp -s - "../$f" \
+                  || { echo "::error::assets/web/$f differs from the tagged commit"; exit 1; } ;;
+            esac
+            WEB_FILES=$((WEB_FILES + 1))
+          done <<< "$IN_APK"
+          echo "Verified: all $WEB_FILES web files are the tagged website's, byte for byte (index.html apart from the bridge line)."
+
+          # The file the next steps sign must be this one.
+          sha256sum "$APK" > "$RUNNER_TEMP/checked.sha256"
+
+      # The keystore is decoded into RUNNER_TEMP, outside the workspace, so no artifact glob
+      # or accidental `git add` can ever pick it up, and it is shredded straight after.
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+
+      # zipalign first: the APK Signature Scheme covers the whole file, so nothing may move
+      # after signing. The passwords reach apksigner as environment variables (env:), never
+      # on its command line. v1 (JAR) signing is off because minSdk 24 makes it dead weight,
+      # v2 covers Android 7.0 and later, and v3 keeps key rotation possible later: the same
+      # schemes the Gradle build used to sign with.
+      - name: Align and sign with apksigner
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
+          IN="$RUNNER_TEMP/handover/checklink-unsigned.apk"
+          sha256sum -c --quiet "$RUNNER_TEMP/checked.sha256"
+          "$BUILD_TOOLS/zipalign" -f 4 "$IN" "$RUNNER_TEMP/aligned.apk"
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks "$RUNNER_TEMP/release.p12" --ks-type PKCS12 \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD \
+            --v1-signing-enabled false --v2-signing-enabled true \
+            --v3-signing-enabled true --v4-signing-enabled false \
+            --out "$RUNNER_TEMP/checklink-release.apk" "$RUNNER_TEMP/aligned.apk"
+          rm -f "$RUNNER_TEMP/aligned.apk"
+
+      - name: Remove keystore
+        if: always()
+        run: shred -u "$RUNNER_TEMP/release.p12" || rm -f "$RUNNER_TEMP/release.p12"
+
+      # Fails the release if signing went wrong, if the certificate is not the pinned one, or if
+      # aligning and signing changed, added or dropped any file of the APK checked above.
+      - name: Verify signature and certificate, and that signing changed no file
+        run: |
+          set -euo pipefail
+          APK="$RUNNER_TEMP/checklink-release.apk"
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
+
+          "$BUILD_TOOLS/zipalign" -c 4 "$APK" > /dev/null || { echo "::error::the APK is not aligned"; exit 1; }
+          CERTS=$("$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK")
+          printf '%s\n' "$CERTS"
+
+          # Exactly one signer, so the pin below speaks for the whole APK.
+          if ! printf '%s\n' "$CERTS" | grep -qx 'Number of signers: 1'; then
+            echo "::error::the APK must have exactly one signer"
+            exit 1
+          fi
+
+          # PIN THE SIGNING CERTIFICATE, do not merely check that one exists.
+          # apksigner's exit status catches an UNSIGNED apk, but an apk validly
+          # signed with the WRONG key passes it and reaches the release. Android
+          # enforces certificate continuity, so publishing under the wrong key
+          # permanently forks the install base: existing users would get
+          # INSTALL_FAILED_UPDATE_INCOMPATIBLE and the only fix is uninstalling.
+          # CheckLink's own key (one key per app), created 11 October 2026:
+          # ~/.android-keys/stormberry-checklink-release.p12, alias release.
+          EXPECTED_CERT=12dec5ac5eda5500ec233bd10f58515fd99d9a82480ed56445418b164f28a5d5
+          ACTUAL_CERT=$(printf '%s\n' "$CERTS" \
+            | grep -i 'certificate SHA-256 digest' | head -1 | awk '{print $NF}')
+          if [ "$ACTUAL_CERT" != "$EXPECTED_CERT" ]; then
+            echo "::error::signing certificate mismatch"
+            echo "  expected $EXPECTED_CERT"
+            echo "  actual   $ACTUAL_CERT"
+            exit 1
+          fi
+          echo "Signing certificate matches the pinned fingerprint."
+
+          # The same files as the APK checked before signing: each name, size, CRC-32 and
+          # compression, in the same order (v1 signing is off, so nothing is added to META-INF).
+          python3 - "$RUNNER_TEMP/handover/checklink-unsigned.apk" "$APK" <<'PY'
+          import sys, zipfile
+          entries = [[(i.filename, i.file_size, i.CRC, i.compress_type) for i in zipfile.ZipFile(p).infolist()] for p in sys.argv[1:3]]
+          if entries[0] != entries[1]:
+              print("::error::signing changed the files of the APK that was checked")
+              sys.exit(1)
+          print(f"Verified: the signed APK holds the same {len(entries[1])} files as the APK checked before signing.")
+          PY
+
+      # Lets anyone prove this exact binary came out of this repo and this run:
+      #   gh attestation verify checklink-v0.0.1.apk -R StormberryAS/CheckLink
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/checklink-release.apk
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Strips only the "android-" prefix, so the tag android-v0.0.1 yields v0.0.1
+          # and the asset carries the v: checklink-v0.0.1.apk. Keep this in step with the
+          # `match` pattern in zapstore.yaml (stage 5): match: "checklink-.*\\.apk$"
+          VERSION="${GITHUB_REF_NAME#android-}"
+          cp "$RUNNER_TEMP/checklink-release.apk" "checklink-${VERSION}.apk"
+          sha256sum "checklink-${VERSION}.apk" > "checklink-${VERSION}.apk.sha256"
+          gh release create "$GITHUB_REF_NAME" \
+            "checklink-${VERSION}.apk" \
+            "checklink-${VERSION}.apk.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "CheckLink for Android ${VERSION}" \
+            --generate-notes
