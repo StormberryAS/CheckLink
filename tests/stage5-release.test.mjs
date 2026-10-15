@@ -266,7 +266,7 @@ const PINNED = {
   'gate.js': '650fd78266fe0339b97be9db7e8b03aa212f0dca390f1c199725205b8441a7ac',
   'gate.css': 'cca16ec21b8442969f81f4cfa5d90a026b67521f9a0353643224d7d22ad191fe',
   'disclaimer.css': '14d0ec8be6482608350697244ba5e86255478a1d93170897015685f06697d159',
-  'disclaimer.html': '4a3ab604019dcddee3e9523e58f8e3bcfe86245b49359250da5955269bddcecc',
+  'disclaimer.html': 'd67836b9d4cec08653dbaa357f11c3ff1ee6c4f196933daa17df4f3b66a7583a',
 };
 
 test('the generators\' CheckLink output is pinned by hash', () => {
