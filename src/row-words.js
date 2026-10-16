@@ -6,8 +6,10 @@
 //   rowLabel(part)   the part's label without the name that line already gives
 //   sameKind(a, b)   true when row b would repeat row a's label and explanation word for word
 
+/** @typedef {import('./link-core.js').Part} Part */
 // Who learns what a part tells, by the rule's family. Families that already name one company
 // (Google, Meta, Amazon) are used as they are.
+/** @type {Record<string, string>} */
 export const WHO = {
   'Email and marketing automation': "the sender's email service",
   'Affiliate networks': 'the affiliate network',
@@ -27,7 +29,12 @@ export const WHO = {
   SearXNG: 'whoever runs this SearXNG server',
 };
 
-export const whoFor = (p) => WHO[p.family] || p.family || 'the site';
+/**
+ * @param {Part} p
+ * @returns {string}
+ */
+// A null family looks up the key 'null', which WHO does not hold.
+export const whoFor = (p) => WHO[/** @type {string} */ (p.family)] || p.family || 'the site';
 
 // Interface review of batch 3, finding 6: the engine name was said three times in one row
 // (label, "Who learns it" and explanation). When the label starts with the name the "Who
@@ -35,6 +42,10 @@ export const whoFor = (p) => WHO[p.family] || p.family || 'the site';
 // "Who learns it: Google", "Google Search session value" reads "Session value" and under
 // YouTube, "YouTube share ID" reads "Share ID". A label that is only that name is dropped
 // (an empty string), because the other lines already say it.
+/**
+ * @param {Part} p
+ * @returns {string}
+ */
 export function rowLabel(p) {
   const label = p.provider || '';
   const who = whoFor(p);
@@ -50,6 +61,11 @@ export function rowLabel(p) {
 // Row b says nothing row a has not just said: the same label, the same "Who learns it" and
 // the same explanation (Baidu's six search-statistics values in a row). Wrappers, the address
 // disguise and empty parts are never folded.
+/**
+ * @param {Part | null | undefined} a
+ * @param {Part | null | undefined} b
+ * @returns {boolean}
+ */
 export function sameKind(a, b) {
   if (!a || !b) return false;
   for (const p of [a, b]) if (p.where === 'wrapper' || p.where === 'userinfo' || p.empty) return false;

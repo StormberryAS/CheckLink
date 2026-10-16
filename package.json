@@ -1,0 +1,13 @@
+{
+  "name": "checklink",
+  "private": true,
+  "description": "Type checking only: the TypeScript compiler checks the JavaScript and its JSDoc types, and writes nothing. The page and the app have no runtime dependencies and no build step.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "typecheck": "node tools/typecheck-stamps.mjs && tsc -p jsconfig.json && tsc -p jsconfig.worker.json"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

@@ -136,6 +136,18 @@ And for the app, from `android/`: `./gradlew :app:testDebugUnitTest :app:lintDeb
 
 Local CSS and JavaScript addresses carry a content hash, so browsers pick up changes: run `python3 bump_assets.py` after editing any of them.
 
+## Type checking
+
+The JavaScript is checked as it is by the TypeScript compiler: the types live in JSDoc comments, the page and the app still get plain JavaScript with no build step, and the compiler writes nothing (`noEmit`). You need Node and npm. From the repository root:
+
+```bash
+npm ci --ignore-scripts && npm run typecheck
+```
+
+- `jsconfig.json` checks the page (`app.js` and `src/`) with the browser's page types, and `jsconfig.worker.json` the decoder worker (`src/qr-worker.js`, `src/worker-lockdown.js`, `src/qr-decode.js`) with the worker's. Both are `strict`.
+- Vendored code (`vendor/`, `third_party/`) is not checked. Both configurations use `noResolve`, so the compiler reads only the files they list; `types/qrcodegen.d.ts` and `types/zxing-wasm.d.ts` describe the two vendored modules as the page uses them, and `types/page.d.ts` the Android app's bridge and the few browser extras the page asks for. `gate.js` is left out too: the shared `build-gates.py` writes it.
+- The page imports its modules with a content stamp (`./src/link-core.js?v=...`), which the compiler cannot follow. `npm run typecheck` first runs `tools/typecheck-stamps.mjs`, which writes `types/stamps.d.ts` and `types/stamps.worker.d.ts` from the stamps `bump_assets.py` wrote.
+- `package.json`, `package-lock.json` (TypeScript 6.0.3 and nothing else), `node_modules/`, the two configurations and `types/` are never published (`_config.yml`) and never bundled into the app (`APK_EXCLUDES` in `android/app/build.gradle.kts`).
 ## Generated files
 
 - `gate.js` and `gate.css` (the first-run notice), and `disclaimer.html` and `disclaimer.css` (rendered from `DISCLAIMER.md`), are written by Stormberry's shared generators, `build-gates.py` and `build-disclaimers.py`, which keep the notice and the disclaimer the same across the Labs apps. Do not edit these four by hand.

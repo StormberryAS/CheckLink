@@ -36,6 +36,11 @@
 # android/, fastlane/ and zapstore.yaml hold the Android app's build and store files. The app
 # bundles the web files from this root at build time; nothing in those folders is part of the
 # website. (.github/ needs no entry: Jekyll never publishes dot folders.)
+#
+# Type checking (2026-10-16): package.json, package-lock.json and node_modules/ hold the
+# TypeScript compiler, which only checks the JavaScript and writes nothing; jsconfig.json and
+# jsconfig.worker.json configure it, and types/ holds its declaration files. None of them is
+# read by the page.
 exclude:
   - LICENSE
   - NOTICE
@@ -52,3 +57,6 @@ exclude:
   - android/
   - fastlane/
   - zapstore.yaml
+  - jsconfig.json
+  - jsconfig.worker.json
+  - types/

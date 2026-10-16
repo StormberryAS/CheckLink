@@ -13,16 +13,37 @@
 //   orientedSize(w, h, orientation)     the picture's width and height once turned
 //   DECODES_DIRECTLY    the kinds the decoder reads from the file bytes itself
 
+/** @typedef {'png' | 'jpeg' | 'gif' | 'bmp' | 'webp' | 'avif' | 'heic'} ImageType */
+/**
+ * What a picture file says about itself (sniffImage).
+ * @typedef {{ type: ImageType | null, width: number | null, height: number | null, orientation: number }} ImageInfo
+ */
+/** @typedef {{ x: number, y: number }} Point */
+
+/** @type {Set<string>} */
 export const DECODES_DIRECTLY = new Set(['png', 'jpeg', 'gif', 'bmp']);
 
+// The readers return null when the bytes asked for run past the end of b.
+/** @typedef {(b: Uint8Array, i: number) => number | null} Reader */
+/** @type {Reader} */
 const u16be = (b, i) => (i + 2 <= b.length ? (b[i] << 8) | b[i + 1] : null);
+/** @type {Reader} */
 const u16le = (b, i) => (i + 2 <= b.length ? b[i] | (b[i + 1] << 8) : null);
+/** @type {Reader} */
 const u32be = (b, i) => (i + 4 <= b.length ? ((b[i] << 24) >>> 0) + (b[i + 1] << 16) + (b[i + 2] << 8) + b[i + 3] : null);
+/** @type {Reader} */
 const i32le = (b, i) => (i + 4 <= b.length ? b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24) : null);
+/** @type {(b: Uint8Array, i: number, n: number) => string} */
 const ascii = (b, i, n) => (i + n <= b.length ? String.fromCharCode(...b.subarray(i, i + n)) : '');
 
+/**
+ * @param {Uint8Array} b
+ * @returns {ImageInfo}
+ */
 function jpeg(b) {
+  /** @type {number | null} */
   let width = null;
+  /** @type {number | null} */
   let height = null;
   let orientation = 1;
   let i = 2;
@@ -49,7 +70,8 @@ function jpeg(b) {
       // picture behind a small first one.
       const fh = u16be(b, i + 5);
       const fw = u16be(b, i + 7);
-      if (fh !== null && fw !== null && (width === null || fw * fh > width * height)) {
+      // width and height are set together, so height is a number whenever width is.
+      if (fh !== null && fw !== null && (width === null || fw * fh > width * /** @type {number} */ (height))) {
         height = fh;
         width = fw;
       }
@@ -60,12 +82,21 @@ function jpeg(b) {
 }
 
 // The orientation tag (0x0112) of the first image directory of a TIFF block.
+/**
+ * @param {Uint8Array} b
+ * @param {number} start
+ * @param {number} end
+ * @returns {number | null}
+ */
 function exifOrientation(b, start, end) {
   const order = ascii(b, start, 2);
   if (order !== 'II' && order !== 'MM') return null;
   const le = order === 'II';
+  /** @type {(i: number) => number | null} */
   const r16 = (i) => (i + 2 <= end ? (le ? u16le(b, i) : u16be(b, i)) : null);
-  const r32 = (i) => (i + 4 <= end ? (le ? i32le(b, i) >>> 0 : u32be(b, i)) : null);
+  // end can lie past the end of the file; i32le then gives null, and null >>> 0 is 0, as before.
+  /** @type {(i: number) => number | null} */
+  const r32 = (i) => (i + 4 <= end ? (le ? /** @type {number} */ (i32le(b, i)) >>> 0 : u32be(b, i)) : null);
   const ifd = r32(start + 4);
   if (ifd === null) return null;
   const at = start + ifd;
@@ -75,15 +106,20 @@ function exifOrientation(b, start, end) {
     const e = at + 2 + k * 12;
     if (r16(e) === 0x0112) {
       const v = r16(e + 8);
-      return v >= 1 && v <= 8 ? v : null;
+      return v !== null && v >= 1 && v <= 8 ? v : null;
     }
   }
   return null;
 }
 
+/**
+ * @param {Uint8Array} b
+ * @returns {ImageInfo}
+ */
 function webp(b) {
   const chunk = ascii(b, 12, 4);
-  if (chunk === 'VP8 ' && b.length >= 30) return { type: 'webp', width: u16le(b, 26) & 0x3fff, height: u16le(b, 28) & 0x3fff, orientation: 1 };
+  // b.length >= 30, so both reads are in bounds.
+  if (chunk === 'VP8 ' && b.length >= 30) return { type: 'webp', width: /** @type {number} */ (u16le(b, 26)) & 0x3fff, height: /** @type {number} */ (u16le(b, 28)) & 0x3fff, orientation: 1 };
   if (chunk === 'VP8L' && b.length >= 25) {
     const bits = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24);
     return { type: 'webp', width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1, orientation: 1 };
@@ -97,14 +133,22 @@ function webp(b) {
 // AVIF and HEIC: the picture's size is in an ispe box (meta > iprp > ipco > ispe), which every
 // image item must have. A file can hold several (a thumbnail, the tiles of a grid and the grid
 // itself), so the largest is taken: the limit then holds for whatever the browser decodes.
+/**
+ * @param {Uint8Array} b
+ * @returns {{ width: number | null, height: number | null }}
+ */
 function heifSize(b) {
+  /** @type {number | null} */
   let width = null;
+  /** @type {number | null} */
   let height = null;
   let boxes = 0;
+  /** @type {(start: number, end: number, depth: number) => void} */
   const walk = (start, end, depth) => {
     for (let i = start; i + 8 <= end && boxes < 10000;) {
       boxes++;
-      let size = u32be(b, i);
+      // i + 8 <= end <= b.length, so the size is in bounds.
+      let size = /** @type {number} */ (u32be(b, i));
       const type = ascii(b, i + 4, 4);
       let head = 8;
       if (size === 1) {
@@ -121,7 +165,8 @@ function heifSize(b) {
       else if (type === 'ispe' && depth === 3 && size >= head + 12) {
         const w = u32be(b, i + head + 4);
         const h = u32be(b, i + head + 8);
-        if (w !== null && h !== null && (width === null || w * h > width * height)) {
+        // width and height are set together, so height is a number whenever width is.
+        if (w !== null && h !== null && (width === null || w * h > width * /** @type {number} */ (height))) {
           width = w;
           height = h;
         }
@@ -133,8 +178,13 @@ function heifSize(b) {
   return { width, height };
 }
 
+/**
+ * @param {Uint8Array | ArrayBuffer | ArrayLike<number> | null | undefined} input
+ * @returns {ImageInfo}
+ */
 export function sniffImage(input) {
   const b = input instanceof Uint8Array ? input : new Uint8Array(input || []);
+  /** @type {ImageInfo} */
   const none = { type: null, width: null, height: null, orientation: 1 };
   if (b.length < 12) return none;
   if (b[0] === 0x89 && ascii(b, 1, 3) === 'PNG' && b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a) {
@@ -150,16 +200,30 @@ export function sniffImage(input) {
   if (ascii(b, 0, 4) === 'RIFF' && ascii(b, 8, 4) === 'WEBP') return webp(b);
   if (ascii(b, 4, 4) === 'ftyp') {
     const brand = ascii(b, 8, 4);
+    /** @type {ImageType | null} */
     const type = /^avi[fs]$/.test(brand) ? 'avif' : /^(heic|heix|hevc|hevx|heim|heis|mif1|msf1)$/.test(brand) ? 'heic' : null;
     if (type) return { type, ...heifSize(b), orientation: 1 };
   }
   return none;
 }
 
+/**
+ * @param {number} w
+ * @param {number} h
+ * @param {number} orientation
+ * @returns {{ width: number, height: number }}
+ */
 export function orientedSize(w, h, orientation) {
   return orientation >= 5 ? { width: h, height: w } : { width: w, height: h };
 }
 
+/**
+ * @param {Point} p
+ * @param {number} w
+ * @param {number} h
+ * @param {number} orientation
+ * @returns {Point}
+ */
 export function orientPoint(p, w, h, orientation) {
   const { x, y } = p;
   switch (orientation) {

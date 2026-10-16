@@ -367,14 +367,17 @@ test('the app bundles the legal pages and the notice, and opens them in place: t
 test('repository-only files stay out of the APK and off the website, and the website keeps the pages it links', () => {
   const gradle = read('android/app/build.gradle.kts');
   const excludes = gradle.match(/val APK_EXCLUDES = listOf\(([\s\S]*?)\n {4}\)/)[1].match(/"([^"]+)"/g).map((s) => s.slice(1, -1));
-  for (const f of ['fastlane/**', 'zapstore.yaml', 'README*', 'DISCLAIMER.md', 'LICENSE', 'NOTICE', 'CNAME', 'robots.txt', 'og-image.png', 'android/**', 'tests/**', 'tools/**', '.github/**']) {
+  for (const f of ['fastlane/**', 'zapstore.yaml', 'README*', 'DISCLAIMER.md', 'LICENSE', 'NOTICE', 'CNAME', 'robots.txt', 'og-image.png', 'android/**', 'tests/**', 'tools/**', '.github/**',
+    // The type checking's tooling (2026-10-16): the compiler, its configurations and declarations.
+    'package.json', 'package-lock.json', 'node_modules/**', 'jsconfig.json', 'jsconfig.worker.json', 'types/**']) {
     assert.ok(excludes.includes(f), `${f} is not in APK_EXCLUDES`);
   }
   const includes = gradle.match(/val INCLUDES = listOf\(([\s\S]*?)\)/)[1];
   assert.ok(!/README|DISCLAIMER\.md|zapstore|fastlane|og-image|\*\.png|\*\.md|\*\.yaml/.test(includes), 'the include list must not reach a repository-only file');
   const config = read('_config.yml').replace(/#[^\n]*/g, '');
   const ex = [...config.matchAll(/^ {2}- (\S+)$/gm)].map((m) => m[1]);
-  for (const f of ['README.md', 'DISCLAIMER.md', 'LICENSE', 'NOTICE', 'fastlane/', 'zapstore.yaml', 'android/', 'tests/', 'tools/']) assert.ok(ex.includes(f), `_config.yml does not exclude ${f}`);
+  for (const f of ['README.md', 'DISCLAIMER.md', 'LICENSE', 'NOTICE', 'fastlane/', 'zapstore.yaml', 'android/', 'tests/', 'tools/',
+    'package.json', 'package-lock.json', 'node_modules/', 'jsconfig.json', 'jsconfig.worker.json', 'types/']) assert.ok(ex.includes(f), `_config.yml does not exclude ${f}`);
   for (const f of ['privacy.html', 'disclaimer.html', 'disclaimer.css', 'gate.js', 'gate.css', 'og-image.png', 'favicon.svg']) assert.ok(!ex.some((e) => f === e || f.startsWith(e)), `_config.yml must not exclude ${f}`);
 });
 

@@ -144,9 +144,178 @@
 // removes nothing instead.
 
 import { RULES, RULES_DATE, RULES_VERSION } from './rules.js?v=4029e1a3';
-import { PSL_DATE, domainInfo, publicSuffix } from './domain.js?v=e177a464';
-import { brandMatch, brandShort, brandText, decodeHost, lettersFinding, lettersShort, lettersText, symbolFinding, symbolShort, symbolText } from './lookalike.js?v=9614d694';
+import { PSL_DATE, domainInfo, publicSuffix } from './domain.js?v=f1bcd492';
+import { brandMatch, brandShort, brandText, decodeHost, lettersFinding, lettersShort, lettersText, symbolFinding, symbolShort, symbolText } from './lookalike.js?v=2f8e8ce3';
 
+
+// == types (JSDoc, for the type checker only; see the description above) ==
+
+// What domainInfo gives (src/domain.js), named without an import: tests/core.test.mjs bans the
+// text of a dynamic import in this file, and bump_assets.py would stamp an @import tag.
+/** @typedef {NonNullable<ReturnType<typeof domainInfo>>} DomainInfo */
+/** @typedef {'stop' | 'check' | 'info'} Tier */
+/**
+ * A note about the link. short is the one-sentence form the look-alike notes carry.
+ * @typedef {{ id: string, tier: Tier, text: string, short?: string | null }} Warning
+ */
+/**
+ * Where the authority, path, query (qIdx, the ?) and fragment (hIdx, the #) of a link are; -1 when absent.
+ * @typedef {{ authStart: number, authEnd: number, pathStart: number, pathEnd: number, qIdx: number, hIdx: number }} LinkSplit
+ */
+/**
+ * One address of a link: the link itself, or one unwrapped from it.
+ * @typedef {{ link: string, bare: boolean, sp: LinkSplit, url: URL, host: string, authority: string, naive: string,
+ *   writtenHost: string, matchStr: string }} Layer
+ */
+/**
+ * One name=value pair of a query or fragment, as written and decoded; id is set once it becomes a part or is kept.
+ * @typedef {{ raw: string, start: number, end: number, rawName: string, rawValue: string | null, name: string,
+ *   value: string | null, id: string | null }} Token
+ */
+/**
+ * A run of the link's text, removed or not, with the part it belongs to.
+ * @typedef {{ text: string, removed: boolean, partId: string | null }} Segment
+ */
+/**
+ * Removed part ids: any iterable of ids, one id, or nothing for the default choice.
+ * @typedef {Iterable<string> | string | null | undefined} IdChoice
+ */
+/** @typedef {'wrapper' | 'userinfo' | 'path' | 'query' | 'fragment'} PartWhere */
+/**
+ * A part the clean link can leave out (see Part in the description above).
+ * @typedef {{ id: string, where: PartWhere, name: string, value: string, provider: string | null, reveals: string,
+ *   unique: boolean, affiliate: string | null, defaultRemove: boolean, ask: boolean, family: string | null, rule: string,
+ *   breakage: string | null, text: string, unrecognised: boolean, sharer?: boolean, recipient?: boolean, empty?: boolean,
+ *   tier?: Tier, disguise?: 'look-alike' | 'sign-in' | 'backslash' }} Part
+ */
+/**
+ * A parameter kept on purpose (see Kept in the description above).
+ * @typedef {{ id: string, where: 'query' | 'fragment', name: string, value: string, text: string,
+ *   reason: 'functional' | 'recipient-token', note: string, rule: string | null, explain: string, what: string,
+ *   neutral: boolean }} Kept
+ */
+/**
+ * Context a Google Maps place link carries in its data= blob.
+ * @typedef {{ context: { kind: 'category' | 'place', name: string }[], pin: { lat: string, lng: string, link: string } | null,
+ *   place: { featureId: string, cid: string, link: string } | null }} MapsContext
+ */
+/** @typedef {{ id: string, reason: 'wrapped' | 'signed' | 'auth', name: string, text: string }} Untouched */
+/**
+ * A short link or a redirect whose destination CheckLink cannot see.
+ * @typedef {{ id: string, service: string, label: string, host: string, kind: string, note: string | null }} ShortLink
+ */
+/** @typedef {{ id: string, label: string, link: string }} Offer */
+/**
+ * An address hidden inside the link; analysis is set by analyseLink.
+ * @typedef {{ where: 'query' | 'fragment' | 'path', name: string | null, shownName: string | null, link: string, host: string,
+ *   sameHost: boolean, kept: boolean, text: string, analysis?: LinkAnalysis | null }} Hidden
+ */
+/**
+ * One wrapper around the address the clean link goes to.
+ * @typedef {{ depth: number, id: string, label: string, family: string, link: string, host: string, site: DomainInfo | null,
+ *   note: string | null | undefined, partId: string, segments: Segment[] }} Wrapper
+ */
+/**
+ * The innermost address, where the clean link goes.
+ * @typedef {{ link: string, host: string, hostAsWritten: string, segments: Segment[], segmentsFor: (ids?: IdChoice) => Segment[],
+ *   domainAsWritten: string | null, domainStart: number }} Target
+ */
+/**
+ * The analysis of one web link (analyseLink): what analyse returns when it finds one, less the fields about the text around it.
+ * @typedef {{ found: true, kind: 'web', link: string, bare: boolean, prefix: '' | 'https://', host: string, hostAsWritten: string,
+ *   site: DomainInfo | null, domain: string | null, domainAsWritten: string | null, domainStart: number, segments: Segment[],
+ *   segmentsFor: (ids?: IdChoice) => Segment[], target: Target, wrappers: Wrapper[], parts: Part[], kept: Kept[],
+ *   maps: MapsContext | null, untouched: Untouched | null, shortLink: ShortLink | null, offer: Offer | null, hidden: Hidden[],
+ *   warnings: Warning[], lookAlikeLetters: { char: string, script: string }[], defaultRemoved: string[],
+ *   clean: (ids?: IdChoice) => string, openUrl: (ids?: IdChoice) => string, cleanLink: string, changed: boolean,
+ *   rulesDate: string }} LinkAnalysis
+ */
+/**
+ * analyse() when it finds a web link.
+ * @typedef {LinkAnalysis & { input: string, start: number, end: number, others: string[] }} FoundAnalysis
+ */
+/**
+ * analyse() when the text holds no web link, or a script link.
+ * @typedef {{ found: false, kind: 'script' | 'none', input: string, link: null, start: -1, end: -1, bare: false, prefix: '',
+ *   others: string[], host: null, hostAsWritten: null, site: null, domain: null, domainAsWritten: null, domainStart: -1,
+ *   segments: Segment[], segmentsFor: (ids?: IdChoice) => Segment[], target: null, wrappers: Wrapper[], parts: Part[],
+ *   kept: Kept[], maps: null, untouched: null, shortLink: null, offer: null, hidden: Hidden[],
+ *   lookAlikeLetters: { char: string, script: string }[], warnings: Warning[], defaultRemoved: string[],
+ *   clean: (ids?: IdChoice) => string, openUrl: (ids?: IdChoice) => string, cleanLink: '', changed: false,
+ *   rulesDate: string }} EmptyAnalysis
+ */
+/** @typedef {FoundAnalysis | EmptyAnalysis} Analysis */
+/** @typedef {'signin' | 'signed' | 'wrapped' | 'recipient' | 'email' | 'phone' | 'id' | 'password'} PersonalReason */
+/**
+ * The "Email us" line: the mailto: address and what went into it.
+ * @typedef {{ href: string, original: boolean, clean: boolean, shortened: boolean, originalReason: PersonalReason | null,
+ *   cleanReason: PersonalReason | null }} ReportMail
+ */
+// The rule table's shapes. src/rules.js is generated JSON (tools/build-rules.mjs checks it), so
+// the checker infers only plain strings for its fields; these name what the build guarantees.
+/**
+ * A rule's conditions: every one present must hold.
+ * @typedef {{ paths?: string[], path_not?: string[], value_regex?: string, requires_any?: string[], url_contains?: string[],
+ *   url_not_contains?: string[], except_hosts?: string[] }} Conditions
+ */
+/**
+ * A parameter rule, global or for a host block.
+ * @typedef {{ id: string, name: string, type: 'exact' | 'prefix' | 'regex', value: string, default: 'strip' | 'ask' | 'keep',
+ *   provider: string, reveals: string, affiliate: string | null, family: string, breakage: string, perClick?: boolean,
+ *   conditions: Conditions | null, recipient?: boolean, sharer?: boolean }} ParamRule
+ */
+/** @typedef {{ patterns: string[], family: string, params: ParamRule[] }} HostBlock */
+/**
+ * A functional_keep entry: where the table leaves rules or parameters alone, or keeps names.
+ * @typedef {{ id: string, hosts: string[], effect: string, paths: string[] | null, params: string[] | null, note: string }} KeepEntry
+ */
+/**
+ * A clause of a canonical rule: parameter name (or name*, $host, $value) to a regular expression, or null for absent or empty.
+ * @typedef {Record<string, string | null>} Clause
+ */
+/**
+ * A name a canonical page keeps, when its condition holds; otherwise, when given, a part with these words.
+ * @typedef {{ name: string, note: string, when?: { any?: Clause[], paths?: string[] },
+ *   otherwise?: { provider: string, reveals: string } }} CanonicalKeep
+ */
+/** @typedef {{ names: string[], provider: string, reveals: string, perClick?: boolean }} CanonicalRemove */
+/**
+ * A page fully addressed by its path (RULES.canonical).
+ * @typedef {{ id: string, platform: string, family: string, provider: string, reveals: string, askReveals: string, host: string,
+ *   paths: string[], keep: CanonicalKeep[], basis?: string, remove?: CanonicalRemove[], requires?: Clause[], unless?: Clause[],
+ *   emptyReveals?: string, dropEmpty?: boolean }} CanonicalRule
+ */
+/**
+ * How a wrapper's destination is taken out of it.
+ * @typedef {{ type: 'query' | 'base64' | 'base64url', params: string[], relative_to?: string, prepend_if_no_scheme?: string,
+ *   strip_prefix?: string } | { type: 'query_prefix', param_prefix: string }
+ *   | { type: 'regex', regex: string, template: string, percent_decode: boolean } | { type: 'twitch_email' }} Extraction
+ */
+/**
+ * A wrapper or redirect host (RULES.redirects).
+ * @typedef {{ id: string, family: string, label: string, match: string, offline: boolean, extract: Extraction | null,
+ *   action?: string, note: string | null }} RedirectRule
+ */
+/**
+ * Tracking written into the path (RULES.pathRules).
+ * @typedef {{ id: string, hosts: string[], regex: string, flags: string, name: string, provider: string, reveals: string,
+ *   default: string, family: string, unique: boolean, warning: string | null }} PathRule
+ */
+/**
+ * What the parameter rules are decided against (planTarget's runList).
+ * @typedef {{ host: string, path: string, url: string, keys: Set<string>, skipHost: boolean, never: KeepEntry[],
+ *   hostBlocks: HostBlock[] }} DecideContext
+ */
+/**
+ * The parameters a canonical clause is tested against (paramEnv).
+ * @typedef {{ host: string, path: string, map: Map<string, string> }} ParamEnv
+ */
+/**
+ * What buildPieces needs to write the link for any choice (planTarget's model).
+ * @typedef {{ link: string, pathStart: number, pathEnd: number, pathParts: { start: number, end: number, id: string }[],
+ *   userinfo: { start: number, end: number, id: string } | null, query: { mark: number, tokens: Token[] } | null,
+ *   frag: { mark: number, tokens: Token[] | null, text: string | null } | null }} PieceModel
+ */
 export { PSL_DATE, RULES_DATE, RULES_VERSION };
 
 const MAX_UNWRAP = 5;
@@ -155,6 +324,7 @@ const SPEC = { exact: 3, regex: 2, prefix: 1 };
 const TIER_ORDER = { stop: 0, check: 1, info: 2 };
 const PROTECTED = new Set(RULES.protectedNames);
 
+/** @type {Record<string, string>} */
 const INVISIBLE_NAMES = {
   '\u00AD': 'soft hyphen', '\u034F': 'combining grapheme joiner', '\u061C': 'Arabic letter mark',
   '\u200B': 'zero-width space', '\u200C': 'zero-width non-joiner', '\u200D': 'zero-width joiner',
@@ -184,7 +354,13 @@ const SCRIPT_ANYWHERE = /(?:^|[\s\p{Cf}\p{Default_Ignorable_Code_Point}])(javasc
 
 // == helpers ==
 
+/** @type {Map<string, RegExp>} */
 const reCache = new Map();
+/**
+ * @param {string} src
+ * @param {string} [flags]
+ * @returns {RegExp}
+ */
 function re(src, flags = '') {
   const key = `${flags}/${src}`;
   let r = reCache.get(key);
@@ -195,11 +371,13 @@ function re(src, flags = '') {
   return r;
 }
 
+/** @param {string} s */
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const UTF8 = new TextDecoder('utf-8');
 const UTF8_STRICT = new TextDecoder('utf-8', { fatal: true });
 
+/** @param {string} run */
 const runBytes = (run) => {
   const bytes = new Uint8Array(run.length / 3);
   for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(run.slice(i * 3 + 1, i * 3 + 3), 16);
@@ -208,22 +386,32 @@ const runBytes = (run) => {
 
 // Percent-decodes runs of %XX as UTF-8 (bad bytes become U+FFFD); invalid escapes stay.
 // For display and for comparing names and values.
+/**
+ * @template {string | null | undefined} S
+ * @param {S} s
+ * @returns {S}
+ */
 export function pctDecode(s) {
   if (!s || !s.includes('%')) return s;
-  return s.replace(/(?:%[0-9A-Fa-f]{2})+/g, (run) => UTF8.decode(runBytes(run)));
+  return /** @type {S} */ (s.replace(/(?:%[0-9A-Fa-f]{2})+/g, (run) => UTF8.decode(runBytes(run))));
 }
 
 // The same for an address taken out of a wrapper: a run that is not valid UTF-8 (a
 // Latin-1 %E6%F8%E5) stays exactly as written, so the server still gets those bytes.
+/**
+ * @template {string | null | undefined} S
+ * @param {S} s
+ * @returns {S}
+ */
 function pctDecodeKeep(s) {
   if (!s || !s.includes('%')) return s;
-  return s.replace(/(?:%[0-9A-Fa-f]{2})+/g, (run) => {
+  return /** @type {S} */ (s.replace(/(?:%[0-9A-Fa-f]{2})+/g, (run) => {
     try {
       return UTF8_STRICT.decode(runBytes(run));
     } catch {
       return run;
     }
-  });
+  }));
 }
 
 // Characters that cannot stand in an address as written: spaces of every kind, controls,
@@ -231,14 +419,24 @@ function pctDecodeKeep(s) {
 // raw space would cut the link wherever it is pasted. They are written as %XX again.
 const ILLEGAL = /[\u0000-\u0020\u007F"<>`\u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g;
 const UTF8_ENCODE = new TextEncoder();
+/**
+ * @template {string | null} S
+ * @param {S} s
+ * @returns {S}
+ */
 function escapeIllegal(s) {
   if (typeof s !== 'string') return s;
-  return s.replace(ILLEGAL, (ch) => Array.from(UTF8_ENCODE.encode(ch), (b) => `%${b.toString(16).toUpperCase().padStart(2, '0')}`).join(''));
+  return /** @type {S} */ (s.replace(ILLEGAL, (ch) => Array.from(UTF8_ENCODE.encode(ch), (b) => `%${b.toString(16).toUpperCase().padStart(2, '0')}`).join('')));
 }
 
 // Parameter names and values are compared decoded, with + read as a space.
+/** @param {string} s */
 const formDecode = (s) => pctDecode(s.replace(/\+/g, ' '));
 
+/**
+ * @param {unknown} s
+ * @returns {string | null}
+ */
 function base64ToText(s) {
   let t = String(s).replace(/-/g, '+').replace(/_/g, '/');
   if (!/^[A-Za-z0-9+/]+={0,2}$/.test(t)) return null;
@@ -255,6 +453,11 @@ function base64ToText(s) {
   }
 }
 
+/**
+ * @param {string} s
+ * @param {number} [max]
+ * @returns {string}
+ */
 function shorten(s, max = 40) {
   const chars = Array.from(s);
   if (chars.length <= max) return s;
@@ -264,6 +467,10 @@ function shorten(s, max = 40) {
 // A value that looks generated rather than written: long, with many changes between
 // capitals, small letters and digits, or a UUID, long hex or long number. A short value made
 // of letters only (DuckDuckGo, HackerNews) is a word, however its capitals fall.
+/**
+ * @param {string | null} v
+ * @returns {boolean}
+ */
 function looksRandom(v) {
   if (!v) return false;
   const s = v.replace(/=+$/, '');
@@ -272,6 +479,7 @@ function looksRandom(v) {
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)) return true;
   if (/^\d+$/.test(s)) return s.length >= 16;
   if (/^[0-9a-f]{16,}$/i.test(s) && /\d/.test(s) && /[a-f]/i.test(s)) return true;
+  /** @param {string} c */
   const cls = (c) => (/\d/.test(c) ? 'd' : /[A-Z]/.test(c) ? 'u' : /[a-z]/.test(c) ? 'l' : 'o');
   let changes = 0;
   let prev = cls(s[0]);
@@ -285,17 +493,29 @@ function looksRandom(v) {
 
 // Plain words written in base64 look generated but are the same for everyone
 // (QW1hem9uIEZyZXNo is "Amazon Fresh"). Takes the value as written, percent-decoded.
+/**
+ * @param {string} v
+ * @returns {boolean}
+ */
 function base64Words(v) {
   const text = base64ToText(v);
   return !!text && /^\p{L}+(?:[ '.&-]{1,2}\p{L}+)*$/u.test(text.trim()) && /\p{L}{3}/u.test(text);
 }
 
+/**
+ * @param {IdChoice} ids
+ * @returns {Set<string> | null}
+ */
 function toIdSet(ids) {
   if (ids == null) return null;
   if (typeof ids === 'string') return new Set([ids]);
   return new Set(ids);
 }
 
+/**
+ * @param {unknown} h
+ * @returns {string}
+ */
 const normHost = (h) => String(h || '').toLowerCase().replace(/\.$/, '');
 
 // An email address, in any alphabet (an international domain too), somewhere in a text; and a text that
@@ -308,6 +528,10 @@ const EMAIL_WHOLE = new RegExp(`^${EMAIL_IN.source}$`, 'u');
 // section (com.de, co.no, github.io: anyone can make an address under it) or a name the list
 // does not know gives null, so amazon.com.de and google.evil.io are never read as Amazon or
 // Google. (Stage 2: replaces the stopgap pattern and its suffix_deny list.)
+/**
+ * @param {string} host
+ * @returns {string | null}
+ */
 function providerSuffix(host) {
   const ps = publicSuffix(normHost(host));
   return ps && ps.known && !ps.private ? ps.suffix : null;
@@ -316,12 +540,23 @@ function providerSuffix(host) {
 // A rule pattern compiled for one host: the suffix token the build put where a provider's
 // public suffix goes is replaced by this host's own suffix, or by a pattern that matches
 // nothing when the host has none a provider could stand on.
+/**
+ * @param {string} src
+ * @param {string} host
+ * @param {string} [flags]
+ * @returns {RegExp}
+ */
 function reFor(src, host, flags = '') {
   if (!src.includes(RULES.suffixToken)) return re(src, flags);
   const sfx = providerSuffix(host);
   return re(src.split(RULES.suffixToken).join(sfx ? escapeRe(sfx) : '(?!)'), flags);
 }
 
+/**
+ * @param {string} host
+ * @param {string} pattern
+ * @returns {boolean}
+ */
 export function hostMatches(host, pattern) {
   const h = normHost(host);
   if (pattern === '*') return true;
@@ -335,6 +570,7 @@ export function hostMatches(host, pattern) {
   return h === pattern || h.endsWith(`.${pattern}`);
 }
 
+/** @param {string} h */
 const isIPv4 = (h) => /^\d{1,3}(?:\.\d{1,3}){3}$/.test(h);
 
 // Where an address goes, for CheckLink's own sentences (stage 2, with the Public Suffix List):
@@ -342,6 +578,10 @@ const isIPv4 = (h) => /^\d{1,3}(?:\.\d{1,3}){3}$/.test(h);
 // owner registered, when the host is a longer address under it. www. in front of the domain
 // adds nothing, so www.google.com stays as it is; paypal.com.secure.evil.co.uk reads
 // "evil.co.uk (full name: paypal.com.secure.evil.co.uk)".
+/**
+ * @param {string} host
+ * @returns {string}
+ */
 function placeName(host) {
   const h = normHost(host);
   const info = domainInfo(h);
@@ -354,6 +594,12 @@ function placeName(host) {
 // start in the written host. Null when there is no domain, or when the written host does not
 // split into as many labels as the real one.
 const LABEL_DOT = /[.\u3002\uFF0E\uFF61]/;
+/**
+ * @param {string} written
+ * @param {string} host
+ * @param {string} domain
+ * @returns {{ start: number, text: string } | null}
+ */
 function writtenDomain(written, host, domain) {
   if (!written || !domain || written.startsWith('[')) return null;
   const w = written.replace(/[.\u3002\uFF0E\uFF61]$/, '');
@@ -365,6 +611,10 @@ function writtenDomain(written, host, domain) {
   return { start, text: w.slice(start) };
 }
 
+/**
+ * @param {string} host
+ * @returns {'loopback' | 'private' | 'public' | null}
+ */
 function ipKind(host) {
   let h = host;
   if (h.startsWith('[')) {
@@ -387,6 +637,10 @@ function ipKind(host) {
   return 'public';
 }
 
+/**
+ * @param {unknown} s
+ * @returns {URL | null}
+ */
 function webUrl(s) {
   if (typeof s !== 'string' || !/^https?:\/\//i.test(s) || /[\u0000-\u001F\u007F]/.test(s)) return null;
   try {
@@ -400,8 +654,15 @@ function webUrl(s) {
 
 const TERMINATOR = /[\t\n\v\f\r \u0085\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000<>"`]/;
 const TRAILING = new Set(['.', ',', ';', ':', '!', '?', '"', '\u2019', '\u201D', '\u00BB', '\u3002', '\uFF0C', '\u3001', '\uFF01', '\uFF1F', '\u2026']);
+/** @type {Record<string, string>} */
 const CLOSERS = { ')': '(', ']': '[', '}': '{', '\uFF09': '\uFF08', '\u300D': '\u300C' };
 
+/**
+ * @param {string} s
+ * @param {string} ch
+ * @param {number} end
+ * @returns {number}
+ */
 function countIn(s, ch, end) {
   let n = 0;
   for (let i = 0; i < end; i++) if (s[i] === ch) n++;
@@ -413,10 +674,16 @@ function countIn(s, ch, end) {
 // odd number of them (so ?q='test' keeps its closing quote), and a * only as many times as
 // stars stand straight before the link (Markdown **bold**), so ?q=foo* keeps its star.
 // Each count is taken once and then kept up to date, so this stays linear in the length.
+/**
+ * @param {string} s
+ * @param {number} [starsBefore]
+ * @returns {string}
+ */
 function trimTrailing(s, starsBefore = 0) {
   let end = s.length;
   let stars = starsBefore;
   let quotes = -1;
+  /** @type {Map<string, { opens: number, closes: number }>} */
   const brackets = new Map();
   while (end > 0) {
     const last = s[end - 1];
@@ -459,9 +726,15 @@ function trimTrailing(s, starsBefore = 0) {
   return s.slice(0, end);
 }
 
+/**
+ * @param {unknown} text
+ * @returns {{ links: { link: string, start: number, end: number, bare: boolean }[], unreadable: string[] }}
+ */
 export function findLinks(text) {
   const s = String(text ?? '');
+  /** @type {{ link: string, start: number, end: number, bare: boolean }[]} */
   const links = [];
+  /** @type {string[]} */
   const unreadable = [];
   const start = /(?<![A-Za-z0-9+.\-])https?:\/\/|(?<![A-Za-z0-9._@/:\\-])www\./giu;
   let m;
@@ -485,6 +758,11 @@ export function findLinks(text) {
 // Positions follow the WHATWG URL parser for http and https: after the scheme it skips
 // every / and \ (so https:///a@b/ and https://\a@b/ have the authority a@b), the authority
 // ends at the first / \ ? or #, the query at the first #.
+/**
+ * @param {string} link
+ * @param {boolean} [bare]
+ * @returns {LinkSplit | null}
+ */
 export function splitLink(link, bare = false) {
   let authStart = 0;
   if (!bare) {
@@ -509,6 +787,11 @@ export function splitLink(link, bare = false) {
 // What a person may take for the authority: everything up to the first / ? or #. It differs
 // from the real authority only when a backslash ends the real one early (evil.example\@
 // www.google.com reads as www.google.com and goes to evil.example).
+/**
+ * @param {string} link
+ * @param {LinkSplit} sp
+ * @returns {string}
+ */
 function naiveAuthority(link, sp) {
   let end = link.length;
   for (let i = sp.authStart; i < link.length; i++) {
@@ -520,6 +803,10 @@ function naiveAuthority(link, sp) {
   return link.slice(sp.authStart, end);
 }
 
+/**
+ * @param {string} authority
+ * @returns {string}
+ */
 function writtenHostOf(authority) {
   let h = authority.slice(authority.lastIndexOf('@') + 1);
   if (h.startsWith('[')) return h.slice(0, h.indexOf(']') + 1 || h.length);
@@ -528,6 +815,11 @@ function writtenHostOf(authority) {
   return h;
 }
 
+/**
+ * @param {string} link
+ * @param {boolean} bare
+ * @returns {Layer | null}
+ */
 function parseLayer(link, bare) {
   const sp = splitLink(link, bare);
   if (!sp) return null;
@@ -550,13 +842,23 @@ function parseLayer(link, bare) {
   };
 }
 
+/**
+ * @param {Layer} layer
+ * @returns {string}
+ */
 function rawQuery(layer) {
   const { link, sp } = layer;
   if (sp.qIdx < 0) return '';
   return link.slice(sp.qIdx + 1, sp.hIdx >= 0 ? sp.hIdx : link.length);
 }
 
+/**
+ * @param {string} text
+ * @param {number} base
+ * @returns {Token[]}
+ */
 function tokenise(text, base) {
+  /** @type {Token[]} */
   const out = [];
   let pos = base;
   for (const raw of text.split('&')) {
@@ -581,12 +883,20 @@ function tokenise(text, base) {
 // A fragment that holds a text directive is the browser's, not a list of pairs, and is
 // never cleaned: #:~:text=... on its own, and also after an ordinary anchor, the way
 // Chrome's "Copy link to highlight" writes it (#reviews:~:text=battery).
+/**
+ * @param {string | null} frag
+ * @returns {frag is string}
+ */
 const paramFragment = (frag) => frag !== null && frag.includes('=') && !frag.includes(':~:') && !frag.startsWith('/') && !frag.startsWith('!');
 
 // Pairs in the fragment that are never cleaned but are still looked at for sign-in
 // values, which leave the link untouched: the query of a web-app route
 // (#/callback?code=..., #!/x?token=...) and the part before a text directive
 // (#access_token=...:~:text=...).
+/**
+ * @param {string | null} frag
+ * @returns {string}
+ */
 function lookOnlyQuery(frag) {
   if (frag === null) return '';
   if (/^!?\//.test(frag)) {
@@ -601,12 +911,20 @@ function lookOnlyQuery(frag) {
 
 class Warnings {
   constructor() {
+    /** @type {Warning[]} */
     this.list = [];
+    /** @type {Set<string>} */
     this.keys = new Set();
   }
 
   // extra: more fields for the warning; the look-alike notes carry short, one sentence for the
   // first screen and for screen readers.
+  /**
+   * @param {string} id
+   * @param {Tier} tier
+   * @param {string} text
+   * @param {{ short?: string | null } | null} [extra]
+   */
   add(id, tier, text, extra = null) {
     const key = `${id}|${text}`;
     if (this.keys.has(key)) return;
@@ -615,6 +933,12 @@ class Warnings {
   }
 
   // Replaces the text of one warning, found by its id and text, keeping its place.
+  /**
+   * @param {string} id
+   * @param {string} text
+   * @param {string} next
+   * @param {{ short?: string | null } | null} [extra]
+   */
   replace(id, text, next, extra = null) {
     const w = this.list.find((x) => x.id === id && x.text === text);
     if (!w) return;
@@ -624,19 +948,28 @@ class Warnings {
     if (extra) Object.assign(w, extra);
   }
 
+  /** @returns {Warning[]} */
   sorted() {
     return this.list.map((w, i) => ({ w, i })).sort((a, b) => TIER_ORDER[a.w.tier] - TIER_ORDER[b.w.tier] || a.i - b.i).map((x) => x.w);
   }
 }
 
+/**
+ * @param {string} ch
+ * @returns {string}
+ */
 const nameOfInvisible = (ch) => {
   if (INVISIBLE_NAMES[ch]) return INVISIBLE_NAMES[ch];
-  const cp = ch.codePointAt(0);
+  const cp = /** @type {number} */ (ch.codePointAt(0));
   if (cp >= 0xE0000 && cp <= 0xE007F) return 'tag character';
   if ((cp >= 0xFE00 && cp <= 0xFE0F) || (cp >= 0xE0100 && cp <= 0xE01EF)) return 'variation selector';
   return 'an invisible character';
 };
 
+/**
+ * @param {string} s
+ * @returns {string | null}
+ */
 function invisibleName(s) {
   for (const ch of s) if (INVISIBLE.test(ch)) return nameOfInvisible(ch);
   return null;
@@ -645,14 +978,19 @@ function invisibleName(s) {
 // Splits text into ordinary runs and single invisible or direction-changing characters,
 // each labelled with its code point and name, so the page can draw them as visible marks
 // instead of letting them reorder or hide what is around them.
+/**
+ * @param {unknown} text
+ * @returns {({ text: string, invisible: true, label: string } | { text: string, invisible: false, label: null })[]}
+ */
 export function invisibleChunks(text) {
   const s = String(text ?? '');
+  /** @type {({ text: string, invisible: true, label: string } | { text: string, invisible: false, label: null })[]} */
   const out = [];
   let last = 0;
   for (const m of s.matchAll(INVISIBLE_RUN)) {
     if (m.index > last) out.push({ text: s.slice(last, m.index), invisible: false, label: null });
     const ch = m[0];
-    const code = `U+${ch.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`;
+    const code = `U+${/** @type {number} */ (ch.codePointAt(0)).toString(16).toUpperCase().padStart(4, '0')}`;
     out.push({ text: ch, invisible: true, label: `${code} ${nameOfInvisible(ch).replace(/^an /, '')}` });
     last = m.index + ch.length;
   }
@@ -668,6 +1006,10 @@ const JOINERS = new Set(['\u200C', '\u200D']);
 // so a name written with one can equal the real name (stage 4b security review S12).
 const SIGN_LETTERS = /[\u2126\u212A\u212B]/;
 
+/**
+ * @param {Layer} layer
+ * @returns {string[] | null}
+ */
 function disguiseReasons(layer) {
   const written = layer.writtenHost;
   const real = layer.host;
@@ -707,6 +1049,10 @@ function disguiseReasons(layer) {
 // name with no dot in it, or anything with a password after a user name that does not read
 // as a host), or a disguise made by a backslash after it, which ends the real address before
 // the host a person reads.
+/**
+ * @param {Layer} layer
+ * @returns {'backslash' | 'sign-in' | 'look-alike'}
+ */
 function userinfoKind(layer) {
   if (layer.naive.includes('\\') && layer.naive !== layer.authority) return 'backslash';
   const ui = layer.authority.slice(0, Math.max(layer.authority.lastIndexOf('@'), 0));
@@ -716,6 +1062,10 @@ function userinfoKind(layer) {
   return 'look-alike';
 }
 
+/**
+ * @param {Layer} layer
+ * @param {Warnings} warnings
+ */
 function hostChecks(layer, warnings) {
   const host = layer.host;
   if (layer.url.username || layer.url.password) {
@@ -748,6 +1098,10 @@ function hostChecks(layer, warnings) {
   else if (kind === 'public') warnings.add('ip-address', 'check', `This link uses a bare number (${host}) instead of a name. Ordinary sites use a name: check that you expected this.`);
 }
 
+/**
+ * @param {Layer} layer
+ * @param {Warnings} warnings
+ */
 function targetChecks(layer, warnings) {
   if (layer.url.protocol === 'http:' && !layer.bare && !normHost(layer.host).endsWith('.onion')) {
     warnings.add('not-encrypted', 'check', 'This link is not encrypted (http:). Others on the same network can see and change what is sent.');
@@ -762,13 +1116,21 @@ function targetChecks(layer, warnings) {
 
 // == redirects ==
 
+/**
+ * @param {Layer} layer
+ * @returns {RedirectRule | null}
+ */
 function findRedirect(layer) {
-  for (const rd of RULES.redirects) if (reFor(rd.match, layer.host).test(layer.matchStr)) return rd;
+  for (const rd of /** @type {RedirectRule[]} */ (RULES.redirects)) if (reFor(rd.match, layer.host).test(layer.matchStr)) return rd;
   return null;
 }
 
 // A destination taken out of a wrapper is accepted only as a complete web address, with
 // anything that cannot stand in an address written as %XX again.
+/**
+ * @param {unknown} val
+ * @returns {string | null}
+ */
 function acceptTarget(val) {
   if (typeof val !== 'string') return null;
   const once = escapeIllegal(val);
@@ -784,15 +1146,21 @@ function acceptTarget(val) {
 // one the server follows is up to the server, so CheckLink does not choose.
 const AMBIGUOUS = { ambiguous: true };
 
+/**
+ * @param {RedirectRule} rd
+ * @param {Layer} layer
+ * @returns {string | typeof AMBIGUOUS | null}
+ */
 function extractTarget(rd, layer) {
   const ex = rd.extract;
   if (!ex) return null;
   if (ex.type === 'query' || ex.type === 'base64' || ex.type === 'base64url') {
+    /** @type {Map<string, string[]>} */
     const values = new Map();
     for (const t of tokenise(rawQuery(layer), 0)) {
       if (!t.raw || !t.rawValue) continue;
       if (!values.has(t.name)) values.set(t.name, []);
-      values.get(t.name).push(t.rawValue);
+      /** @type {string[]} */ (values.get(t.name)).push(t.rawValue);
     }
     for (const p of ex.params) {
       const all = values.get(p);
@@ -852,11 +1220,20 @@ function extractTarget(rd, layer) {
   return null;
 }
 
+/**
+ * @param {RedirectRule} rd
+ * @param {Layer} layer
+ * @returns {ShortLink}
+ */
 function shortLinkFromRule(rd, layer) {
   const kind = /short|share link|shortener/i.test(rd.label) ? 'shortener' : 'redirect';
   return { id: rd.id, service: rd.family, label: rd.label, host: layer.host, kind, note: rd.note || null };
 }
 
+/**
+ * @param {ShortLink} sl
+ * @param {Warnings} warnings
+ */
 function shortLinkWarning(sl, warnings) {
   const h = sl.host;
   if (sl.kind === 'dynamic-qr') {
@@ -874,8 +1251,16 @@ const LOOK_ALIKE_IDS = new Set(['look-alike-letters', 'look-alike-symbol', 'look
 // A wrapper an email service puts around each link of a message, so it can tell which
 // recipient clicked: the email-automation family, and any other wrapper the table names as
 // an email one (Amazon /gp/r.html, Reddit, Twitch and HBO Max email links).
+/**
+ * @param {{ family: string, label?: string | null }} rd
+ * @returns {boolean}
+ */
 const recipientWrapper = (rd) => rd.family === 'Email and marketing automation' || /\bemail\b/i.test(rd.label || '');
 
+/**
+ * @param {RedirectRule} rd
+ * @returns {string}
+ */
 function wrapperReveals(rd) {
   if (rd.id === 'teams-safelinks') {
     return 'Sends your click through Microsoft first, which checks and can record it.';
@@ -894,12 +1279,23 @@ function wrapperReveals(rd) {
 
 // == parameters ==
 
+/**
+ * @param {{ type: string, value: string }} rule
+ * @param {string} name
+ * @returns {boolean}
+ */
 function nameMatches(rule, name) {
   if (rule.type === 'exact') return rule.value === name;
   if (rule.type === 'prefix') return name.startsWith(rule.value);
   return re(rule.value).test(name);
 }
 
+/**
+ * @param {ParamRule} rule
+ * @param {DecideContext} ctx
+ * @param {string | null} value
+ * @returns {boolean}
+ */
 function conditionsOk(rule, ctx, value) {
   const c = rule.conditions;
   if (!c) return true;
@@ -913,8 +1309,8 @@ function conditionsOk(rule, ctx, value) {
   return true;
 }
 
-const GLOBAL_RULES = [...RULES.global, ...RULES.extraGlobal];
-const HOST_BLOCKS = [...RULES.hosts, ...RULES.extraHosts];
+const GLOBAL_RULES = /** @type {ParamRule[]} */ ([...RULES.global, ...RULES.extraGlobal]);
+const HOST_BLOCKS = /** @type {HostBlock[]} */ ([...RULES.hosts, ...RULES.extraHosts]);
 
 // Names are compared as written, as the rule table says. A name written entirely in
 // capitals (UTM_SOURCE from a QR code, which stores letters in capitals; Microsoft's OCID,
@@ -928,10 +1324,19 @@ const ALL_CAPS = /^[A-Z0-9_]*[A-Z][A-Z0-9_]*$/;
 // in mixed case itself (Facebook's Source, LinkedIn's trkInfo) still matches only as written,
 // and a protected short name (Ref, T, Hl) is never removed by a global rule whatever its case.
 const MIXED_CASE = /[A-Z]/;
+/** @param {string} name */
 const foldable = (name) => name.length >= 2 && MIXED_CASE.test(name) && name !== name.toLowerCase();
+/** @param {{ type: string, value: string }} rule */
 const distinctive = (rule) => rule.type !== 'exact' || rule.value.length >= 4 || rule.value.includes('_');
 
+/**
+ * @param {string} name
+ * @param {string | null} value
+ * @param {DecideContext} ctx
+ * @returns {{ keep?: KeepEntry, rule: ParamRule } | null}
+ */
 function decideAs(name, value, ctx) {
+  /** @type {{ sc: number, r: ParamRule } | null} */
   let best = null;
   if (!ctx.skipHost) {
     for (const blk of ctx.hostBlocks) {
@@ -955,6 +1360,11 @@ function decideAs(name, value, ctx) {
   return keep ? { keep, rule: best.r } : { rule: best.r };
 }
 
+/**
+ * @param {DecideContext} ctx
+ * @param {string} name
+ * @returns {KeepEntry | null}
+ */
 function neverEntry(ctx, name) {
   for (const e of ctx.never) {
     for (const p of e.params || []) {
@@ -964,6 +1374,12 @@ function neverEntry(ctx, name) {
   return null;
 }
 
+/**
+ * @param {string} name
+ * @param {string | null} value
+ * @param {DecideContext} ctx
+ * @returns {{ keep?: KeepEntry, rule: ParamRule } | null}
+ */
 function decide(name, value, ctx) {
   const d = decideAs(name, value, ctx);
   if (d || !foldable(name)) return d;
@@ -977,7 +1393,13 @@ function decide(name, value, ctx) {
 // The canonical-page rule for this host and path, or null. Hosts are matched exactly
 // (the pattern is anchored); paths in full, against the path with the parts removed by
 // default cut out; then the rule's requires and unless clauses against the parameters.
-const CANONICAL = RULES.canonical || [];
+const CANONICAL = /** @type {CanonicalRule[]} */ (RULES.canonical || []);
+/**
+ * @param {string} host
+ * @param {string} path
+ * @param {ParamEnv} env
+ * @returns {CanonicalRule | null}
+ */
 function canonicalRule(host, path, env) {
   for (const c of CANONICAL) {
     if (!reFor(c.host, host).test(host) || !c.paths.some((p) => re(p).test(path))) continue;
@@ -990,7 +1412,14 @@ function canonicalRule(host, path, env) {
 
 // The parameters a clause is tested against: the first value of each name, from the
 // query and then the key=value fragment, decoded; a name with no = has the value ''.
+/**
+ * @param {string} host
+ * @param {string} path
+ * @param {Token[]} tokens
+ * @returns {ParamEnv}
+ */
 function paramEnv(host, path, tokens) {
+  /** @type {Map<string, string>} */
   const map = new Map();
   for (const t of tokens) if (t.raw && !map.has(t.name)) map.set(t.name, t.value ?? '');
   return { host, path, map };
@@ -999,8 +1428,15 @@ function paramEnv(host, path, tokens) {
 // A clause holds when every key does. A key is a parameter name, a name ending in * (every
 // name starting with it), $host, or $value (the parameter being decided). A regular
 // expression must match the value; null means absent or empty.
+/**
+ * @param {Record<string, string | null>} clause
+ * @param {ParamEnv} env
+ * @param {string} [self]
+ * @returns {boolean}
+ */
 function clauseHolds(clause, env, self) {
   for (const [k, v] of Object.entries(clause)) {
+    /** @type {string[]} */
     let vals;
     if (k === '$host') vals = [env.host];
     else if (k === '$value') vals = [self ?? ''];
@@ -1008,7 +1444,7 @@ function clauseHolds(clause, env, self) {
       const pre = k.slice(0, -1);
       vals = [];
       for (const [n, x] of env.map) if (n.startsWith(pre)) vals.push(x);
-    } else vals = env.map.has(k) ? [env.map.get(k)] : [];
+    } else vals = env.map.has(k) ? [/** @type {string} */ (env.map.get(k))] : [];
     if (v === null) {
       if (vals.some((x) => x !== '')) return false;
     } else if (!vals.some((x) => re(v).test(x))) return false;
@@ -1017,6 +1453,12 @@ function clauseHolds(clause, env, self) {
 }
 
 // Whether a keep entry's condition holds for this parameter: its paths, then any clause.
+/**
+ * @param {{ paths?: string[], any?: Record<string, string | null>[] } | null | undefined} when
+ * @param {ParamEnv} env
+ * @param {string} self
+ * @returns {boolean}
+ */
 function whenHolds(when, env, self) {
   if (!when) return true;
   if (when.paths && !when.paths.some((p) => re(p).test(env.path))) return false;
@@ -1026,9 +1468,18 @@ function whenHolds(when, env, self) {
 
 // The names to look up: as written, and a name in capitals or in mixed case in small
 // letters too, as decide() does for the rules (IMG_INDEX, LANG, FORM, Img_Index).
+/** @param {string} name */
 const lookupNames = (name) => (foldable(name) ? [name, name.toLowerCase()] : [name]);
+/**
+ * @param {string} pattern
+ * @param {string} name
+ */
 const nameIs = (pattern, name) => (pattern.endsWith('*') ? name.startsWith(pattern.slice(0, -1)) : pattern === name);
 
+/**
+ * @param {CanonicalRule | null} canon
+ * @param {string} name
+ */
 function canonKeep(canon, name) {
   if (!canon) return null;
   for (const n of lookupNames(name)) {
@@ -1038,6 +1489,10 @@ function canonKeep(canon, name) {
   return null;
 }
 
+/**
+ * @param {CanonicalRule | null} canon
+ * @param {string} name
+ */
 function canonRemove(canon, name) {
   if (!canon || !canon.remove) return null;
   for (const n of lookupNames(name)) {
@@ -1047,6 +1502,11 @@ function canonRemove(canon, name) {
   return null;
 }
 
+/**
+ * @param {DecideContext} ctx
+ * @param {string} name
+ * @returns {KeepEntry | null}
+ */
 function neverFor(ctx, name) {
   for (const n of lookupNames(name)) {
     const e = neverEntry(ctx, n);
@@ -1055,12 +1515,20 @@ function neverFor(ctx, name) {
   return null;
 }
 
+/** @param {{ id: string }} r */
 const isGlobalRule = (r) => /^x?g\d/.test(r.id);
 
 // A protected short name in any case (v, T, HL): on a canonical page it is never removed
 // by default, because nothing verified says what it does there.
+/** @param {string} name */
 const isProtected = (name) => PROTECTED.has(name) || PROTECTED.has(name.toLowerCase());
 
+/**
+ * @param {KeepEntry} entry
+ * @param {string} host
+ * @param {string} path
+ * @returns {boolean}
+ */
 function fkApplies(entry, host, path) {
   const named = entry.hosts.filter((h) => h !== '*');
   if (named.length && !named.some((h) => hostMatches(host, h))) return false;
@@ -1068,6 +1536,13 @@ function fkApplies(entry, host, path) {
   return true;
 }
 
+/**
+ * @param {Layer} layer
+ * @param {Token[]} qTokens
+ * @param {Token[]} fTokens
+ * @param {Token[]} routeTokens
+ * @returns {Untouched | null}
+ */
 function untouchedCheck(layer, qTokens, fTokens, routeTokens) {
   const host = layer.host;
   for (const h of RULES.untouched.hosts) {
@@ -1079,6 +1554,7 @@ function untouchedCheck(layer, qTokens, fTokens, routeTokens) {
   const lower = new Set(names.map((n) => n.toLowerCase()));
   const exact = new Set(names);
   for (const s of RULES.untouched.signed) {
+    /** @param {string} n */
     const has = (n) => (s.caseInsensitive ? lower.has(n.toLowerCase()) : exact.has(n));
     if (s.all.every(has) && (!s.any || s.any.some(has))) {
       return { id: 'signed', reason: 'signed', name: s.label, text: `This link carries a signature (${s.label}). Changing any part of it would break it, so CheckLink leaves it exactly as it is. It may give access to a file or an account: share it only with people you trust.` };
@@ -1092,6 +1568,10 @@ function untouchedCheck(layer, qTokens, fTokens, routeTokens) {
   return null;
 }
 
+/**
+ * @param {string} value
+ * @returns {string | null}
+ */
 function hiddenIn(value) {
   const tries = [value];
   const once = pctDecodeKeep(value);
@@ -1107,20 +1587,32 @@ function hiddenIn(value) {
   return null;
 }
 
+/** @param {string} h */
 const siteOf = (h) => normHost(h).replace(/^www\./, '');
 
 // The words of a path segment or a parameter name: split at anything that is not a
 // letter or digit and between a small letter and a capital (UnsubscribePage).
+/** @param {string} s */
 const wordsOf = (s) => pctDecode(s).replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
 
 // An unsubscribe, preferences or opt-out page, judged from the path segments and the
 // parameter names only, never from values (utm_campaign=optout_reminder is not one). A
 // segment or name counts when its first or last word is one of the page words.
+/**
+ * @param {string} path
+ * @param {Token[]} tokens
+ * @returns {boolean}
+ */
 function isRecipientPage(path, tokens) {
   const words = RULES.recipientTokens.pageWords;
+  /** @param {string} s */
   const hit = (s) => {
     const w = wordsOf(s);
     if (!w.length) return false;
+    /**
+     * @param {string | undefined} a
+     * @param {string | undefined} b
+     */
     const join2 = (a, b) => (a && b ? a + b : '');
     const ends = [w[0], w[w.length - 1], join2(w[0], w[1]), join2(w[w.length - 2], w[w.length - 1])];
     return ends.some((x) => words.includes(x));
@@ -1132,6 +1624,10 @@ function isRecipientPage(path, tokens) {
 
 // A start time as a link writes it, in seconds (354) or in hours, minutes and seconds
 // (1h2m3s, 01h02m03s, 90s), as a clock reads it: 5:54, 1:02:03. Null for anything else.
+/**
+ * @param {unknown} value
+ * @returns {string | null}
+ */
 export function clockTime(value) {
   const s = String(value ?? '').trim();
   let secs = null;
@@ -1139,6 +1635,7 @@ export function clockTime(value) {
   if (/^\d{1,6}$/.test(s)) secs = Number(s);
   else if (hms && (hms[1] || hms[2] || hms[3])) secs = Number(hms[1] || 0) * 3600 + Number(hms[2] || 0) * 60 + Number(hms[3] || 0);
   if (secs === null || secs > 359999) return null;
+  /** @param {number} n */
   const two = (n) => String(n).padStart(2, '0');
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
@@ -1146,6 +1643,12 @@ export function clockTime(value) {
 }
 
 const NOT_YOU = 'It does not identify you.';
+/**
+ * A start time in words, or otherwise when the value is not one.
+ * @param {string} said
+ * @param {string} otherwise
+ * @returns {(v: string | null) => string}
+ */
 const at = (said, otherwise) => (v) => {
   const c = clockTime(v);
   return c ? `${said} ${c}.` : otherwise;
@@ -1157,6 +1660,7 @@ const at = (said, otherwise) => (v) => {
 // that is the same for everyone who gets the link, so the row adds "It does not identify
 // you."; { text } is said as it is, with no such claim. Anything not here is explained by
 // its rule's own note.
+/** @type {Record<string, string | ((value: string | null) => string) | { text: string }>} */
 const KEPT_WORDS = {
   'youtube:v': 'Video: says which video opens.',
   'youtube:t': at('Start time: opens the video at', 'Start time: where the video starts playing.'),
@@ -1191,6 +1695,7 @@ const KEPT_WORDS = {
 
 // The search words themselves, per rule: the same for everyone, but readable by anyone the
 // link reaches, so the row says that instead of claiming nothing.
+/** @type {Record<string, string[]>} */
 const SEARCH_PARAMS = {
   'google-search': ['q'], 'bing-search': ['q'], 'yahoo-search': ['p'], 'yandex-search': ['text'],
   'duckduckgo-search': ['q'], 'brave-search': ['q'], 'startpage-search': ['query', 'q'], 'mojeek-search': ['q'],
@@ -1200,8 +1705,16 @@ const SEARCH_PARAMS = {
 };
 const SEARCH_WORDS = 'The search itself. Everyone who gets this link can read what was searched for.';
 
+/**
+ * @param {string | null} ruleId
+ * @param {string} name
+ * @param {string | null} value
+ * @param {string} note
+ * @returns {{ explain: string, what: string, neutral: boolean }}
+ */
 function keptWords(ruleId, name, value, note) {
   const n = foldable(name) ? name.toLowerCase() : name;
+  /** @param {string} text */
   const plain = (text) => ({ explain: text, what: text, neutral: false });
   if (ruleId && SEARCH_PARAMS[ruleId] && SEARCH_PARAMS[ruleId].includes(n)) return plain(SEARCH_WORDS);
   const w = ruleId ? KEPT_WORDS[`${ruleId}:${n}`] : undefined;
@@ -1220,12 +1733,20 @@ const COORD = /^-?\d{1,3}(?:\.\d+)?$/;
 
 // A name from the data= blob, for display: + as a space, percent-decoded, invisible
 // characters as visible [U+...] marks, shortened past 40 characters.
+/**
+ * @param {string} raw
+ * @returns {string}
+ */
 function blobName(raw) {
   const text = invisibleChunks(formDecode(raw)).map((c) => (c.invisible ? `[${c.label.split(' ')[0]}]` : c.text)).join('').replace(/\s+/g, ' ').trim();
   // A straight quote would close the quotation marks around the name in the note.
   return text ? shorten(text.replace(/'/g, '\u2019'), 40) : '';
 }
 
+/**
+ * @param {Layer} layer
+ * @returns {MapsContext | null}
+ */
 function mapsContext(layer) {
   const host = normHost(layer.host);
   if (!hostMatches(host, 'google.*')) return null;
@@ -1233,7 +1754,7 @@ function mapsContext(layer) {
   if (!/^\/maps\/place\//.test(path)) return null;
   const m = /\/data=([^/]*)/.exec(path);
   if (!m) return null;
-  const tokens = m[1].split('!').filter(Boolean).map((t) => /^(\d+)([a-z])(.*)$/i.exec(t)).filter(Boolean)
+  const tokens = /** @type {RegExpExecArray[]} */ (m[1].split('!').filter(Boolean).map((t) => /^(\d+)([a-z])(.*)$/i.exec(t)).filter(Boolean))
     .map((x) => ({ key: Number(x[1]), type: x[2], value: x[3] }));
   // The place's own block: the last !3m<n> whose first entry is a feature ID (!1s0x...:0x...).
   let start = -1;
@@ -1257,8 +1778,13 @@ function mapsContext(layer) {
   const place = placeOnly(tokens, start, size);
   // Context comes before the place's own block: words in a !2m..!1s<words> search block,
   // and the name (!2s) of a place met on the way.
+  /** @type {MapsContext['context']} */
   const context = [];
   const seen = new Set();
+  /**
+   * @param {'category' | 'place'} kind
+   * @param {string} raw
+   */
   const add = (kind, raw) => {
     const name = blobName(raw);
     if (!name || seen.has(`${kind}|${name}`)) return;
@@ -1281,11 +1807,19 @@ function mapsContext(layer) {
 // counts only when the blob's final !3d and !4d sit inside that block: they are the
 // coordinates the link shows, so the place they belong to is the place the link is for.
 // The second half must fit Google's 64-bit ID and not be zero; anything else gives null.
+/**
+ * @param {{ key: number, type: string, value: string }[]} tokens
+ * @param {number} start
+ * @param {number} size
+ * @returns {MapsContext['place']}
+ */
 function placeOnly(tokens, start, size) {
+  /** @param {number} key */
   const lastAt = (key) => {
     for (let i = tokens.length - 1; i >= 0; i--) if (tokens[i].key === key && tokens[i].type === 'd') return i;
     return -1;
   };
+  /** @param {number} i */
   const inside = (i) => i > start && i <= start + size;
   if (!inside(lastAt(3)) || !inside(lastAt(4))) return null;
   const featureId = tokens[start + 1].value;
@@ -1295,7 +1829,16 @@ function placeOnly(tokens, start, size) {
   return { featureId, cid, link: `https://maps.google.com/?cid=${cid}` };
 }
 
+/**
+ * @param {MapsContext} ctx
+ * @returns {string}
+ */
 function mapsNote(ctx) {
+  /**
+   * @param {'category' | 'place'} kind
+   * @param {string} one
+   * @param {string} many
+   */
   const list = (kind, one, many) => {
     const names = ctx.context.filter((c) => c.kind === kind).slice(0, 3).map((c) => `'${c.name}'`);
     if (!names.length) return null;
@@ -1317,17 +1860,31 @@ function mapsNote(ctx) {
 // cannot stand in an address written as %XX again, so the text can never read as a sentence
 // of its own (batch 3 security review finding F7). Shortened only past max characters,
 // keeping the end, where a look-alike name sits.
+/**
+ * @param {string} raw
+ * @param {number} max
+ * @returns {string}
+ */
 function shownAs(raw, max) {
   const marked = invisibleChunks(pctDecode(raw)).map((c) => (c.invisible ? `[${c.label.split(' ')[0]}]` : escapeIllegal(c.text))).join('');
   const chars = Array.from(marked);
   return chars.length > max ? `${chars.slice(0, Math.floor(max / 2)).join('')}\u2026${chars.slice(-Math.floor(max * 0.375)).join('')}` : marked;
 }
 
+/**
+ * @param {Layer} layer
+ * @param {Warnings} warnings
+ * @returns {{ parts: Part[], kept: Kept[], model: PieceModel, partIds: Set<string>, defaultRemoved: string[],
+ *   untouched: Untouched | null, hidden: Hidden[] }}
+ */
 function planTarget(layer, warnings) {
   const { link, sp } = layer;
   const host = normHost(layer.host);
+  /** @type {Part[]} */
   const parts = [];
+  /** @type {Kept[]} */
   const kept = [];
+  /** @type {PieceModel['pathParts']} */
   const pathParts = [];
   const path = link.slice(sp.pathStart, sp.pathEnd);
   const queryText = sp.qIdx >= 0 ? link.slice(sp.qIdx + 1, sp.hIdx >= 0 ? sp.hIdx : link.length) : null;
@@ -1339,13 +1896,14 @@ function planTarget(layer, warnings) {
   const routeTokens = rq ? tokenise(rq, 0) : [];
 
   const untouched = untouchedCheck(layer, qTokens, fTokens, routeTokens);
-  const fk = RULES.functionalKeep;
+  const fk = /** @type {KeepEntry[]} */ (RULES.functionalKeep);
   const skipAll = !untouched && fk.some((e) => e.effect === 'skip_all_rules' && fkApplies(e, host, path));
 
   // 0. An address disguise: a user name (and password) before @. Everything before the
   // last @ of the authority, the @ included, is one part. Not on a link left untouched. A
   // host where the table leaves every parameter alone (accounts.google.com) still gets it:
   // that entry is about parameters, not the address (batch 3 review finding P9).
+  /** @type {PieceModel['userinfo']} */
   let userinfo = null;
   if (!untouched && (layer.url.username || layer.url.password)) {
     const at = layer.authority.lastIndexOf('@');
@@ -1387,9 +1945,10 @@ function planTarget(layer, warnings) {
 
     // 1. Tracking in the path. Positions already taken are marked once, so overlapping
     // matches are refused in time proportional to their own length.
+    /** @type {{ start: number, end: number, pr: PathRule, text: string }[]} */
     const spans = [];
     const taken = new Uint8Array(path.length);
-    for (const pr of RULES.pathRules) {
+    for (const pr of /** @type {PathRule[]} */ (RULES.pathRules)) {
       if (!pr.hosts.some((h) => hostMatches(host, h))) continue;
       for (const m of path.matchAll(re(pr.regex, `g${pr.flags}`))) {
         if (!m[0]) continue;
@@ -1435,11 +1994,23 @@ function planTarget(layer, warnings) {
     // rules or every parameter alone.
     const env = paramEnv(host, strippedPath, [...qTokens, ...fTokens]);
     const canon = skipHost || skipParams ? null : canonicalRule(host, strippedPath, env);
+    /**
+     * @param {Token[]} tokens
+     * @param {'query' | 'fragment'} where
+     * @param {string} prefix
+     */
     const runList = (tokens, where, prefix) => {
       const keys = new Set(tokens.filter((t) => t.raw).map((t) => t.name));
       const ctx = { host, path: strippedPath, url: link, keys, skipHost, never, hostBlocks };
       // Kept on purpose: the parameter gets its own id, so the page can mark it and
       // "Remove anyway" can take it out; it is never removed by default.
+      /**
+       * @param {Token} t
+       * @param {number} i
+       * @param {Kept['reason']} reason
+       * @param {string} note
+       * @param {string | null} ruleId
+       */
       const keep = (t, i, reason, note, ruleId) => {
         t.id = `${prefix}${i}`;
         const words = reason === 'recipient-token'
@@ -1466,19 +2037,26 @@ function planTarget(layer, warnings) {
           const value = () => shorten(pctDecode(t.rawValue ?? ''));
           // A guess from the value's shape only, so plain words in base64 do not count.
           const shapeUnique = () => looksRandom(t.value) && !base64Words(pctDecode(t.rawValue ?? ''));
+          /**
+           * @param {string} provider
+           * @param {string} reveals
+           * @param {boolean} unique
+           * @param {{ empty?: boolean }} [extra]
+           */
           const verifiedPart = (provider, reveals, unique, extra = {}) => {
             t.id = `${prefix}${i}`;
             parts.push({
               id: t.id, where, name: t.name, value: value(), provider, reveals, unique, affiliate: null, defaultRemove: true, ask: false,
-              family: canon.family, rule: `verified-page:${canon.id}`, breakage: null, text: t.raw, unrecognised: false, ...extra,
+              family: /** @type {CanonicalRule} */ (canon).family, rule: `verified-page:${/** @type {CanonicalRule} */ (canon).id}`, breakage: null, text: t.raw, unrecognised: false, ...extra,
             });
           };
-          if (ck && canon.dropEmpty && self === '') {
-            verifiedPart(canon.platform, canon.emptyReveals, false, { empty: true });
+          // ck is found only on a canonical page, so canon is set wherever ck is.
+          if (ck && /** @type {CanonicalRule} */ (canon).dropEmpty && self === '') {
+            verifiedPart(/** @type {CanonicalRule} */ (canon).platform, /** @type {string} */ (/** @type {CanonicalRule} */ (canon).emptyReveals), false, { empty: true });
             return;
           }
           if (ck && whenHolds(ck.when, env, self)) {
-            keep(t, i, 'functional', ck.note, canon.id);
+            keep(t, i, 'functional', ck.note, /** @type {CanonicalRule} */ (canon).id);
             return;
           }
           const never = neverFor(ctx, t.name);
@@ -1544,14 +2122,22 @@ function planTarget(layer, warnings) {
   const defaultRemoved = parts.filter((p) => p.defaultRemove).map((p) => p.id);
 
   // Addresses hidden in what stays (warning 8).
+  /** @type {Hidden[]} */
   const hidden = [];
   const seen = new Set();
   const keptIds = new Set(kept.map((k) => k.id));
+  /**
+   * @param {Hidden['where']} where
+   * @param {string | null} name
+   * @param {string} value
+   * @param {boolean} [isKept]
+   */
   const addHidden = (where, name, value, isKept = false) => {
     const inner = hiddenIn(value);
     if (!inner || seen.has(inner)) return;
     seen.add(inner);
-    const u = webUrl(inner);
+    // hiddenIn returns only what webUrl accepts.
+    const u = /** @type {URL} */ (webUrl(inner));
     // shownName: the name as CheckLink's own sentences show it, with spaces and line breaks
     // written as %XX, so a name cannot add words of its own (as for the disguise, F7).
     hidden.push({ where, name, shownName: name === null ? null : shownAs(name, 60), link: inner, host: u.hostname, sameHost: siteOf(u.hostname) === siteOf(host), kept: isKept, text: value });
@@ -1565,10 +2151,22 @@ function planTarget(layer, warnings) {
   return { parts, kept, model, partIds, defaultRemoved, untouched, hidden };
 }
 
+/**
+ * @param {PieceModel} model
+ * @param {Set<string>} partIds
+ * @param {Set<string>} removed
+ * @returns {Segment[]}
+ */
 function buildPieces(model, partIds, removed) {
   const { link } = model;
   const any = [...removed].some((id) => partIds.has(id));
+  /** @type {Segment[]} */
   const pieces = [];
+  /**
+   * @param {string | null} text
+   * @param {boolean} isRemoved
+   * @param {string | null} [partId]
+   */
   const push = (text, isRemoved, partId) => {
     if (!text) return;
     const last = pieces[pieces.length - 1];
@@ -1589,6 +2187,10 @@ function buildPieces(model, partIds, removed) {
   }
   push(link.slice(p, model.pathEnd), false, null);
 
+  /**
+   * @param {string} markChar
+   * @param {Token[]} tokens
+   */
   const emitList = (markChar, tokens) => {
     const keep = tokens.map((t) => (any ? t.raw !== '' && !(t.id && removed.has(t.id)) : true));
     const firstKept = keep.indexOf(true);
@@ -1600,7 +2202,7 @@ function buildPieces(model, partIds, removed) {
         let sepId = null;
         if (!sepKept) {
           if (t.id && removed.has(t.id)) sepId = t.id;
-          else if (tokens[i - 1].id && removed.has(tokens[i - 1].id)) sepId = tokens[i - 1].id;
+          else if (tokens[i - 1].id && removed.has(/** @type {string} */ (tokens[i - 1].id))) sepId = tokens[i - 1].id;
         }
         push('&', !sepKept, sepId);
       }
@@ -1618,15 +2220,25 @@ function buildPieces(model, partIds, removed) {
   return pieces;
 }
 
+/** @param {Segment[]} pieces */
 const piecesText = (pieces) => pieces.filter((x) => !x.removed).map((x) => x.text).join('');
 
 // == analysis ==
 
+/**
+ * @param {string} link
+ * @param {{ bare?: boolean, depth?: number }} [options]
+ * @returns {LinkAnalysis}
+ */
 function analyseLink(link, { bare = false, depth = 0 } = {}) {
   const warnings = new Warnings();
+  /** @type {{ layer: Layer, rd: RedirectRule }[]} */
   const layers = [];
-  let cur = parseLayer(link, bare);
+  // Every link analysed here was accepted by findLinks or hiddenIn, so it parses.
+  let cur = /** @type {Layer} */ (parseLayer(link, bare));
+  /** @type {ShortLink | null} */
   let shortLink = null;
+  /** @type {Offer | null} */
   let offer = null;
   for (;;) {
     hostChecks(cur, warnings);
@@ -1650,16 +2262,18 @@ function analyseLink(link, { bare = false, depth = 0 } = {}) {
       shortLink = shortLinkFromRule(rd, cur);
       break;
     }
+    // Past the two checks above, inner is an address: the checker cannot narrow by AMBIGUOUS.
     if (rd.action === 'offer') {
       shortLink = shortLinkFromRule(rd, cur);
-      offer = { id: rd.id, label: rd.label, link: inner };
+      offer = { id: rd.id, label: rd.label, link: /** @type {string} */ (inner) };
       break;
     }
     if (rd.action === 'show') break; // a share intent: its url= is shown as a hidden address
     // A browser keeps the fragment across a redirect whose target has none of its own, so
     // the outer #section travels on to the address inside.
     const outerFrag = cur.sp.hIdx >= 0 ? cur.link.slice(cur.sp.hIdx) : '';
-    const next = parseLayer(outerFrag.length > 1 && !inner.includes('#') ? inner + outerFrag : inner, false);
+    const address = /** @type {string} */ (inner);
+    const next = parseLayer(outerFrag.length > 1 && !address.includes('#') ? address + outerFrag : address, false);
     if (!next) break;
     layers.push({ layer: cur, rd });
     if (SAFE_LINKS_IDS.has(rd.id)) {
@@ -1732,6 +2346,7 @@ function analyseLink(link, { bare = false, depth = 0 } = {}) {
     }
   }
 
+  /** @type {Part[]} */
   const wrapperParts = layers.map(({ layer, rd }, i) => {
     const others = tokenise(rawQuery(layer), 0).some((t) => t.value && looksRandom(t.value));
     return {
@@ -1748,6 +2363,7 @@ function analyseLink(link, { bare = false, depth = 0 } = {}) {
 
   // The clean text for a choice, and the host it must go to: the first wrapper kept, or
   // the target.
+  /** @param {Set<string>} set */
   const rawClean = (set) => {
     for (let i = 0; i < layers.length; i++) if (!set.has(`w${i}`)) return layers[i].layer.link;
     const text = piecesText(buildPieces(plan.model, plan.partIds, set));
@@ -1756,20 +2372,30 @@ function analyseLink(link, { bare = false, depth = 0 } = {}) {
     // in front (batch 3 review finding P4).
     return !layers.length && bare && plan.model.userinfo && set.has(plan.model.userinfo.id) ? `https://${text}` : text;
   };
+  /** @param {Set<string>} set */
   const hostFor = (set) => {
     for (let i = 0; i < layers.length; i++) if (!set.has(`w${i}`)) return layers[i].layer.host;
     return target.host;
   };
+  /** @param {string} text */
   const withScheme = (text) => (/^https?:\/\//i.test(text) ? text : `https://${text}`);
   // The hard check: a choice whose clean link would go to any other host removes nothing.
+  /** @param {IdChoice} ids */
   const resolve = (ids) => {
     const set = toIdSet(ids) ?? new Set(defaultRemoved);
     const u = webUrl(withScheme(rawClean(set)));
     return u && u.hostname === hostFor(set) ? set : new Set();
   };
+  /** @param {IdChoice} [ids] */
   const targetSegmentsFor = (ids) => buildPieces(plan.model, plan.partIds, resolve(ids));
+  /** @param {IdChoice} [ids] */
   const clean = (ids) => rawClean(resolve(ids));
+  /** @param {IdChoice} [ids] */
   const openUrl = (ids) => withScheme(clean(ids));
+  /**
+   * @param {IdChoice} [ids]
+   * @returns {Segment[]}
+   */
   const segmentsFor = (ids) => {
     if (!layers.length) return targetSegmentsFor(ids);
     return [{ text: link, removed: resolve(ids).has('w0'), partId: 'w0' }];
@@ -1818,6 +2444,13 @@ function analyseLink(link, { bare = false, depth = 0 } = {}) {
   };
 }
 
+/**
+ * @param {string} input
+ * @param {'script' | 'none'} kind
+ * @param {Warning[]} warnings
+ * @param {string[]} others
+ * @returns {EmptyAnalysis}
+ */
 function emptyResult(input, kind, warnings, others) {
   return {
     found: false, kind, input, link: null, start: -1, end: -1, bare: false, prefix: '', others,
@@ -1827,6 +2460,10 @@ function emptyResult(input, kind, warnings, others) {
   };
 }
 
+/**
+ * @param {unknown} input
+ * @returns {Analysis}
+ */
 export function analyse(input) {
   const text = String(input ?? '');
   const { links, unreadable } = findLinks(text);
@@ -1840,6 +2477,7 @@ export function analyse(input) {
     }], links.map((l) => l.link));
   }
   if (!links.length) {
+    /** @type {Warning[]} */
     const warnings = unreadable.length
       ? [{ id: 'unreadable', tier: 'check', text: 'This looks like a link, but a browser cannot read it as an address. It may contain characters that do not belong in one.' }]
       : [];
@@ -1847,7 +2485,8 @@ export function analyse(input) {
   }
   const first = links[0];
   const res = analyseLink(first.link, { bare: first.bare });
-  return { found: true, kind: 'web', input: text, start: first.start, end: first.end, others: links.slice(1).map((l) => l.link), ...res };
+  // res carries found: true and kind: 'web' as well; these two stay first, for the same key order.
+  return { found: true, kind: 'web', input: text, start: first.start, end: first.end, others: links.slice(1).map((l) => l.link), .../** @type {Omit<LinkAnalysis, 'found' | 'kind'>} */ (res) };
 }
 
 // == "Did CheckLink break your link? Email us" ==
@@ -1860,6 +2499,7 @@ const REPORT_MAX = 1800;
 // between their letters left out, so authToken, auth_token and auth-token are one name (stage 4b
 // security review S1). Those at either end stay: Drip's __s is not s, and HubSpot's _hsenc keeps
 // its underscore.
+/** @param {string} n */
 const normName = (n) => n.toLowerCase().replace(/(?<=[\p{L}\p{N}])[-_.]+(?=[\p{L}\p{N}])/gu, '');
 // Names whose value signs someone in, resets a password or unlocks an account: the
 // leave-untouched list, LinkedIn's otpToken, and password, passcode, key and session names
@@ -1903,7 +2543,12 @@ const JWT_IN = /(?:^|[^A-Za-z0-9_-])eyJ[A-Za-z0-9_-]{4,}\.eyJ[A-Za-z0-9_-]{4,}\.
 const PATH_STEP_WORDS = new Set(['reset', 'password', 'passwordless', 'magic', 'login', 'signin', 'logon', 'verify', 'verification', 'confirm', 'confirmation', 'activate', 'activation', 'otp', 'auth', 'onetime', 'token']);
 // A token: 16 or more letters, digits, hyphens or underscores, with at least one letter and one
 // digit, so an ordinary word or a number in a path is not one.
+/** @param {string} seg */
 const tokenShaped = (seg) => seg.length >= 16 && /^[A-Za-z0-9_-]+$/.test(seg) && /[A-Za-z]/.test(seg) && /\d/.test(seg);
+/**
+ * @param {string} path
+ * @returns {boolean}
+ */
 function pathSignIn(path) {
   const segs = path.split('/');
   for (let i = 0; i < segs.length; i++) {
@@ -1914,6 +2559,10 @@ function pathSignIn(path) {
   return false;
 }
 // What a parameter name says the value is, or null.
+/**
+ * @param {string} name
+ * @returns {PersonalReason | null}
+ */
 function nameReason(name) {
   const n = normName(name);
   if (!n) return null;
@@ -1926,6 +2575,7 @@ function nameReason(name) {
   if (SIGN_IN_WORDS.some((w) => n.includes(w))) return 'signin';
   return null;
 }
+/** @type {Record<PersonalReason, string>} */
 const LEFT_OUT = {
   signin: 'it carries a sign-in, key or session value',
   signed: 'it carries a signature that can give access to a file or an account',
@@ -1946,6 +2596,10 @@ const REPORT_DECODE_ROUNDS = 10;
 // (nameReason), for a JSON Web Token under any name, for an email address (in any alphabet, or
 // written in base64) and for a password before an @ in an address inside it, in the link as
 // written and decoded again until nothing changes, so an address wrapped inside another is read too.
+/**
+ * @param {string | null} text
+ * @returns {PersonalReason | null}
+ */
 function personalIn(text) {
   if (!text) return null;
   const sp = splitLink(text, !/^[A-Za-z][A-Za-z0-9+.-]*:/.test(text));
@@ -1980,6 +2634,11 @@ function personalIn(text) {
   return null;
 }
 
+/**
+ * @param {LinkAnalysis} a
+ * @param {number} [depth]
+ * @returns {PersonalReason | null}
+ */
 function originalReason(a, depth = 0) {
   if (a.untouched) return a.untouched.reason === 'auth' ? 'signin' : a.untouched.reason === 'signed' ? 'signed' : 'wrapped';
   if (a.kept.some((k) => k.reason === 'recipient-token')) return 'recipient';
@@ -2003,6 +2662,12 @@ function originalReason(a, depth = 0) {
 // holds when it is the original, a wrapper kept around it, or a link left untouched (F1);
 // otherwise it is read on its own, with the recipient parts still in it and the hidden
 // addresses whose value it still carries.
+/**
+ * @param {LinkAnalysis} a
+ * @param {string} clean
+ * @param {PersonalReason | null} oWhy
+ * @returns {PersonalReason | null}
+ */
 function cleanReason(a, clean, oWhy) {
   if (clean === a.link || a.untouched || a.wrappers.some((w) => w.link === clean)) return oWhy;
   const own = personalIn(clean);
@@ -2016,12 +2681,20 @@ function cleanReason(a, clean, oWhy) {
 }
 
 // A lone surrogate would make encodeURIComponent throw.
+/** @param {unknown} s */
 const wellFormed = (s) => String(s).replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, '\uFFFD');
+/** @param {string} s */
 const enc = (s) => encodeURIComponent(wellFormed(s));
 
 // The link with its middle cut out, so that it takes at most max characters once encoded.
+/**
+ * @param {string} text
+ * @param {number} max
+ * @returns {string}
+ */
 function squeeze(text, max) {
   const chars = Array.from(wellFormed(text));
+  /** @param {number} n */
   const cut = (n) => {
     const head = Math.ceil(n * 0.6);
     return `${chars.slice(0, head).join('')}\u2026${chars.slice(chars.length - (n - head)).join('')}`;
@@ -2037,20 +2710,37 @@ function squeeze(text, max) {
   return cut(lo);
 }
 
+/**
+ * @param {Analysis | null | undefined} a
+ * @param {IdChoice} removedIds
+ * @returns {ReportMail | null}
+ */
 export function reportMail(a, removedIds) {
   if (!a || !a.found) return null;
   const clean = a.clean(removedIds);
   const oWhy = originalReason(a);
   const cWhy = cleanReason(a, clean, oWhy);
+  /**
+   * @param {string | null} o
+   * @param {string | null} c
+   * @param {boolean} oShort
+   * @param {boolean} cShort
+   */
   const body = (o, c, oShort, cShort) => [
     ...(o !== null ? ['Before you send: the original link may hold personal parts, such as a code that identifies you. You can edit them out of this message.', ''] : []),
-    o !== null ? `Original link${oShort ? ' (shortened)' : ''}: ${o}` : `Original link: left out, because ${LEFT_OUT[oWhy]}. Add it yourself only if you are happy to share it.`,
-    c !== null ? `CheckLink's clean link${cShort ? ' (shortened)' : ''}: ${c}` : `CheckLink's clean link: left out, because ${LEFT_OUT[cWhy]}.`,
+    o !== null ? `Original link${oShort ? ' (shortened)' : ''}: ${o}` : `Original link: left out, because ${LEFT_OUT[/** @type {PersonalReason} */ (oWhy)]}. Add it yourself only if you are happy to share it.`,
+    c !== null ? `CheckLink's clean link${cShort ? ' (shortened)' : ''}: ${c}` : `CheckLink's clean link: left out, because ${LEFT_OUT[/** @type {PersonalReason} */ (cWhy)]}.`,
     'What went wrong (optional): ',
     '',
     '',
     `Rules dated ${RULES_DATE}`,
   ].join('\r\n');
+  /**
+   * @param {string | null} o
+   * @param {string | null} c
+   * @param {boolean} oShort
+   * @param {boolean} cShort
+   */
   const build = (o, c, oShort, cShort) => `mailto:${REPORT_TO}?subject=${enc(REPORT_SUBJECT)}&body=${enc(body(o, c, oShort, cShort))}`;
   const o = oWhy ? null : a.link;
   const c = cWhy ? null : clean;
@@ -2087,6 +2777,11 @@ export function reportMail(a, removedIds) {
 // QR code agree with it. original says why the link as written holds something personal, clean
 // why the clean link for that choice does; each is null or one of the LEFT_OUT keys: 'signin',
 // 'signed', 'wrapped', 'recipient', 'email', 'phone', 'id' or 'password'.
+/**
+ * @param {Analysis | null | undefined} a
+ * @param {IdChoice} removedIds
+ * @returns {{ original: PersonalReason | null, clean: PersonalReason | null }}
+ */
 export function personalReasons(a, removedIds) {
   if (!a || !a.found) return { original: null, clean: null };
   const original = originalReason(a);
@@ -2098,6 +2793,11 @@ export function personalReasons(a, removedIds) {
 // 'recipient' while a recipient token the page needs is kept. A recipient token ticked to be
 // removed anyway no longer holds it back, unless a wrapper kept around the address keeps
 // everything inside it as written.
+/**
+ * @param {Analysis | null | undefined} a
+ * @param {IdChoice} removedIds
+ * @returns {'auth' | 'recipient' | null}
+ */
 export function heldReason(a, removedIds) {
   if (!a || !a.found) return null;
   if (a.untouched && a.untouched.reason === 'auth') return 'auth';

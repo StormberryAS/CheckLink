@@ -1659,7 +1659,9 @@ try {
     '/third_party/bip39/spanish.txt', '/third_party/monero/english.h', '/third_party/slip39/wordlist.txt',
     '/third_party/unicode/confusables.txt', '/rules/brands.json', '/rules/brands-verified.json', '/tools/brands.mjs', '/tests/fixtures/real-domains.txt', '/tests/png-pixels.mjs',
     '/third_party/qrcodegen/qrcodegen.ts', '/tests/qr-make.test.mjs',
-    '/DISCLAIMER.md', '/README.md', '/fastlane/metadata/android/en-US/images/icon.png', '/android/tools/make_icons.py', '/tests/legal-pages.mjs'];
+    '/DISCLAIMER.md', '/README.md', '/fastlane/metadata/android/en-US/images/icon.png', '/android/tools/make_icons.py', '/tests/legal-pages.mjs',
+    // The type checking's tooling (2026-10-16).
+    '/package.json', '/package-lock.json', '/jsconfig.json', '/jsconfig.worker.json', '/types/page.d.ts', '/tools/typecheck-stamps.mjs'];
   const got = {};
   for (const path of [...want200, ...want404]) got[path] = await status(path);
   check('the page, its modules, styles and icon are published', want200.every((x) => got[x] === 200), Object.fromEntries(want200.map((x) => [x, got[x]])));

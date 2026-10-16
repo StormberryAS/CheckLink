@@ -25,7 +25,21 @@
 
 import { prepareZXingModule, readBarcodes } from '../vendor/zxing-wasm-3.1.4/es/reader/index.js';
 import WASM_BASE64 from '../vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js';
-import { DECODES_DIRECTLY, sniffImage } from './image-check.js?v=a0765b8f';
+import { DECODES_DIRECTLY, sniffImage } from './image-check.js?v=8ceb003a';
+
+/** @import { ReadResult, ZXingPosition } from '../vendor/zxing-wasm-3.1.4/es/reader/index.js' */
+/** @typedef {import('./image-check.js').ImageInfo} ImageInfo */
+/** @typedef {'not-image' | 'too-large' | 'too-many-pixels' | 'unsupported' | 'no-wasm' | 'failed'} DecodeCode */
+/**
+ * One code found, as the worker sends it to the page.
+ * @typedef {{ format: string, text: string, bytes: Uint8Array<ArrayBuffer>, contentType: string, position: ZXingPosition, ecLevel: string | null, symbologyIdentifier: string | null }} DecodedCode
+ */
+/** @typedef {{ type: 'frame', width: number, height: number, orientation: number }} FrameImage */
+/** @typedef {{ image: ImageInfo | FrameImage, codes: DecodedCode[] }} DecodeResult */
+/** @typedef {{ data: Uint8ClampedArray, width: number, height: number }} Frame */
+// What a catch block holds, as the code reads it: usually an Error. Anything can be thrown,
+// null included; `err && err.message` below copes with that, so the type leaves it out.
+/** @typedef {{ message?: unknown }} Thrown */
 
 // A picture larger than this is refused before decoding: a phone photo is 2 to 12 MB and 12 to
 // 50 megapixels; a decompression bomb declares far more.
@@ -46,6 +60,10 @@ const FRAME_OPTIONS = { ...OPTIONS, tryRotate: false };
 export const FRAME_SIDE = 4096;
 
 export class DecodeError extends Error {
+  /**
+   * @param {DecodeCode} code
+   * @param {Record<string, unknown> | null} [detail]
+   */
   constructor(code, detail = null) {
     super(code);
     this.code = code;
@@ -76,7 +94,7 @@ function prepare() {
       wasmBinary: wasm.buffer,
       // Never used while wasmBinary is set; replaced so that the decoder's own default, an
       // address on a CDN, cannot be reached even by mistake.
-      locateFile: (path) => `./${path}`,
+      locateFile: (/** @type {string} */ path) => `./${path}`,
     },
     fireImmediately: true,
   });
@@ -97,13 +115,14 @@ async function clearingModule() {
   if (guarded.has(mod)) return;
   const malloc = mod._malloc;
   const free = mod._free;
+  /** @type {Map<number, number>} */
   const sizes = new Map();
-  mod._malloc = (n) => {
+  mod._malloc = (/** @type {number} */ n) => {
     const ptr = malloc(n);
     if (ptr && n > 0) sizes.set(ptr, n);
     return ptr;
   };
-  mod._free = (ptr) => {
+  mod._free = (/** @type {number} */ ptr) => {
     const n = sizes.get(ptr);
     if (n) {
       mod.HEAPU8.fill(0, ptr, ptr + n);
@@ -114,6 +133,11 @@ async function clearingModule() {
   guarded.add(mod);
 }
 
+/**
+ * @param {Uint8Array<ArrayBuffer> | ArrayBuffer | ArrayLike<number> | null | undefined} input
+ * @param {{ mime?: string, createBitmap?: ((blob: Blob) => Promise<ImageBitmap>) | null }} [options]
+ * @returns {Promise<DecodeResult>}
+ */
 export async function decodePicture(input, { mime = '', createBitmap = null } = {}) {
   const bytes = input instanceof Uint8Array ? input : new Uint8Array(input || []);
   if (bytes.length > LIMITS.bytes) throw new DecodeError('too-large', { bytes: bytes.length });
@@ -128,8 +152,9 @@ export async function decodePicture(input, { mime = '', createBitmap = null } = 
   try {
     prepare();
   } catch (err) {
-    throw new DecodeError('no-wasm', { message: String(err && err.message) });
+    throw new DecodeError('no-wasm', { message: String(err && /** @type {Thrown} */ (err).message) });
   }
+  /** @type {ReadResult[]} */
   let results;
   try {
     await clearingModule();
@@ -145,7 +170,9 @@ export async function decodePicture(input, { mime = '', createBitmap = null } = 
       }
       if (bitmap.width * bitmap.height > LIMITS.pixels) throw new DecodeError('too-many-pixels', { width: bitmap.width, height: bitmap.height });
       const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      // A new OffscreenCanvas always has a 2d context to give; if it ever did not, the TypeError
+      // below would be caught and reported as 'failed', as before.
+      const ctx = /** @type {OffscreenCanvasRenderingContext2D} */ (canvas.getContext('2d', { willReadFrequently: true }));
       ctx.drawImage(bitmap, 0, 0);
       image.width = bitmap.width;
       image.height = bitmap.height;
@@ -155,7 +182,7 @@ export async function decodePicture(input, { mime = '', createBitmap = null } = 
     }
   } catch (err) {
     if (err instanceof DecodeError) throw err;
-    const text = String(err && err.message);
+    const text = String(err && /** @type {Thrown} */ (err).message);
     if (/CompileError|WebAssembly|Content Security|unsafe-eval/i.test(text)) throw new DecodeError('no-wasm', { message: text });
     throw new DecodeError('failed', { message: text.slice(0, 200) });
   }
@@ -163,27 +190,37 @@ export async function decodePicture(input, { mime = '', createBitmap = null } = 
 }
 
 // Stage 3: one frame from the live camera, as RGBA pixels.
-export async function decodeFrame({ data, width, height } = {}) {
+// Called with no frame at all, every check below fails and it throws 'not-image'.
+/**
+ * @param {Frame} [frame]
+ * @returns {Promise<DecodeResult>}
+ */
+export async function decodeFrame({ data, width, height } = /** @type {Frame} */ ({})) {
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > FRAME_SIDE || height > FRAME_SIDE) throw new DecodeError('not-image', { width, height });
   if (!data || typeof data.length !== 'number' || data.length !== width * height * 4) throw new DecodeError('not-image', { width, height });
   if (!wasmAllowed()) throw new DecodeError('no-wasm');
   try {
     prepare();
   } catch (err) {
-    throw new DecodeError('no-wasm', { message: String(err && err.message) });
+    throw new DecodeError('no-wasm', { message: String(err && /** @type {Thrown} */ (err).message) });
   }
+  /** @type {ReadResult[]} */
   let results;
   try {
     await clearingModule();
     results = await readBarcodes({ data, width, height }, FRAME_OPTIONS);
   } catch (err) {
-    const text = String(err && err.message);
+    const text = String(err && /** @type {Thrown} */ (err).message);
     if (/CompileError|WebAssembly|Content Security|unsafe-eval/i.test(text)) throw new DecodeError('no-wasm', { message: text });
     throw new DecodeError('failed', { message: text.slice(0, 200) });
   }
   return { image: { type: 'frame', width, height, orientation: 1 }, codes: codesOf(results) };
 }
 
+/**
+ * @param {ReadResult[]} results
+ * @returns {DecodedCode[]}
+ */
 function codesOf(results) {
   return results.filter((r) => r.isValid !== false && (r.text || (r.bytes && r.bytes.length))).slice(0, LIMITS.codes).map((r) => ({
     format: r.format,

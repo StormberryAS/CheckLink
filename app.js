@@ -59,12 +59,73 @@
 // shape as well as colour, so they read apart without colour (WCAG 1.4.1), and the legend
 // lists only the marks the link on screen has.
 
-import { PSL_DATE, RULES_DATE, analyse, heldReason, invisibleChunks, personalReasons, reportMail, splitLink } from './src/link-core.js?v=108881e2';
-import { rowLabel, sameKind, whoFor } from './src/row-words.js?v=6f4d1f22';
-import { inspect } from './src/qr-inspect.js?v=f30f4aa3';
-import { orientPoint, orientedSize } from './src/image-check.js?v=a0765b8f';
-import { domainInfo } from './src/domain.js?v=e177a464';
-import { QR_FILE, QUIET, makeQr, qrNote, qrPath, qrPng, qrRefusal, qrText } from './src/qr-make.js?v=ff13f4de';
+import { PSL_DATE, RULES_DATE, analyse, heldReason, invisibleChunks, personalReasons, reportMail, splitLink } from './src/link-core.js?v=d248ac28';
+import { rowLabel, sameKind, whoFor } from './src/row-words.js?v=32369f20';
+import { inspect } from './src/qr-inspect.js?v=240ba701';
+import { orientPoint, orientedSize } from './src/image-check.js?v=8ceb003a';
+import { domainInfo } from './src/domain.js?v=f1bcd492';
+import { QR_FILE, QUIET, makeQr, qrNote, qrPath, qrPng, qrRefusal, qrText } from './src/qr-make.js?v=e244fdc8';
+
+// ---------------------------------------------------------------------------------------
+// Types (JSDoc, for the type checker only)
+
+// Written as import() types, not @import tags: bump_assets.py stamps every `from './x.js'`.
+/** @typedef {import('./src/link-core.js').Analysis} Analysis */
+/** @typedef {import('./src/link-core.js').FoundAnalysis} FoundAnalysis */
+/** @typedef {import('./src/link-core.js').IdChoice} IdChoice */
+/** @typedef {import('./src/link-core.js').Kept} Kept */
+/** @typedef {import('./src/link-core.js').LinkAnalysis} LinkAnalysis */
+/** @typedef {import('./src/link-core.js').Part} Part */
+/** @typedef {import('./src/link-core.js').PersonalReason} PersonalReason */
+/** @typedef {import('./src/link-core.js').Segment} Segment */
+/** @typedef {import('./src/link-core.js').Tier} Tier */
+/** @typedef {import('./src/link-core.js').Warning} Warning */
+/** @typedef {import('./src/domain.js').DomainInfo} DomainInfo */
+/** @typedef {import('./src/qr-inspect.js').Payload} Payload */
+/** @typedef {import('./src/qr-inspect.js').PayloadField} PayloadField */
+/** @typedef {import('./src/image-check.js').ImageInfo} ImageInfo */
+/** @typedef {import('./src/image-check.js').Point} Point */
+/** @typedef {import('./src/qr-make.js').Qr} Qr */
+/**
+ * A note as the page shows it: a warning, or a line the page writes itself with a tier.
+ * @typedef {{ id?: string, tier: Tier, text: string, short?: string | null }} Note
+ */
+/**
+ * Where a link's host sits, and the letters from another alphabet to box in it (addrNodes).
+ * @typedef {{ range: [number, number], chars: Map<string, string> }} Box
+ */
+/** @typedef {{ url: string, host: string }} GoTarget */
+/**
+ * A code the decoder worker read (src/qr-decode.js): its text, bytes and corners in the picture.
+ * @typedef {{ format: string, text: string, bytes: Uint8Array, contentType: string,
+ *   position: Record<'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft', Point> | null }} DecodedCode
+ */
+/**
+ * The picture a reply describes; a camera frame is { type: 'frame', width, height, orientation: 1 }.
+ * @typedef {ImageInfo | { type: 'frame', width: number, height: number, orientation: number }} DecodedImage
+ */
+/**
+ * The decoder worker's answers (src/qr-worker.js), and the page's own for a reader it cannot use.
+ * detail, for an error, says what was measured: { width, height } or { type }.
+ * @typedef {{ type: 'result', id?: number, image: DecodedImage, codes: DecodedCode[], code?: undefined }} DecodeResult
+ * @typedef {{ type: 'error', id?: number, code: string, detail?: { width?: number, height?: number, type?: string } | null }} DecodeFailure
+ * @typedef {DecodeResult | DecodeFailure} DecodeReply
+ */
+/**
+ * One decoder worker and the jobs it has not answered yet, by id.
+ * @typedef {{ worker: Worker | null, ready: Promise<boolean> | null, wasm: boolean | null, failed: boolean,
+ *   pending: Map<number, (msg: DecodeReply) => void> }} DecoderWorker
+ */
+/** @typedef {DecodedCode & { points: Point[] | null, top: number, left: number }} PlacedCode */
+/**
+ * The codes on show, from a picture or the camera, what each holds, their web addresses, and whether
+ * any of those holds personal details (SEC-10).
+ * @typedef {{ codes: PlacedCode[], payloads: Payload[], links: string[], personal: boolean }} Picture
+ */
+/**
+ * The QR code of the clean link on show (stage 4b).
+ * @typedef {{ clean: string, text: string, host: string, ascii: boolean, scheme: boolean, qr: Qr, png: Uint8Array<ArrayBuffer> }} ShownQr
+ */
 
 // ---------------------------------------------------------------------------------------
 // Constants
@@ -73,7 +134,9 @@ const DEBOUNCE_MS = 250;
 
 // Tiers as the spec names them, and the colour tokens they borrow. "Good to know" stays
 // neutral. The word is always shown, so the tier never depends on colour alone.
+/** @type {Record<string, string>} */
 const TIER_WORD = { stop: 'Stop', check: 'Check', info: 'Good to know' };
+/** @type {Record<string, string>} */
 const TIER_COLOUR = { stop: 'red', check: 'amber' };
 
 const UNIQUE_TEXT = 'Unique to this click';
@@ -128,6 +191,7 @@ const SHARE_HELD_RECIPIENT = 'Share is not offered for this link: it keeps a par
 // in the Android app Copy marks the link sensitive. A link Share is held back for keeps its own line.
 // Approved word for word by Marcos on 12 October 2026 (SC-1); the QR line under a line of these
 // (or under the held-share line) that gives the same reason is short (SC-9, qrNote in src/qr-make.js).
+/** @type {Record<PersonalReason, string>} */
 const PERSONAL_NOTE = {
   signin: 'This link carries a sign-in, key or session value. Anyone you send it to may be able to use it.',
   signed: 'This link carries a signature that can give access to a file or an account. Anyone you send it to can use it.',
@@ -142,9 +206,18 @@ const PERSONAL_NOTE = {
 // ---------------------------------------------------------------------------------------
 // Small helpers
 
-const $ = (id) => document.getElementById(id);
+/**
+ * The element with this id. Every id app.js asks for is in index.html (the static checks hold
+ * them), so it is never null; CheckLinkElements (types/page.d.ts) names the ones that are more
+ * than an HTMLElement.
+ * @template {string} K
+ * @param {K} id
+ * @returns {K extends keyof CheckLinkElements ? CheckLinkElements[K] : HTMLElement}
+ */
+const $ = (id) => /** @type {K extends keyof CheckLinkElements ? CheckLinkElements[K] : HTMLElement} */ (/** @type {unknown} */ (document.getElementById(id)));
 
 // The CheckLink Android app's bridge (stage 4), or null on the website. See the header.
+/** @returns {CheckLinkAndroid | null} */
 const android = () => (window.CLAndroid && typeof window.CLAndroid.copyText === 'function' ? window.CLAndroid : null);
 // Inside the Android app at all. On a WebView too old for the bridge, android-bridge.js leaves an
 // empty window.CLAndroid: Copy, Share and Go to then take the website's way, but nothing that needs
@@ -157,9 +230,16 @@ const inApp = () => !!window.CLAndroid;
 // the caller shows nothing (fail closed). On the website, at once to true.
 // appSecure[reason]: null while off, or the answer to the request that turned it on. 'link'
 // (stage 4b, SEC-10) is best effort: syncLinkSecure asks, and nothing waits for the answer.
+/** @type {Record<'camera' | 'secret' | 'link', Promise<boolean> | null>} */
 const appSecure = { camera: null, secret: null, link: null };
 // Two animation frames: by then the page without the secret or the camera card has been drawn.
+/** @param {() => void} fn */
 const afterPaint = (fn) => requestAnimationFrame(() => requestAnimationFrame(fn));
+/**
+ * @param {'camera' | 'secret' | 'link'} reason
+ * @param {boolean} on
+ * @returns {Promise<boolean>}
+ */
 function secureScreen(reason, on) {
   if (!inApp()) return Promise.resolve(true);
   const app = android();
@@ -177,7 +257,7 @@ function secureScreen(reason, on) {
       });
       appSecure[reason] = asked;
     }
-    return appSecure[reason];
+    return /** @type {Promise<boolean>} */ (appSecure[reason]);
   }
   // Lifted only after the change has been drawn, so a screenshot taken at that moment cannot catch
   // the last frame with the secret or the camera card; skipped when it is needed again by then.
@@ -212,14 +292,21 @@ function syncLinkSecure() {
 }
 
 // Builds an element. Strings become text nodes, so untrusted text can never become markup.
+/**
+ * @template {keyof HTMLElementTagNameMap} T
+ * @param {T} tag
+ * @param {Record<string, unknown> | null} [props]
+ * @param {...unknown} kids  nodes, text, arrays of them, or null, undefined and false for nothing
+ * @returns {HTMLElementTagNameMap[T]}
+ */
 function h(tag, props, ...kids) {
   const node = document.createElement(tag);
   for (const [key, value] of Object.entries(props || {})) {
     if (value === undefined || value === null || value === false) continue;
-    if (key === 'class') node.className = value;
-    else if (key === 'text') node.textContent = value;
+    if (key === 'class') node.className = /** @type {string} */ (value);
+    else if (key === 'text') node.textContent = /** @type {string} */ (value);
     else if (key === 'dataset') Object.assign(node.dataset, value);
-    else if (key.startsWith('on') && typeof value === 'function') node.addEventListener(key.slice(2), value);
+    else if (key.startsWith('on') && typeof value === 'function') node.addEventListener(key.slice(2), /** @type {EventListener} */ (value));
     else node.setAttribute(key, value === true ? '' : String(value));
   }
   for (const kid of kids.flat(Infinity)) {
@@ -230,10 +317,21 @@ function h(tag, props, ...kids) {
 }
 
 const intFormat = new Intl.NumberFormat('en-GB', { maximumFractionDigits: 0 });
+/** @param {number} n */
 const fmtInt = (n) => intFormat.format(Math.round(n));
+/**
+ * @param {number} n
+ * @param {string} one
+ * @param {string} many
+ */
 const plural = (n, one, many) => `${fmtInt(n)} ${n === 1 ? one : many}`;
 
 // Shortens a long piece of a link for a label, keeping its start and its end.
+/**
+ * @param {string} s
+ * @param {number} [max]
+ * @returns {string}
+ */
 function shortened(s, max = 48) {
   const chars = Array.from(String(s));
   if (chars.length <= max) return String(s);
@@ -246,7 +344,14 @@ function shortened(s, max = 48) {
 // another alphabet that a look-alike note names, where it falls inside the host (offset is where
 // text starts in the link): such a name looks exactly like the real one, boxed it does not
 // (interface review M1). The box is drawn by the style sheet only, so copying gets the letters.
+/**
+ * @param {string} text
+ * @param {Box | null} [box]
+ * @param {number} [offset]
+ * @returns {(string | HTMLElement)[]}
+ */
 function addrNodes(text, box = null, offset = 0) {
+  /** @type {(string | HTMLElement)[]} */
   const out = [];
   let pos = offset;
   for (const c of invisibleChunks(text)) {
@@ -277,6 +382,13 @@ function addrNodes(text, box = null, offset = 0) {
 }
 
 // The box for addrNodes: the host of a link as written, and the letters the analysis names.
+/**
+ * @param {LinkAnalysis | Analysis} a
+ * @param {string} link
+ * @param {boolean} bare
+ * @param {string | null} written
+ * @returns {Box | null}
+ */
 function boxFor(a, link, bare, written) {
   const chars = boxChars(a);
   if (!chars) return null;
@@ -285,6 +397,7 @@ function boxFor(a, link, bare, written) {
 }
 
 let announceTimer = 0;
+/** @param {string} text */
 function announce(text) {
   const node = $('announcer');
   clearTimeout(announceTimer);
@@ -293,6 +406,7 @@ function announce(text) {
   announceTimer = setTimeout(() => { node.textContent = text; }, 60);
 }
 
+/** @param {string} text */
 function say(text) {
   $('action-status').textContent = text;
 }
@@ -300,6 +414,12 @@ function say(text) {
 // Where the host sits in a link as written: after the scheme and any user@, before the
 // first / \ ? or # (where the browser ends the authority), without the port. Returns
 // [start, end] or null.
+/**
+ * @param {string | null} link
+ * @param {boolean} bare
+ * @param {string | null} written
+ * @returns {[number, number] | null}
+ */
 function hostRange(link, bare, written) {
   if (!link || !written) return null;
   const sp = splitLink(link, bare);
@@ -314,7 +434,15 @@ function hostRange(link, bare, written) {
 // through), parts found but kept with an amber dotted underline, parameters kept on purpose
 // (keptIds) with a grey dotted underline, the host bold and underlined, letters from another
 // alphabet boxed (box, see addrNodes), everything else as plain text nodes.
+/**
+ * @param {HTMLElement} el
+ * @param {Segment[]} segments
+ * @param {[number, number] | null} range
+ * @param {Set<string> | null} keptIds
+ * @param {Box | null} [box]
+ */
 function renderSegments(el, segments, range, keptIds, box = null) {
+  /** @type {(string | HTMLElement)[]} */
   const out = [];
   let pos = 0;
   for (const seg of segments) {
@@ -326,6 +454,7 @@ function renderSegments(el, segments, range, keptIds, box = null) {
       out.push(h('del', { class: 'cl-removed', dataset: data }, addrNodes(seg.text, box, start)));
       continue;
     }
+    /** @type {(HTMLElement | (string | HTMLElement)[])[]} */
     const pieces = [];
     if (range && range[0] < end && range[1] > start) {
       const a = Math.max(range[0], start) - start;
@@ -342,11 +471,20 @@ function renderSegments(el, segments, range, keptIds, box = null) {
   el.replaceChildren(...out);
 }
 
+/** @param {string} host */
 const hostEl = (host) => h('span', { class: 'cl-host cl-addr' }, addrNodes(host));
 
 // Where the owner's part of the host sits in a link as written (stage 2): the registrable
 // domain the Public Suffix List names (example.co.uk in shop.example.co.uk), or the whole host
 // when there is none (an IP address, localhost). Returns [start, end] or null.
+/**
+ * @param {string} link
+ * @param {boolean} bare
+ * @param {string | null} written
+ * @param {number | null | undefined} domainStart
+ * @param {string | null} domainText
+ * @returns {[number, number] | null}
+ */
 function domainRange(link, bare, written, domainStart, domainText) {
   const r = hostRange(link, bare, written);
   if (!r || !domainText || domainStart == null || domainStart < 0) return r;
@@ -356,10 +494,18 @@ function domainRange(link, bare, written, domainStart, domainText) {
 // A host for the page's own sentences: the registrable domain in bold, with the full name
 // after it when the host is a longer address under that domain (www. adds nothing). chars, when
 // given, are the letters from another alphabet to box in the name as written (see addrNodes).
+/**
+ * @param {string} host
+ * @param {DomainInfo | null} site
+ * @param {string | null} written
+ * @param {Map<string, string> | null} [chars]
+ * @returns {unknown[]} nodes and text, nested, for h or flat(Infinity)
+ */
 function placeNodes(host, site, written, chars = null) {
   const hostLower = String(host || '').toLowerCase().replace(/\.$/, '');
   const domain = site && site.domain;
   const writtenNote = written && written.toLowerCase() !== hostLower ? written : null;
+  /** @type {Box | null} */
   const box = writtenNote && chars ? { range: [0, writtenNote.length], chars } : null;
   if (domain && domain !== hostLower && hostLower !== `www.${domain}`) {
     return [hostEl(domain), ' (full name: ', h('span', { class: 'cl-addr' }, addrNodes(host)), writtenNote ? [', written as ', h('span', { class: 'cl-addr' }, addrNodes(writtenNote, box))] : null, ')'];
@@ -368,14 +514,24 @@ function placeNodes(host, site, written, chars = null) {
 }
 
 // The letters to box, from an analysis, as a Map (see addrNodes), or null.
+/**
+ * @param {LinkAnalysis | Analysis | null} a
+ * @returns {Map<string, string> | null}
+ */
 const boxChars = (a) => (a && a.lookAlikeLetters && a.lookAlikeLetters.length ? new Map(a.lookAlikeLetters.map((x) => [x.char.toLowerCase(), x.script])) : null);
 
+/** @param {{ tier: string }} w */
 const tierWord = (w) => h('span', { class: 'cl-note-tier', text: `${TIER_WORD[w.tier] || 'Note'}:` });
 
 // A note's text, with each short xn-- name kept on one line: broken after its double hyphen, it
 // reads like a dash (interface review of stage 3). Longer ones may still wrap.
+/**
+ * @param {string} text
+ * @returns {(string | HTMLElement)[]}
+ */
 function noteText(text) {
   const s = String(text);
+  /** @type {(string | HTMLElement)[]} */
   const out = [];
   let last = 0;
   for (const m of s.matchAll(/xn--[a-z0-9-]*(?:\.[a-z0-9-]+)*/gi)) {
@@ -388,6 +544,10 @@ function noteText(text) {
   return out;
 }
 
+/**
+ * @param {Note} w
+ * @returns {HTMLElement}
+ */
 function noteItem(w) {
   const colour = TIER_COLOUR[w.tier];
   return h('li', { class: 'cl-note', dataset: colour ? { tier: colour, warning: w.id } : { warning: w.id } },
@@ -397,6 +557,10 @@ function noteItem(w) {
 }
 
 // One of the notices in the summary card, with its tier word in front like the notes.
+/**
+ * @param {HTMLElement} el
+ * @param {Note | null} w
+ */
 function setNotice(el, w) {
   el.hidden = !w;
   if (!w) {
@@ -411,14 +575,25 @@ function setNotice(el, w) {
 // the first screen and into what a screen reader hears, because the full note sits under Things
 // to know, which can be far down the page (interface review H2 and M5).
 const LOOK_IDS = new Set(['look-alike-letters', 'look-alike-symbol', 'look-alike-brand', 'hidden-look-alike']);
+/**
+ * @param {Analysis | null} a
+ * @returns {Warning | null}
+ */
 function lookAlikeWarning(a) {
   return a && a.found ? a.warnings.find((w) => LOOK_IDS.has(w.id) && (w.tier === 'check' || w.tier === 'stop')) || null : null;
 }
+/** @param {string} s */
 const lowerFirst = (s) => s.charAt(0).toLowerCase() + s.slice(1);
 
 // ---------------------------------------------------------------------------------------
 // State
 
+/**
+ * @type {{ analysis: Analysis | null, parts: Map<string, Part>, kept: Map<string, Kept>, removed: Set<string>,
+ *   lastInput: string | null, timer: number, pendingGo: GoTarget | null, shownClean: string | null, picture: Picture | null,
+ *   pictureText: string | null, picId: number, pendingCopy: { i: number, text: string, label: string, from: HTMLElement | null } | null,
+ *   pictureSource: 'picture' | 'camera', viaShare: boolean, qr: ShownQr | null }}
+ */
 const state = {
   analysis: null,
   parts: new Map(),
@@ -445,14 +620,25 @@ const state = {
   qr: null,
 };
 
+/** @param {string} id */
 const partById = (id) => state.parts.get(id);
 
 // The first wrapper the person chose to keep, or -1. Everything inside it stays as written.
+/**
+ * @param {LinkAnalysis} a
+ * @param {Set<string>} removed
+ * @returns {number}
+ */
 function keptWrapperIndex(a, removed) {
   return a.wrappers.findIndex((w) => !removed.has(w.partId));
 }
 
 // A part inside a wrapper the person kept: locked, and not removed whatever its box said.
+/**
+ * @param {Part} p
+ * @param {number} kept
+ * @returns {boolean}
+ */
 function lockedBy(p, kept) {
   return kept >= 0 && (p.where !== 'wrapper' || Number(p.id.slice(1)) > kept);
 }
@@ -460,6 +646,11 @@ function lockedBy(p, kept) {
 // Where Go to would open, or null when it must not be offered: not a web address, a
 // Stop-tier warning, or a short link whose end is unknown (CheckLink never opens those).
 // A link left untouched is offered too: its Check notice makes Go to ask first.
+/**
+ * @param {Analysis | null} a
+ * @param {IdChoice} removed
+ * @returns {GoTarget | null}
+ */
 function goTarget(a, removed) {
   if (!a || !a.found || a.kind !== 'web' || a.shortLink) return null;
   if (a.warnings.some((w) => w.tier === 'stop')) return null;
@@ -476,10 +667,20 @@ function goTarget(a, removed) {
 
 // A parameter kept on purpose that the person ticked to remove anyway, unless a kept
 // wrapper locks everything inside it.
+/**
+ * @param {Kept} k
+ * @param {Set<string>} removed
+ * @param {number} kept
+ */
 const keptRemoved = (k, removed, kept) => kept < 0 && removed.has(k.id);
 
 // Why Share is held back for this link, or null. A recipient token the person removed
 // anyway no longer holds it back (heldReason in the engine, which the QR code asks too).
+/**
+ * @param {Analysis} a
+ * @param {IdChoice} [removed]
+ * @returns {string | null}
+ */
 function shareHeld(a, removed = state.removed) {
   const why = heldReason(a, removed);
   if (why === 'auth') return SHARE_HELD_AUTH;
@@ -501,6 +702,7 @@ function canShareText() {
 // ---------------------------------------------------------------------------------------
 // Analysis
 
+/** @param {number} ms */
 function schedule(ms) {
   clearTimeout(state.timer);
   state.timer = setTimeout(() => update(), ms);
@@ -508,6 +710,10 @@ function schedule(ms) {
 
 // The line a screen reader hears when a new analysis appears. Notes to check are counted, and a
 // look-alike is said in its short form, so it is heard without reading down to Things to know.
+/**
+ * @param {Analysis} a
+ * @returns {string}
+ */
 function analysisLine(a) {
   if (!a.found) return $('summary-line').textContent;
   const kept = keptWrapperIndex(a, state.removed);
@@ -522,6 +728,7 @@ function analysisLine(a) {
 }
 
 // Reads the box. prefix, when given, is said before the line about the analysis.
+/** @param {string} [prefix] */
 function update(prefix = '') {
   clearTimeout(state.timer);
   state.timer = 0;
@@ -564,12 +771,18 @@ function update(prefix = '') {
 
 // The analysis of what is in the box right now: a press that comes before the pause after
 // typing acts on the new text, never on the analysis of the old one.
+/** @returns {Analysis | null} */
 function current() {
   if ($('link-input').value !== state.lastInput) update();
   return state.analysis;
 }
 
 // focus: false for a link read from a picture, so a phone does not open its keyboard.
+/**
+ * @param {string} text
+ * @param {string} message
+ * @param {{ focus?: boolean }} [options]
+ */
 function useText(text, message, { focus = true } = {}) {
   const input = $('link-input');
   input.value = text;
@@ -581,7 +794,8 @@ function useText(text, message, { focus = true } = {}) {
 // Rendering
 
 function renderAll() {
-  const a = state.analysis;
+  // update() sets the analysis before anything is drawn.
+  const a = /** @type {Analysis} */ (state.analysis);
   $('result').hidden = false;
   renderSummary(a);
   const web = a.found && a.kind === 'web';
@@ -602,6 +816,7 @@ function renderAll() {
   renderChoice();
 }
 
+/** @param {Analysis} a */
 function renderSummary(a) {
   const line = $('summary-line');
   if (a.found && a.kind === 'web') {
@@ -621,8 +836,13 @@ function renderSummary(a) {
   setNotice($('untouched-notice'), a.found && a.untouched ? a.warnings.find((w) => w.id === 'untouched') || null : null);
 }
 
+/**
+ * @param {FoundAnalysis} a
+ * @param {number} kept
+ */
 function renderGoes(a, kept) {
   const el = $('goes-line');
+  /** @type {unknown[]} */
   const out = ['Goes to '];
   if (kept >= 0) {
     const w = a.wrappers[kept];
@@ -632,9 +852,15 @@ function renderGoes(a, kept) {
     if (a.shortLink) out.push(' first');
   }
   out.push('.');
-  el.replaceChildren(...out.flat(Infinity).filter((x) => x !== null && x !== undefined));
+  el.replaceChildren(.../** @type {(string | Node)[]} */ (out.flat(Infinity).filter((x) => x !== null && x !== undefined)));
 }
 
+/**
+ * @param {Part} p
+ * @param {number} groupSize
+ * @param {boolean} [sameAsAbove]
+ * @returns {HTMLElement}
+ */
 function partRow(p, groupSize, sameAsAbove = false) {
   const id = `part-${p.id}`;
   const isWrapper = p.where === 'wrapper';
@@ -672,7 +898,7 @@ function partRow(p, groupSize, sameAsAbove = false) {
   // element that aria-describedby names is still read out, and it costs no layout, which
   // matters on a link with thousands of identical parts.
   const quiet = sameAsAbove || undefined;
-  const lines = [
+  const lines = /** @type {HTMLElement[]} */ ([
     value !== null ? h('span', { class: 'cl-part-value cl-addr', id: `${id}-v` }, addrNodes(value)) : null,
     sameAsAbove ? h('span', { class: 'cl-part-same', id: `${id}-s`, 'aria-hidden': 'true', text: SAME_KIND }) : null,
     label ? h('span', { class: 'cl-part-provider', id: `${id}-p`, hidden: quiet, text: label }) : null,
@@ -681,7 +907,7 @@ function partRow(p, groupSize, sameAsAbove = false) {
     p.affiliate ? h('span', { class: 'cl-part-aff', id: `${id}-a`, text: `Affiliate: pays the sharer, through ${p.affiliate}.` }) : null,
     groupSize > 1 ? h('span', { class: 'cl-part-note', id: `${id}-g`, text: `Ticked or unticked together with the other ${plural(groupSize - 1, 'part', 'parts')} of ${p.affiliate}, because the credit needs all of them.` }) : null,
     note ? h('span', { class: 'cl-part-note', id: `${id}-n`, text: note }) : null,
-  ].filter(Boolean);
+  ].filter(Boolean));
   const uniqueText = p.unrecognised ? LOOKS_UNIQUE_TEXT : UNIQUE_TEXT;
   let kind = p.unique ? 'unique' : 'same';
   let badgeText = p.unique ? uniqueText : SAME_TEXT;
@@ -708,6 +934,7 @@ function partRow(p, groupSize, sameAsAbove = false) {
     h('span', { class: 'visually-hidden', id: `${id}-r`, text: 'Remove' }),
     tag ? h('span', { class: 'cl-part-head' }, nameEl, tag) : nameEl,
     badge);
+  /** @type {Record<string, string>} */
   const rowData = { part: p.id, where: p.where };
   if (p.unrecognised) rowData.unrecognised = 'true';
   if (p.sharer) rowData.sharer = 'true';
@@ -721,6 +948,11 @@ function partRow(p, groupSize, sameAsAbove = false) {
 
 // One parameter kept on purpose: its name and value, what it does in plain words, and an
 // unticked "Remove anyway" box. Ticked, it is removed like any part (the row turns red).
+/**
+ * @param {Kept} k
+ * @param {boolean} saidOnce
+ * @returns {HTMLElement}
+ */
 function keptRow(k, saidOnce) {
   const id = `kept-${k.id}`;
   const name = k.where === 'fragment' ? `#${k.name}` : k.name;
@@ -743,12 +975,14 @@ function keptRow(k, saidOnce) {
         h('span', { class: 'cl-part-told', id: `${id}-x`, text: (saidOnce ? k.what : k.explain) || k.note || 'The page needs it.' }))));
 }
 
+/** @param {FoundAnalysis} a */
 function renderParts(a) {
   const has = a.parts.length > 0;
   // How many parts each affiliate network has, counted once (a link can have thousands).
+  /** @type {Map<string, number>} */
   const groups = new Map();
   for (const p of a.parts) if (p.affiliate) groups.set(p.affiliate, (groups.get(p.affiliate) || 0) + 1);
-  $('parts-list').replaceChildren(...a.parts.map((p, i) => partRow(p, p.affiliate ? groups.get(p.affiliate) : 1, sameKind(a.parts[i - 1], p))));
+  $('parts-list').replaceChildren(...a.parts.map((p, i) => partRow(p, p.affiliate ? /** @type {number} */ (groups.get(p.affiliate)) : 1, sameKind(a.parts[i - 1], p))));
   $('parts-list').hidden = !has;
   $('parts-intro').hidden = !has;
   $('parts-unrecognised').hidden = !a.parts.some((p) => p.unrecognised);
@@ -767,6 +1001,7 @@ function renderParts(a) {
   $('kept-list').replaceChildren(...a.kept.map((k) => keptRow(k, saidOnce)));
 }
 
+/** @param {FoundAnalysis} a */
 function renderWarnings(a) {
   // The short-link and untouched notices sit in the summary; everything else is listed here.
   const shown = a.warnings.filter((w) => w.id !== 'short-link' && w.id !== 'untouched');
@@ -792,6 +1027,7 @@ function renderWarnings(a) {
       const inner = x.analysis;
       const view = h('p', { class: 'cl-link cl-addr' });
       if (inner && inner.found) {
+        /** @type {{ link: string, bare?: boolean, segments: Segment[], hostAsWritten: string, domainStart: number, domainAsWritten: string | null }} */
         const t = inner.wrappers.length ? inner.target : inner;
         renderSegments(view, t.segments, domainRange(t.link, !!t.bare, t.hostAsWritten, t.domainStart, t.domainAsWritten), new Set(inner.kept.map((k) => k.id)), boxFor(inner, t.link, !!t.bare, t.hostAsWritten));
       } else {
@@ -822,27 +1058,29 @@ function renderWarnings(a) {
 // Everything that follows the tick boxes: the boxes themselves, the coloured link, where
 // it goes, the clean link and Go to.
 function renderChoice() {
-  const a = state.analysis;
+  // Drawn only for a web link: by renderAll, and by the boxes and buttons it draws.
+  const a = /** @type {FoundAnalysis} */ (state.analysis);
   const removed = state.removed;
   const kept = keptWrapperIndex(a, removed);
 
-  for (const box of document.querySelectorAll('#parts-list .cl-check')) {
-    const id = box.dataset.part;
-    const inside = lockedBy(partById(id), kept);
+  for (const box of /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('#parts-list .cl-check'))) {
+    // Every box was drawn for one of the parts on show.
+    const id = /** @type {string} */ (box.dataset.part);
+    const inside = lockedBy(/** @type {Part} */ (partById(id)), kept);
     // A locked box shows what really happens (kept); the choice made before is remembered
     // and comes back when the wrapper is ticked again.
     box.checked = removed.has(id) && !inside;
     box.disabled = inside;
-    const row = box.closest('.cl-part');
+    const row = /** @type {Element} */ (box.closest('.cl-part'));
     row.classList.toggle('is-ticked', box.checked);
     row.classList.toggle('is-disabled', inside);
   }
   // Remove anyway: locked like the parts while a wrapper around the address is kept.
-  for (const box of document.querySelectorAll('#kept-list .cl-check')) {
-    const k = state.kept.get(box.dataset.kept);
+  for (const box of /** @type {NodeListOf<HTMLInputElement>} */ (document.querySelectorAll('#kept-list .cl-check'))) {
+    const k = state.kept.get(/** @type {string} */ (box.dataset.kept));
     box.checked = !!k && keptRemoved(k, removed, kept);
     box.disabled = kept >= 0;
-    const row = box.closest('.cl-part');
+    const row = /** @type {Element} */ (box.closest('.cl-part'));
     row.classList.toggle('is-ticked', box.checked);
     row.classList.toggle('is-disabled', kept >= 0);
   }
@@ -852,7 +1090,7 @@ function renderChoice() {
   wrapped.textContent = kept >= 0 ? `You kept the ${a.wrappers[kept].label} wrapper, so everything inside it stays as written.` : '';
   // The Safe Links note says the clean link goes straight to the real address, which stops
   // being true once a wrapper is kept.
-  const safeNote = document.querySelector('#warn-list [data-warning="safelinks"]');
+  const safeNote = /** @type {HTMLElement | null} */ (document.querySelector('#warn-list [data-warning="safelinks"]'));
   if (safeNote) safeNote.hidden = kept >= 0;
   const ticked = a.parts.filter((p) => removed.has(p.id) && !lockedBy(p, kept)).length;
   // Kept parts taken out with Remove anyway count too, so the line follows every box.
@@ -968,6 +1206,11 @@ function renderChoice() {
 
 // sensitive: a secret (a code's password or seed, a sign-in link); in the app, Android then hides
 // it in the clipboard preview. The website's clipboard has no such mark.
+/**
+ * @param {string} text
+ * @param {boolean} [sensitive]
+ * @returns {Promise<boolean>}
+ */
 async function copyText(text, sensitive = false) {
   const app = android();
   if (app) return app.copyText(text, sensitive);
@@ -978,7 +1221,7 @@ async function copyText(text, sensitive = false) {
     } catch { /* falls through to the older way */ }
   }
   // Browsers without the async clipboard: a temporary text field and the copy command.
-  const back = document.activeElement;
+  const back = /** @type {HTMLElement | null} */ (document.activeElement);
   const field = h('textarea', { class: 'visually-hidden', readonly: true, 'aria-hidden': 'true', tabindex: '-1' });
   field.value = text;
   document.body.append(field);
@@ -994,6 +1237,7 @@ async function copyText(text, sensitive = false) {
   return ok;
 }
 
+/** @param {GoTarget} target */
 function openLink(target) {
   // In the app: the person's browser app, through the app, which opens only http and https
   // addresses and only right after a press. Called straight from the press, so the page still
@@ -1014,7 +1258,8 @@ function onGo() {
   const target = goTarget(a, state.removed);
   if (!target) return;
   say('');
-  const checks = a.warnings.filter((w) => w.tier === 'check');
+  // goTarget found an address, so a is a web analysis.
+  const checks = /** @type {FoundAnalysis} */ (a).warnings.filter((w) => w.tier === 'check');
   if (!checks.length) {
     openLink(target);
     return;
@@ -1036,6 +1281,7 @@ function onGo() {
 // The QR code of the clean link (stage 4b, decisions QR-1 to QR-6 of 11 October 2026)
 
 // Approved word for word by Marcos on 12 October 2026 (SC-1).
+/** @satisfies {Record<string, string | ((host: string) => string)>} */
 const QR = {
   making: 'Making the QR code on this device and reading it back.',
   // The read-back needs the decoder, and without it no code is shown, never one CheckLink has not
@@ -1063,12 +1309,17 @@ let qrRun = 0;
 let qrSharing = false;
 
 // The line for a read-back the decoder could not do, by its error code.
+/**
+ * @param {string} code
+ * @returns {string}
+ */
 function qrReaderLine(code) {
   if (code === 'slow') return QR.slow;
   if (code === 'stopped' || code === 'slow-last') return inApp() ? QR.stoppedApp : QR.stopped;
   return inApp() ? QR.noReaderApp : QR.noReader;
 }
 
+/** @param {string} text */
 function qrStatus(text) {
   const el = $('qr-status');
   el.textContent = '';
@@ -1095,14 +1346,17 @@ function closeQr() {
   queueMicrotask(() => {
     const now = document.activeElement;
     if (now && now !== document.body && !card.contains(now)) return;
+    /** @param {HTMLElement} el */
     const shown = (el) => !!el && !el.hidden && !el.closest('[hidden]');
     const to = [$('qr-btn'), $('copy-btn')].find(shown) || $('link-input');
     to.focus({ preventScroll: true });
   });
 }
 
+// Both are used only while a QR code is on show: saveQr, shareQr and copyQr return first without one.
+// @ts-expect-error state.qr is set whenever this runs (above); the line stays as tests/camera.test.mjs pins it.
 const qrBlob = () => new Blob([state.qr.png], { type: 'image/png' });
-const qrFile = () => new File([state.qr.png], QR_FILE, { type: 'image/png' });
+const qrFile = () => new File([/** @type {ShownQr} */ (state.qr).png], QR_FILE, { type: 'image/png' });
 
 // Share picture on the website: only where the browser can share this file.
 function canShareFile() {
@@ -1123,6 +1377,10 @@ function canCopyPicture() {
   }
 }
 
+/**
+ * @param {string} tag
+ * @param {Record<string, string | number>} attrs
+ */
 const svgEl = (tag, attrs) => {
   const node = document.createElementNS(SVG_NS, tag);
   for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, String(v));
@@ -1247,7 +1505,7 @@ async function shareQr() {
     }
   } catch (err) {
     // AbortError: the person closed the share sheet. Nothing to say.
-    if (!err || err.name !== 'AbortError') qrStatus(QR.shareFailed);
+    if (!err || /** @type {Error} */ (err).name !== 'AbortError') qrStatus(QR.shareFailed);
   } finally {
     qrSharing = false;
   }
@@ -1275,8 +1533,8 @@ const PIC = {
   none: 'No QR code or barcode found in this picture. Try a sharper picture, with the code larger in it.',
   notImage: 'This file is not a picture CheckLink can read. Choose a PNG, JPEG, GIF, BMP, WebP or AVIF picture.',
   tooLarge: 'This picture is too large to read here (more than 40 MB). Take a screenshot of the code and use that instead.',
-  tooManyPixels: (mp) => `This picture is too large to read here (${mp} megapixels). Take a screenshot of the code, or crop the picture, and try again.`,
-  unsupported: (type) => `This kind of picture (${type}) cannot be read in this browser. Save it as JPEG or PNG, or take a screenshot, and try again.`,
+  tooManyPixels: (/** @type {string} */ mp) => `This picture is too large to read here (${mp} megapixels). Take a screenshot of the code, or crop the picture, and try again.`,
+  unsupported: (/** @type {string} */ type) => `This kind of picture (${type}) cannot be read in this browser. Save it as JPEG or PNG, or take a screenshot, and try again.`,
   noReader: 'This browser does not let CheckLink start its picture reader, so it cannot read pictures here. Paste the link instead.',
   slow: 'Reading this picture took too long, so CheckLink stopped. Try a smaller picture or a screenshot of the code.',
   slowLast: 'Reading this picture took too long, so CheckLink stopped its picture reader. To read another picture, load this page again. Links can still be checked.',
@@ -1284,13 +1542,13 @@ const PIC = {
   // Inside the Android app only: the app has no way to load the page again, but reopening it does.
   slowLastApp: 'Reading this picture took too long, so CheckLink stopped its picture reader. To read another picture, close CheckLink and open it again. Links can still be checked.',
   stoppedApp: 'CheckLink stopped its picture reader after a picture took too long. To read another picture, close CheckLink and open it again. Links can still be checked.',
-  capped: (n) => `CheckLink reads at most ${n} codes in one picture, so there may be more in it than are listed here.`,
+  capped: (/** @type {number} */ n) => `CheckLink reads at most ${n} codes in one picture, so there may be more in it than are listed here.`,
   failed: 'CheckLink could not read this picture. Try another picture or a screenshot of the code.',
   firstOnly: 'CheckLink reads one picture at a time, so it read the first one.',
   several: 'More than one code in a picture can mean a sticker has been put over or next to the real one. Make sure you pick the one you meant.',
   severalCamera: 'The camera saw more than one code at once, which can mean a sticker has been put over or next to the real one. Make sure you pick the one you meant.',
   notShown: 'The picture is not shown here, because a code in it holds private details: a screenshot of this page would carry them.',
-  covered: (list) => `${list} ${list.includes(' and ') ? 'hold' : 'holds'} private details, so ${list.includes(' and ') ? 'they are' : 'it is'} covered in the picture: a screenshot of this page would otherwise carry them.`,
+  covered: (/** @type {string} */ list) => `${list} ${list.includes(' and ') ? 'hold' : 'holds'} private details, so ${list.includes(' and ') ? 'they are' : 'it is'} covered in the picture: a screenshot of this page would otherwise carry them.`,
 };
 const MAX_CODES = 16;
 const MAX_PICTURE_BYTES = 40 * 1024 * 1024;
@@ -1303,14 +1561,19 @@ const MASK = '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022';
 // the spare takes over, so the next picture is read without fetching anything. With no spare
 // left, the reader stays stopped until the page is loaded again, rather than fetching its files
 // after the page has loaded.
+/** @type {{ current: DecoderWorker | null, spare: DecoderWorker | null, started: boolean, stopped: boolean, seq: number }} */
 const decoder = { current: null, spare: null, started: false, stopped: false, seq: 0 };
 
+/** @returns {DecoderWorker} */
 function makeWorker() {
+  /** @type {DecoderWorker} */
   const w = { worker: null, ready: null, wasm: null, failed: false, pending: new Map() };
-  let resolveReady;
+  // Replaced at once: the promise below runs its function straight away.
+  /** @type {(ok: boolean) => void} */
+  let resolveReady = () => {};
   w.ready = new Promise((r) => { resolveReady = r; });
   try {
-    const worker = new Worker(new URL('./src/qr-worker.js?v=d6f9fb01', import.meta.url), { type: 'module' });
+    const worker = new Worker(new URL('./src/qr-worker.js?v=9c788617', import.meta.url), { type: 'module' });
     worker.addEventListener('message', (ev) => {
       const msg = ev.data || {};
       if (msg.type === 'ready') {
@@ -1348,6 +1611,7 @@ function startDecoder() {
 }
 
 // Ends a worker that took too long; the spare, if any, takes its place.
+/** @param {DecoderWorker} w */
 function stopDecoder(w) {
   if (w.worker) w.worker.terminate();
   w.worker = null;
@@ -1365,6 +1629,10 @@ function stopDecoder(w) {
 // as help text. While an error shows, the two buttons are described by it rather than by their
 // help lines, so a screen reader that lands on Scan with camera after a failure hears what went
 // wrong first (interface review L2).
+/**
+ * @param {string} text
+ * @param {{ error?: boolean }} [options]
+ */
 function picStatus(text, { error = false } = {}) {
   // Android app only: the settings button belongs to one message and goes with it.
   if (android()) $('cam-settings').hidden = true;
@@ -1381,6 +1649,10 @@ function picStatus(text, { error = false } = {}) {
 // the footer instead of the message, so the camera's own scrolls are instant (interface review
 // H1). nearest: the least scrolling that brings the element into view, its top first when it is
 // taller than the screen.
+/**
+ * @param {Element | null} el
+ * @param {ScrollLogicalPosition} [block]
+ */
 function scrollNow(el, block = 'nearest') {
   if (!el) return;
   try {
@@ -1407,9 +1679,11 @@ function hidePicture() {
   syncLinkSecure();
 }
 
+/** @param {number} ms */
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Whether the decoder can read anything here: { ok: true }, or an error reply.
+/** @returns {Promise<{ ok: true, w: DecoderWorker } | (DecodeFailure & { ok?: undefined })>} */
 async function decoderReady() {
   startDecoder();
   const w = decoder.current;
@@ -1423,6 +1697,12 @@ async function decoderReady() {
 
 // Sends one job to the decoder worker: a picture's bytes, or (stage 3) one camera frame's pixels.
 // The buffer is handed over, not copied, so the page keeps no copy of it.
+/**
+ * @param {{ type: 'decode', mime: string } | { type: 'frame', width: number, height: number }} message
+ * @param {ArrayBuffer} buffer
+ * @param {number} timeoutMs
+ * @returns {Promise<DecodeReply>}
+ */
 async function decodeWith(message, buffer, timeoutMs) {
   const ready = await decoderReady();
   if (!ready.ok) return ready;
@@ -1438,13 +1718,23 @@ async function decodeWith(message, buffer, timeoutMs) {
       clearTimeout(timer);
       resolve(msg.code === 'slow' ? { ...msg, code: decoder.current ? 'slow' : 'slow-last' } : msg);
     });
-    w.worker.postMessage({ ...message, id, buffer }, [buffer]);
+    // decoderReady checked that this worker runs.
+    /** @type {Worker} */ (w.worker).postMessage({ ...message, id, buffer }, [buffer]);
   });
 }
 
+/**
+ * @param {ArrayBuffer} buffer
+ * @param {string} mime
+ */
 const decodeBuffer = (buffer, mime) => decodeWith({ type: 'decode', mime }, buffer, DECODE_TIMEOUT_MS);
 
+/**
+ * @param {DecodeFailure} msg
+ * @returns {string}
+ */
 function errorText(msg) {
+  /** @type {{ width?: number, height?: number, type?: string }} */
   const d = msg.detail || {};
   switch (msg.code) {
     case 'not-image': return PIC.notImage;
@@ -1461,6 +1751,10 @@ function errorText(msg) {
 }
 
 // Reads one picture file. Only its bytes are used: never its name, never an address.
+/**
+ * @param {Blob | null | undefined} file
+ * @param {string} [note]
+ */
 async function readPicture(file, note = '') {
   if (!file) return;
   stopCamera();
@@ -1476,7 +1770,10 @@ async function readPicture(file, note = '') {
   say('');
   // The status line is a live region: it is read out once, with no second announcement.
   picStatus(PIC.reading);
-  let reply;
+  // Every way below sets it. The starting value is only for the checker, which cannot tell that
+  // reading a file either gives an ArrayBuffer or throws.
+  /** @type {DecodeReply} */
+  let reply = { type: 'error', code: 'failed' };
   if (file.size > MAX_PICTURE_BYTES) reply = { type: 'error', code: 'too-large' };
   else {
     let buffer = null;
@@ -1501,8 +1798,15 @@ async function readPicture(file, note = '') {
 
 // The codes in reading order: top to bottom, then left to right, by where they sit once the
 // picture is turned the way the camera meant.
+/**
+ * @param {DecodedCode[]} codes
+ * @param {DecodedImage} image
+ * @returns {PlacedCode[]}
+ */
 function placed(codes, image) {
-  const pts = (c) => ['topLeft', 'topRight', 'bottomRight', 'bottomLeft'].map((k) => orientPoint(c.position[k], image.width || 0, image.height || 0, image.orientation || 1));
+  // Called only for a code that has a position.
+  /** @param {DecodedCode} c */
+  const pts = (c) => /** @type {const} */ (['topLeft', 'topRight', 'bottomRight', 'bottomLeft']).map((k) => orientPoint(/** @type {NonNullable<DecodedCode['position']>} */ (c.position)[k], image.width || 0, image.height || 0, image.orientation || 1));
   return codes.map((c) => ({ ...c, points: c.position ? pts(c) : null }))
     .map((c) => ({ ...c, top: c.points ? Math.min(...c.points.map((p) => p.y)) : 0, left: c.points ? Math.min(...c.points.map((p) => p.x)) : 0 }))
     .sort((a, b) => (Math.abs(a.top - b.top) > 24 ? a.top - b.top : a.left - b.left));
@@ -1511,6 +1815,7 @@ function placed(codes, image) {
 // Whether a code holds something private: a secret, or any detail hidden behind Show (a Wi-Fi
 // password, a booking reference). Such a code is never drawn again on the page: a screenshot
 // would carry it, whatever the card hides.
+/** @param {Payload} p */
 const isPrivate = (p) => p.secret || p.fields.some((f) => f.secret);
 // Codes whose outline covers the whole symbol, so painting over it leaves nothing to read. A
 // barcode's outline can be a single line across it, so a private barcode is never drawn.
@@ -1518,8 +1823,14 @@ const TWO_D = /^(QRCode|MicroQRCode|RMQRCode|rMQRCode|Aztec|DataMatrix|PDF417|Ma
 
 // The web addresses of a code that are not already shown, whole, as one of its details: those
 // get their Check this link button beside the detail instead.
+/**
+ * @param {Payload} p
+ * @returns {{ inField: Map<number, number>, rest: number[] }}
+ */
 function linkPlaces(p) {
+  /** @type {Map<number, number>} */
   const inField = new Map();
+  /** @type {number[]} */
   const rest = [];
   p.links.forEach((link, j) => {
     const f = p.fields.findIndex((x) => !x.secret && (x.value === link || `https://${x.value}` === link));
@@ -1532,6 +1843,12 @@ function linkPlaces(p) {
 // Shows the codes read from a picture, or (stage 3, source 'camera', file null) from one camera
 // frame. A camera frame is never drawn: it may show the room or the person holding the phone, and
 // CheckLink keeps no frame to draw from.
+/**
+ * @param {Blob | null} file
+ * @param {DecodeResult} reply
+ * @param {string} note
+ * @param {'picture' | 'camera'} [source]
+ */
 function showPicture(file, reply, note, source = 'picture') {
   const camera = source === 'camera';
   const codes = placed(reply.codes, reply.image);
@@ -1562,11 +1879,11 @@ function showPicture(file, reply, note, source = 'picture') {
   if (n >= MAX_CODES) notices.push(PIC.capped(MAX_CODES));
   if (priv.some(Boolean) && !camera) {
     if (drawIt) {
-      const nums = priv.map((x, i) => (x ? `Code ${i + 1}` : null)).filter(Boolean);
+      const nums = /** @type {string[]} */ (priv.map((x, i) => (x ? `Code ${i + 1}` : null)).filter(Boolean));
       notices.push(PIC.covered(nums.length > 1 ? `${nums.slice(0, -1).join(', ')} and ${nums.at(-1)}` : nums[0]));
     } else notices.push(PIC.notShown);
   }
-  const worst = payloads.reduce((t, p, i) => (priv[i] && p.tier === 'stop' ? 'stop' : t), 'check');
+  const worst = payloads.reduce((t, p, i) => (priv[i] && p.tier === 'stop' ? 'stop' : t), /** @type {Tier} */ ('check'));
   setNotice($('picture-notice'), notices.length ? { tier: priv.some(Boolean) ? worst : 'check', text: notices.join(' ') } : null);
   $('code-list').replaceChildren(...payloads.map((p, i) => codeItem(p, i, n, only !== null)));
   syncSecret();
@@ -1574,7 +1891,8 @@ function showPicture(file, reply, note, source = 'picture') {
   $('picture-card').hidden = false;
   $('clear-btn').hidden = false;
   picStatus(note);
-  if (drawIt) drawPicture(file, codes, reply.image, priv);
+  // drawIt is false for a camera frame, the only reply without a file.
+  if (drawIt) drawPicture(/** @type {Blob} */ (file), codes, reply.image, priv);
   else $('picture-view').hidden = true;
   const said = camera ? 'Code found and the camera is off.' : 'Picture read:';
   if (camera) {
@@ -1600,6 +1918,10 @@ function showPicture(file, reply, note, source = 'picture') {
 // What a web code's own link holds that needs checking, for the code's card: the short form of a
 // look-alike note, or how many things there are to check. Null when there is nothing (interface
 // review H2: the card said "Good to know: A web address" over a look-alike).
+/**
+ * @param {Payload} p
+ * @returns {Note | null}
+ */
 function webCodeNote(p) {
   if (p.kind !== 'web' || !p.links.length) return null;
   const a = analyse(p.links[0]);
@@ -1615,7 +1937,12 @@ function webCodeNote(p) {
 
 // A web address in a code, with the letters from another alphabet boxed when its own analysis
 // names them (interface review M1).
+/**
+ * @param {string} link
+ * @returns {(string | HTMLElement)[]}
+ */
 function codeLinkNodes(link) {
+  /** @type {Analysis | null} */
   let a = null;
   try {
     a = analyse(link);
@@ -1626,6 +1953,13 @@ function codeLinkNodes(link) {
 // One code: what it is in plain words, its details (secrets hidden), notes, the addresses in
 // it (each checked only when asked), and its own text. A Stop code says what is at stake
 // before its details and buttons.
+/**
+ * @param {Payload} p
+ * @param {number} i
+ * @param {number} n
+ * @param {boolean} checkedBelow
+ * @returns {HTMLElement}
+ */
 function codeItem(p, i, n, checkedBelow) {
   const id = `code-${i}`;
   const web = webCodeNote(p);
@@ -1680,11 +2014,21 @@ function codeItem(p, i, n, checkedBelow) {
 // A hidden value: the dots are not read out by screen readers, only the word.
 const maskNodes = () => [h('span', { class: 'cl-mask', 'aria-hidden': 'true', text: MASK }), ' hidden'];
 
+/**
+ * @param {Payload} p
+ * @param {PayloadField} f
+ * @param {number} i
+ * @param {number} j
+ * @param {string} [from]
+ * @param {number} [linkIndex]
+ * @returns {HTMLElement}
+ */
 function fieldRow(p, f, i, j, from = '', linkIndex = undefined) {
   const id = `code-${i}-f${j}`;
   const value = f.secret
     ? h('span', { class: 'cl-field-value cl-secret cl-addr', id: `${id}-v`, dataset: { shown: 'false' } }, maskNodes())
     : h('span', { class: `cl-field-value cl-addr${f.mono ? ' cl-mono' : ''}`, id: `${id}-v` }, addrNodes(f.value));
+  /** @type {HTMLElement[]} */
   const buttons = [];
   if (f.secret) buttons.push(h('button', { type: 'button', class: 'btn btn-secondary cl-btn-small cl-show', 'aria-pressed': 'false', 'aria-controls': `${id}-v`, 'aria-label': `Show ${f.label}${from}`, dataset: { use: 'show', code: String(i), field: String(j) }, text: 'Show' }));
   if (f.copy) buttons.push(h('button', { type: 'button', class: 'btn btn-secondary cl-btn-small', 'aria-label': from ? `${f.copy}${from}` : null, dataset: { use: 'copy', code: String(i), field: String(j) }, text: f.copy }));
@@ -1697,6 +2041,10 @@ function fieldRow(p, f, i, j, from = '', linkIndex = undefined) {
       buttons.length ? h('span', { class: 'cl-field-actions' }, buttons) : null));
 }
 
+/**
+ * @param {number} i
+ * @param {string} text
+ */
 function codeStatus(i, text) {
   const el = document.getElementById(`code-${i}-status`);
   if (!el) return;
@@ -1704,15 +2052,19 @@ function codeStatus(i, text) {
   el.textContent = text;
 }
 
+/**
+ * @param {number} i
+ * @param {number} j
+ */
 async function copyField(i, j) {
   const p = state.picture && state.picture.payloads[i];
   const f = p && p.fields[j];
-  if (!f) return;
+  if (!p || !f) return;
   const text = f.copyValue ?? f.value;
   // A secret from a Stop code is copied only after a confirmation (spec section 3).
   if (f.secret && p.tier === 'stop') {
     const dialog = $('copy-dialog');
-    state.pendingCopy = { i, text, label: f.label, from: document.activeElement };
+    state.pendingCopy = { i, text, label: f.label, from: /** @type {HTMLElement | null} */ (document.activeElement) };
     if (typeof dialog.showModal === 'function') {
       dialog.showModal();
       return;
@@ -1726,6 +2078,7 @@ async function copyField(i, j) {
   codeStatus(i, (await copyText(text, !!f.secret)) ? `Copied: ${f.label}.` : 'It could not be copied. Select it and copy it yourself.');
 }
 
+/** @param {HTMLElement} btn */
 async function toggleShow(btn) {
   const i = Number(btn.dataset.code);
   const j = Number(btn.dataset.field);
@@ -1753,7 +2106,8 @@ async function toggleShow(btn) {
   }
   btn.setAttribute('aria-pressed', show ? 'true' : 'false');
   btn.textContent = show ? 'Hide' : 'Show';
-  const from = state.picture.payloads.length > 1 ? ` from code ${i + 1}` : '';
+  // f was found in the codes on show, so state.picture is set.
+  const from = /** @type {Picture} */ (state.picture).payloads.length > 1 ? ` from code ${i + 1}` : '';
   btn.setAttribute('aria-label', `${show ? 'Hide' : 'Show'} ${f.label}${from}`);
   value.dataset.shown = show ? 'true' : 'false';
   value.replaceChildren(...(show ? addrNodes(f.value) : maskNodes()));
@@ -1762,6 +2116,12 @@ async function toggleShow(btn) {
 
 // The picture itself, small, with each code found outlined and numbered, so a sticker over a
 // real code can be told apart. Drawn from the file on this device; nothing is read back.
+/**
+ * @param {Blob} file
+ * @param {PlacedCode[]} codes
+ * @param {DecodedImage} image
+ * @param {boolean[]} [priv]
+ */
 async function drawPicture(file, codes, image, priv = []) {
   const canvas = $('picture-view');
   canvas.hidden = true;
@@ -1788,7 +2148,8 @@ async function drawPicture(file, codes, image, priv = []) {
   // Only the width is set: the height follows from the picture's own shape.
   canvas.style.width = `${w}px`;
   canvas.style.height = '';
-  const ctx = canvas.getContext('2d');
+  // The picture canvas is only ever drawn in 2D, so its context is always there.
+  const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
   ctx.scale(dpr, dpr);
   ctx.drawImage(bmp, 0, 0, w, hgt);
   const shown = orientedSize(image.width || bmp.width, image.height || bmp.height, image.orientation || 1);
@@ -1882,6 +2243,10 @@ const FRAME_TIMEOUT_MS = 10000;
 // This many frames in a row that the browser has made up (see hiddenFrame): it hides the picture.
 const HIDDEN_FRAMES = 12;
 
+/**
+ * @type {{ stream: MediaStream | null, run: number, timer: number, limit: number, until: number,
+ *   canvas: HTMLCanvasElement | null, hidden: number, devices: MediaDeviceInfo[], deviceId: string | null }}
+ */
 const cam = { stream: null, run: 0, timer: 0, limit: 0, until: 0, canvas: null, hidden: 0, devices: [], deviceId: null };
 
 // Whether the camera is on, or being asked for.
@@ -1890,6 +2255,7 @@ const cameraOn = () => !!cam.stream || !$('camera-card').hidden;
 // The two-minute limit, as a timer of its own from the moment the camera is given: it holds even
 // for a camera that never sends a picture, whose preview never starts playing and so never reaches
 // the frame loop (camera review C1). The frame loop checks cam.until as well.
+/** @param {number} run */
 function startLimit(run) {
   clearTimeout(cam.limit);
   cam.until = Date.now() + SCAN_FOR_MS;
@@ -1902,7 +2268,7 @@ function startLimit(run) {
 // seen, not a crop of it (interface review L4). Set through the style sheet's own properties.
 function fitPreview() {
   const video = $('cam-video');
-  const frame = video.parentElement;
+  const frame = /** @type {HTMLElement} */ (video.parentElement);
   if (video.videoWidth && video.videoHeight) {
     frame.style.setProperty('--cam-w', String(video.videoWidth));
     frame.style.setProperty('--cam-h', String(video.videoHeight));
@@ -1933,14 +2299,19 @@ function siteAllowsCamera() {
   return true;
 }
 
+/** @param {string} text */
 function camStatus(text) {
   const el = $('cam-status');
   el.textContent = '';
   el.textContent = text;
 }
 
+/**
+ * @param {unknown} err  what getUserMedia threw
+ * @returns {string}
+ */
 function cameraError(err) {
-  const name = err && err.name;
+  const name = err && /** @type {{ name?: unknown }} */ (err).name;
   if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') return siteAllowsCamera() ? (android() ? CAM.deniedApp : CAM.denied) : CAM.blocked;
   if (name === 'NotFoundError' || name === 'OverconstrainedError' || name === 'DevicesNotFoundError') return CAM.none;
   if (name === 'NotReadableError' || name === 'TrackStartError' || name === 'AbortError') return CAM.busy;
@@ -1957,12 +2328,17 @@ async function appCameraBlocked() {
   $('cam-settings').hidden = false;
 }
 
+/** @param {MediaStream | null | undefined} stream */
 const stopTracks = (stream) => {
   if (stream) for (const t of stream.getTracks()) t.stop();
 };
 
 // Turns the camera off and drops everything it gave: the stream, the preview and the last frame.
 // message, when given, is said under the picture button (an error in its box).
+/**
+ * @param {string | null} [message]
+ * @param {{ error?: boolean, focus?: boolean }} [options]
+ */
 function stopCamera(message = null, { error = false, focus = false } = {}) {
   const wasOn = cameraOn();
   cam.run++;
@@ -2000,6 +2376,10 @@ function stopCamera(message = null, { error = false, focus = false } = {}) {
   }
 }
 
+/**
+ * @param {string | null} deviceId
+ * @returns {Promise<MediaStream>}
+ */
 async function openStream(deviceId) {
   const size = { width: { ideal: 1280 }, height: { ideal: 720 } };
   // The rear camera where there is one: that is the one pointed at a code.
@@ -2007,6 +2387,11 @@ async function openStream(deviceId) {
   return navigator.mediaDevices.getUserMedia({ audio: false, video });
 }
 
+/**
+ * @param {MediaStream} stream
+ * @param {number} run
+ * @returns {Promise<boolean>}
+ */
 async function attachStream(stream, run) {
   cam.stream = stream;
   const track = stream.getVideoTracks()[0];
@@ -2144,6 +2529,10 @@ async function switchCamera() {
 // white throughout is the blank picture older versions give instead. 64 samples across the frame
 // are looked at. A dark frame from a real camera (the lens covered, a dark pocket) is not counted:
 // the camera keeps looking until the time limit.
+/**
+ * @param {Uint8ClampedArray} data
+ * @returns {boolean}
+ */
 function hiddenFrame(data) {
   const n = data.length / 4;
   const step = Math.max(1, Math.floor(n / 64));
@@ -2158,6 +2547,7 @@ function hiddenFrame(data) {
 
 // Reads one frame: drawn from the preview on a canvas that is never shown, its pixels handed to
 // the decoder worker. The canvas is drawn over by the next frame and emptied when the camera stops.
+/** @param {number} run */
 async function scanFrame(run) {
   cam.timer = 0;
   if (run !== cam.run || !cam.stream) return;
@@ -2183,7 +2573,7 @@ async function scanFrame(run) {
   }
   let pixels;
   try {
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d', { willReadFrequently: true }));
     ctx.drawImage(video, 0, 0, w, hgt);
     pixels = ctx.getImageData(0, 0, w, hgt);
   } catch {
@@ -2218,6 +2608,10 @@ async function scanFrame(run) {
 }
 
 // The first picture among dropped or pasted files, if any.
+/**
+ * @param {ArrayLike<File> | Iterable<File> | null | undefined} files
+ * @returns {{ file: File | null, more: boolean }}
+ */
 function firstPicture(files) {
   const list = Array.from(files || []);
   const pics = list.filter((f) => /^image\//i.test(f.type) || /\.(png|jpe?g|gif|bmp|webp|avif|hei[cf])$/i.test(f.name || ''));
@@ -2228,6 +2622,10 @@ function firstPicture(files) {
 // Wiring
 
 // A picture pasted with nothing to read as text (a screenshot, "Copy image"): the file, or null.
+/**
+ * @param {ClipboardEvent} ev
+ * @returns {File | null}
+ */
 function pastedPicture(ev) {
   const dt = ev.clipboardData;
   if (!dt) return null;
@@ -2242,13 +2640,15 @@ function pastedPicture(ev) {
   return firstPicture(files).file;
 }
 
+/** @param {DragEvent} ev */
 const hasFiles = (ev) => !!ev.dataTransfer && Array.from(ev.dataTransfer.types || []).includes('Files');
 
 function init() {
   const input = $('link-input');
   input.addEventListener('input', (ev) => {
     state.viaShare = false;
-    const pasted = ev.inputType === 'insertFromPaste' || ev.inputType === 'insertFromDrop';
+    const kind = /** @type {InputEvent} */ (ev).inputType;
+    const pasted = kind === 'insertFromPaste' || kind === 'insertFromDrop';
     // Typing or pasting a link means the person has moved on from scanning.
     if (cam.stream || !$('camera-card').hidden) stopCamera(CAM.stopped);
     // A QR code on show no longer matches the box: it goes now, not after the pause (stage 4b
@@ -2282,8 +2682,9 @@ function init() {
   startDecoder();
   $('pic-btn').addEventListener('click', () => $('pic-input').click());
   $('pic-input').addEventListener('change', (ev) => {
-    const file = ev.target.files && ev.target.files[0];
-    ev.target.value = '';
+    const field = /** @type {HTMLInputElement} */ (ev.target);
+    const file = field.files && field.files[0];
+    field.value = '';
     state.viaShare = false;
     readPicture(file);
   });
@@ -2293,7 +2694,7 @@ function init() {
   document.addEventListener('dragover', (ev) => {
     if (!hasFiles(ev)) return;
     ev.preventDefault();
-    ev.dataTransfer.dropEffect = 'copy';
+    /** @type {DataTransfer} */ (ev.dataTransfer).dropEffect = 'copy';
     card.classList.add('is-dropping');
     // Browsers fire dragover every few hundred milliseconds while a file is held over the page;
     // when they stop (the file left, or the drag was cancelled) the outline goes.
@@ -2307,12 +2708,12 @@ function init() {
     card.classList.remove('is-dropping');
     if (!hasFiles(ev)) return;
     ev.preventDefault();
-    const { file, more } = firstPicture(ev.dataTransfer.files);
+    const { file, more } = firstPicture(/** @type {DataTransfer} */ (ev.dataTransfer).files);
     state.viaShare = false;
     readPicture(file, more ? PIC.firstOnly : '');
   });
   $('code-list').addEventListener('click', (ev) => {
-    const btn = ev.target.closest('button[data-use]');
+    const btn = /** @type {HTMLButtonElement | null} */ (/** @type {Element} */ (ev.target).closest('button[data-use]'));
     if (!btn || !state.picture) return;
     const i = Number(btn.dataset.code);
     if (btn.dataset.use === 'show') toggleShow(btn);
@@ -2411,9 +2812,10 @@ function init() {
   });
 
   $('parts-list').addEventListener('change', (ev) => {
-    const box = ev.target.closest('.cl-check');
+    const box = /** @type {HTMLInputElement | null} */ (/** @type {Element} */ (ev.target).closest('.cl-check'));
     if (!box || !state.analysis) return;
-    const p = partById(box.dataset.part);
+    // Every box was drawn for one of the parts on show.
+    const p = /** @type {Part} */ (partById(/** @type {string} */ (box.dataset.part)));
     // An affiliate network's parts go together: keeping one alone rarely keeps the credit.
     const group = p && p.affiliate ? state.analysis.parts.filter((x) => x.affiliate === p.affiliate) : [p];
     for (const x of group) {
@@ -2427,17 +2829,18 @@ function init() {
   });
 
   $('kept-list').addEventListener('change', (ev) => {
-    const box = ev.target.closest('.cl-check');
-    if (!box || !state.analysis || !state.kept.has(box.dataset.kept)) return;
-    if (box.checked) state.removed.add(box.dataset.kept);
-    else state.removed.delete(box.dataset.kept);
+    const box = /** @type {HTMLInputElement | null} */ (/** @type {Element} */ (ev.target).closest('.cl-check'));
+    // Every box here carries data-kept (keptRow).
+    if (!box || !state.analysis || !state.kept.has(/** @type {string} */ (box.dataset.kept))) return;
+    if (box.checked) state.removed.add(/** @type {string} */ (box.dataset.kept));
+    else state.removed.delete(/** @type {string} */ (box.dataset.kept));
     say('');
     closeQr();
     renderChoice();
   });
 
   $('warn-card').addEventListener('click', (ev) => {
-    const btn = ev.target.closest('button[data-use]');
+    const btn = /** @type {HTMLButtonElement | null} */ (/** @type {Element} */ (ev.target).closest('button[data-use]'));
     const a = state.analysis;
     if (!btn || !a) return;
     const i = Number(btn.dataset.index);
@@ -2492,7 +2895,7 @@ function init() {
       }
     } catch (err) {
       // AbortError: the person closed the share sheet. Nothing to say.
-      if (!err || err.name !== 'AbortError') say(SHARE_FAILED);
+      if (!err || /** @type {Error} */ (err).name !== 'AbortError') say(SHARE_FAILED);
     } finally {
       sharing = false;
     }

@@ -17,6 +17,10 @@ const K = new Uint32Array([
   0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ]);
 
+/**
+ * @param {Uint8Array | ArrayLike<number>} bytes
+ * @returns {Uint8Array<ArrayBuffer>}
+ */
 export function sha256(bytes) {
   const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   const bitLen = data.length * 8;
@@ -28,6 +32,7 @@ export function sha256(bytes) {
   view.setUint32(padded.length - 4, bitLen >>> 0);
   const h = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
   const w = new Uint32Array(64);
+  /** @type {(x: number, n: number) => number} */
   const rotr = (x, n) => (x >>> n) | (x << (32 - n));
   for (let off = 0; off < padded.length; off += 64) {
     for (let i = 0; i < 16; i++) w[i] = view.getUint32(off + i * 4);
@@ -54,23 +59,30 @@ export function sha256(bytes) {
   return out;
 }
 
+/** @type {(bytes: Iterable<number> | ArrayLike<number>) => string} */
 export const toHex = (bytes) => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+/** @type {(s: string) => Uint8Array<ArrayBuffer>} */
 export const utf8 = (s) => new TextEncoder().encode(s);
 
 // == Base58Check (Bitcoin addresses, WIF keys, extended keys) ==
 
 const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
+/**
+ * @param {unknown} s
+ * @returns {Uint8Array<ArrayBuffer> | null}
+ */
 export function base58Decode(s) {
   if (typeof s !== 'string' || !s || s.length > 200 || !/^[1-9A-HJ-NP-Za-km-z]+$/.test(s)) return null;
   let n = 0n;
-  for (const ch of s) n = n * 58n + BigInt(B58.indexOf(ch));
+  for (const ch of /** @type {string} */ (s)) n = n * 58n + BigInt(B58.indexOf(ch));
+  /** @type {number[]} */
   const bytes = [];
   while (n > 0n) {
     bytes.unshift(Number(n & 0xffn));
     n >>= 8n;
   }
-  for (const ch of s) {
+  for (const ch of /** @type {string} */ (s)) {
     if (ch !== '1') break;
     bytes.unshift(0);
   }
@@ -78,6 +90,10 @@ export function base58Decode(s) {
 }
 
 // The payload of a Base58Check string (version byte first), or null when the checksum fails.
+/**
+ * @param {unknown} s
+ * @returns {Uint8Array<ArrayBuffer> | null}
+ */
 export function base58Check(s) {
   const b = base58Decode(s);
   if (!b || b.length < 5) return null;
@@ -92,6 +108,10 @@ export function base58Check(s) {
 const B32 = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
 const GEN = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
 
+/**
+ * @param {number[]} values
+ * @returns {number}
+ */
 function polymod(values) {
   let chk = 1;
   for (const v of values) {
@@ -102,10 +122,16 @@ function polymod(values) {
   return chk >>> 0;
 }
 
+/** @type {(hrp: string) => number[]} */
 const hrpExpand = (hrp) => [...Array.from(hrp, (c) => c.charCodeAt(0) >> 5), 0, ...Array.from(hrp, (c) => c.charCodeAt(0) & 31)];
 
 // { hrp, data (5-bit groups, checksum removed), variant: 'bech32' | 'bech32m' } or null. Long
 // strings are allowed (Lightning invoices pass BIP 173's 90 characters); mixed case is refused.
+/**
+ * @param {unknown} str
+ * @param {number} [maxLength]
+ * @returns {{ hrp: string, data: number[], variant: 'bech32' | 'bech32m' } | null}
+ */
 export function bech32Decode(str, maxLength = 7089) {
   if (typeof str !== 'string' || str.length < 8 || str.length > maxLength) return null;
   if (str !== str.toLowerCase() && str !== str.toUpperCase()) return null;
@@ -114,6 +140,7 @@ export function bech32Decode(str, maxLength = 7089) {
   if (pos < 1 || pos + 7 > s.length) return null;
   const hrp = s.slice(0, pos);
   if (!/^[\x21-\x7e]+$/.test(hrp)) return null;
+  /** @type {number[]} */
   const data = [];
   for (const ch of s.slice(pos + 1)) {
     const v = B32.indexOf(ch);
@@ -127,9 +154,17 @@ export function bech32Decode(str, maxLength = 7089) {
 }
 
 // Regroups bits (8 to 5, 5 to 8); null when the padding is not zero.
+/**
+ * @param {Iterable<number>} data
+ * @param {number} from
+ * @param {number} to
+ * @param {boolean} pad
+ * @returns {number[] | null}
+ */
 export function convertBits(data, from, to, pad) {
   let acc = 0;
   let bits = 0;
+  /** @type {number[]} */
   const out = [];
   const max = (1 << to) - 1;
   for (const v of data) {
@@ -149,6 +184,10 @@ export function convertBits(data, from, to, pad) {
 }
 
 // A segwit address (bc1..., tb1...): { hrp, version, program } or null.
+/**
+ * @param {unknown} addr
+ * @returns {{ hrp: string, version: number, program: number[] } | null}
+ */
 export function segwitDecode(addr) {
   const d = bech32Decode(addr, 90);
   if (!d || !['bc', 'tb', 'bcrt'].includes(d.hrp) || !d.data.length) return null;
@@ -163,6 +202,10 @@ export function segwitDecode(addr) {
 // == account numbers ==
 
 // ISO 13616 IBAN check digits (mod 97 = 1). Spaces are ignored.
+/**
+ * @param {unknown} iban
+ * @returns {boolean}
+ */
 export function ibanValid(iban) {
   const s = String(iban || '').replace(/\s+/g, '').toUpperCase();
   if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(s)) return false;
@@ -170,12 +213,20 @@ export function ibanValid(iban) {
 }
 
 // ISO 11649 creditor reference (RF + 2 check digits + up to 21 characters).
+/**
+ * @param {unknown} ref
+ * @returns {boolean}
+ */
 export function rfValid(ref) {
   const s = String(ref || '').replace(/\s+/g, '').toUpperCase();
   if (!/^RF\d{2}[A-Z0-9]{1,21}$/.test(s)) return false;
   return mod97(s.slice(4) + s.slice(0, 4)) === 1;
 }
 
+/**
+ * @param {string} s
+ * @returns {number}
+ */
 function mod97(s) {
   let r = 0;
   for (const ch of s) {
@@ -186,6 +237,10 @@ function mod97(s) {
 }
 
 // GS1 check digit (EAN-8, EAN-13, UPC-A, GTIN-14): true when the last digit is right.
+/**
+ * @param {string} digits
+ * @returns {boolean}
+ */
 export function gs1Valid(digits) {
   if (!/^\d{8}$|^\d{12,14}$/.test(digits)) return false;
   let sum = 0;
@@ -196,6 +251,10 @@ export function gs1Valid(digits) {
 
 // == CRC-16/CCITT-FALSE (EMV merchant QR codes) ==
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 export function crc16(text) {
   let crc = 0xffff;
   for (const b of utf8(text)) {
@@ -207,7 +266,12 @@ export function crc16(text) {
 
 // == CRC-32 (ISO-HDLC, as zlib and Monero's seed checksum use it) ==
 
+/** @type {Uint32Array | null} */
 let crcTable = null;
+/**
+ * @param {Iterable<number>} bytes
+ * @returns {number}
+ */
 export function crc32(bytes) {
   if (!crcTable) {
     crcTable = new Uint32Array(256);
@@ -225,7 +289,13 @@ export function crc32(bytes) {
 // == text encodings ==
 
 // Quoted-printable (vCard 2.1): =XX bytes, soft line breaks (= at the end of a line).
+/**
+ * @param {unknown} s
+ * @param {string} [charset]
+ * @returns {string}
+ */
 export function quotedPrintable(s, charset = 'utf-8') {
+  /** @type {number[]} */
   const bytes = [];
   const text = String(s).replace(/=\r?\n/g, '');
   for (let i = 0; i < text.length; i++) {
@@ -243,6 +313,10 @@ export function quotedPrintable(s, charset = 'utf-8') {
 }
 
 // Base64 or base64url to bytes; null when it is not base64.
+/**
+ * @param {unknown} s
+ * @returns {Uint8Array<ArrayBuffer> | null}
+ */
 export function base64Bytes(s) {
   let t = String(s || '').replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
   if (!t || !/^[A-Za-z0-9+/]+={0,2}$/.test(t)) return null;
@@ -260,6 +334,10 @@ export function base64Bytes(s) {
 }
 
 // Base32 (RFC 4648, as 2FA secrets are written): the number of bytes it holds, or null.
+/**
+ * @param {unknown} s
+ * @returns {number | null}
+ */
 export function base32Length(s) {
   const t = String(s || '').replace(/[\s-]+/g, '').replace(/=+$/, '').toUpperCase();
   if (!t || !/^[A-Z2-7]+$/.test(t)) return null;
@@ -270,7 +348,14 @@ export function base32Length(s) {
 
 // The fields of one message: [{ field, wire, value }] where value is a BigInt (varint) or a
 // Uint8Array (length-delimited). Null on anything malformed. At most maxFields fields.
+/** @typedef {{ field: number, wire: 0, value: bigint } | { field: number, wire: 2, value: Uint8Array }} ProtoField */
+/**
+ * @param {Uint8Array} bytes
+ * @param {number} [maxFields]
+ * @returns {ProtoField[] | null}
+ */
 export function protoFields(bytes, maxFields = 2000) {
+  /** @type {ProtoField[]} */
   const out = [];
   let i = 0;
   const varint = () => {
@@ -316,18 +401,28 @@ export function protoFields(bytes, maxFields = 2000) {
 // One CBOR item: unsigned and negative integers (as Numbers, or null when too large), byte
 // strings (Uint8Array), text, arrays, maps (as a Map), true, false and null. Definite lengths
 // only, at most maxItems items and 16 levels deep. Null on anything malformed or larger.
+// The items of an array and the keys and values of a map are CborValues too, but a JSDoc type
+// alias cannot refer to itself, so they are typed unknown and read with checks.
+/** @typedef {number | null | boolean | string | Uint8Array | unknown[] | Map<unknown, unknown>} CborValue */
+/**
+ * @param {Uint8Array} bytes
+ * @param {number} [maxItems]
+ * @returns {CborValue}
+ */
 export function cborDecode(bytes, maxItems = 5000) {
   let i = 0;
   let items = 0;
   const fail = Symbol('fail');
+  /** @type {(info: number) => number | typeof fail} */
   const arg = (info) => {
     if (info < 24) return info;
-    const n = { 24: 1, 25: 2, 26: 4, 27: 8 }[info];
+    const n = /** @type {Record<number, number>} */ ({ 24: 1, 25: 2, 26: 4, 27: 8 })[info];
     if (!n || i + n > bytes.length) return fail;
     let v = 0;
     for (let k = 0; k < n; k++) v = v * 256 + bytes[i++];
     return v;
   };
+  /** @type {(depth: number) => CborValue | typeof fail} */
   const item = (depth) => {
     if (depth > 16 || ++items > maxItems || i >= bytes.length) return fail;
     const head = bytes[i++];
@@ -356,6 +451,7 @@ export function cborDecode(bytes, maxItems = 5000) {
     }
     if (major === 4) {
       if (n > maxItems) return fail;
+      /** @type {unknown[]} */
       const out = [];
       for (let k = 0; k < n; k++) {
         const v = item(depth + 1);
@@ -366,6 +462,7 @@ export function cborDecode(bytes, maxItems = 5000) {
     }
     if (major === 5) {
       if (n > maxItems) return fail;
+      /** @type {Map<unknown, unknown>} */
       const out = new Map();
       for (let k = 0; k < n; k++) {
         const key = item(depth + 1);

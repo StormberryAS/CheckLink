@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noResolve": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "WebWorker"],
+    "types": [],
+    "paths": { "#cl/*": ["./*"] }
+  },
+  "include": ["src/qr-worker.js", "src/worker-lockdown.js", "src/qr-decode.js", "src/image-check.js", "types/zxing-wasm.d.ts", "types/stamps.worker.d.ts"]
+}

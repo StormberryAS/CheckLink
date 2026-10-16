@@ -307,12 +307,15 @@ object WebAssets {
     // include list: the Android project, the store files (fastlane/, zapstore.yaml), the
     // repository's own documents (README.md, DISCLAIMER.md, LICENSE, NOTICE; the app carries its
     // licence texts under assets/licences/ instead), the website's own files (CNAME, robots.txt,
-    // og-image.png, _config.yml) and the tooling. Store files added later cannot change the APK.
+    // og-image.png, _config.yml) and the tooling, including the type checking's (package.json,
+    // package-lock.json, node_modules/, jsconfig.json, jsconfig.worker.json and types/, none of
+    // which the page reads). Store files added later cannot change the APK.
     val APK_EXCLUDES = listOf(
         "android/**", "fastlane/**", "tests/**", "tools/**", "rules/**", "third_party/**", ".github/**",
         "zapstore.yaml", "README*", "DISCLAIMER.md", "LICENSE", "NOTICE", "CNAME", "robots.txt",
         "og-image.png", "_config.yml", "bump_assets.py", "package.json", "package-lock.json",
         "**/__pycache__/**", "**/*.pyc", "**/*.bak*", "**/.DS_Store", "**/*sync-conflict*", "node_modules/**",
+        "jsconfig.json", "jsconfig.worker.json", "types/**",
     )
 
     /** Runs git in [dir]; returns its exit code and standard output. */

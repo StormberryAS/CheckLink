@@ -29,16 +29,73 @@
 // Wording follows the spec: calm British English, no "safe", payment details "shown, never
 // paid", and a secret is never shown in full by default.
 
-import { findLinks, invisibleChunks, pctDecode } from './link-core.js?v=108881e2';
-import { domainInfo } from './domain.js?v=e177a464';
+import { findLinks, invisibleChunks, pctDecode } from './link-core.js?v=d248ac28';
+import { domainInfo } from './domain.js?v=f1bcd492';
 import { BIP39_ENGLISH } from './bip39.js?v=cdee66f2';
 import { BIP39_LISTS, MONERO_ENGLISH, MONERO_LISTS, MONERO_PREFIX, SLIP39_WORDS } from './wordlists.js?v=24516436';
 import {
   base32Length, base58Check, base64Bytes, bech32Decode, cborDecode, convertBits, crc16, crc32, gs1Valid, ibanValid,
   protoFields, quotedPrintable, rfValid, segwitDecode, sha256, toHex, utf8,
-} from './payload-codecs.js?v=2a82d69c';
+} from './payload-codecs.js?v=c65b0a72';
 
 export const MAX_TEXT = 8000;
+
+/** @typedef {'stop' | 'check' | 'info'} Tier */
+/**
+ * @typedef {'web' | 'text' | 'wifi' | 'contact' | 'event' | 'email' | 'phone' | 'sms' | 'geo' | 'payment' | 'app' |
+ *   'secret' | 'account-link' | 'script' | 'product' | 'boarding-pass' | 'health' | 'nostr' | 'binary' | 'empty'} Kind
+ */
+/**
+ * One detail of a payload, shown as data.
+ * @typedef {object} PayloadField
+ * @property {string} label
+ * @property {string} value
+ * @property {boolean} secret      shown hidden until the person asks (Show)
+ * @property {string | null} copy  the label of a Copy button for this value, or null
+ * @property {string | null} note  a plain remark about this value
+ * @property {boolean} mono
+ * @property {string} [copyValue]  what Copy puts on the clipboard, when it is not the value as shown
+ */
+/** @typedef {{ secret?: boolean, copy?: string | null, note?: string | null, mono?: boolean, copyValue?: string }} FieldExtra */
+/** @typedef {{ id: string, tier: Tier, text: string }} PayloadWarning */
+/**
+ * What one reader below makes of a code, before inspect() adds what every payload carries.
+ * @typedef {object} Draft
+ * @property {Kind} kind
+ * @property {Tier} tier
+ * @property {string} title
+ * @property {string} summary
+ * @property {string | null} scheme
+ * @property {PayloadField[]} fields
+ * @property {string[]} links
+ * @property {PayloadWarning[]} warnings
+ * @property {boolean} secret
+ * @property {number} [binaryLength]
+ */
+/**
+ * What a code holds, in plain words (the header above).
+ * @typedef {object} Payload
+ * @property {Kind} kind
+ * @property {Tier} tier
+ * @property {string} title
+ * @property {string} summary
+ * @property {string | null} scheme
+ * @property {PayloadField[]} fields
+ * @property {string[]} links
+ * @property {PayloadWarning[]} warnings
+ * @property {boolean} secret
+ * @property {string} text          the code's text, cut to MAX_TEXT characters
+ * @property {boolean} truncated    whether text was cut
+ * @property {number} length        the length of the code's whole text
+ * @property {string | null} format
+ * @property {string} formatLabel
+ */
+/** @typedef {{ bytes?: Uint8Array | null, format?: string | null, contentType?: string | null }} InspectOptions */
+/** @typedef {{ bytes: Uint8Array | null, format: string | null, contentType: string | null }} ClassifyOptions */
+/** @typedef {[string, string]} Pair */
+// A table made with __proto__: null, so that a word from the code finds only its own names. The
+// checker counts __proto__ as one more name, with the value null, hence the null.
+/** @typedef {Record<string, string | null>} Names */
 
 // == words ==
 
@@ -51,6 +108,7 @@ const NOT_SENT = 'CheckLink never sends it: your own app would, only if you choo
 const NOT_STARTED = 'CheckLink never starts it.';
 const NEVER_SHARE = 'never share a picture of it';
 
+/** @type {Record<string, string>} */
 const FORMAT_LABELS = {
   QRCode: 'QR code', MicroQRCode: 'Micro QR code', RMQRCode: 'rMQR code', rMQRCode: 'rMQR code', QRCodeModel1: 'QR code', QRCodeModel2: 'QR code',
   Aztec: 'Aztec code', AztecCode: 'Aztec code', AztecRune: 'Aztec rune', DataMatrix: 'Data Matrix code', PDF417: 'PDF417 code', CompactPDF417: 'PDF417 code',
@@ -60,16 +118,23 @@ const FORMAT_LABELS = {
   DataBarStk: 'GS1 DataBar', DataBarStkOmni: 'GS1 DataBar', DataBarExp: 'GS1 DataBar Expanded', DataBarExpStk: 'GS1 DataBar Expanded', DataBarLtd: 'GS1 DataBar Limited',
   Code32: 'Code 32 barcode', PZN: 'pharmacy barcode (PZN)', Telepen: 'Telepen barcode', TelepenAlpha: 'Telepen barcode', TelepenNumeric: 'Telepen barcode',
 };
+/** @type {(f: string) => string} */
 export const formatLabel = (f) => FORMAT_LABELS[f] || 'code';
 const LINEAR = /^(EAN|UPC|ISBN|Code|Codabar|ITF|DataBar|PZN|Telepen)/;
 
 // == small helpers ==
 
+/** @type {(label: string, value: unknown, extra?: FieldExtra) => PayloadField} */
 const field = (label, value, extra = {}) => ({ label, value: String(value ?? ''), secret: false, copy: null, note: null, mono: false, ...extra });
+/** @type {(id: string, tier: Tier, text: string) => PayloadWarning} */
 const warn = (id, tier, text) => ({ id, tier, text });
+/** @type {Record<Tier, number>} */
 const TIER = { stop: 0, check: 1, info: 2 };
+/** @type {(a: Tier, b: Tier) => Tier} */
 const higher = (a, b) => (TIER[a] <= TIER[b] ? a : b);
+/** @type {(s: string) => string[]} */
 const lines = (s) => s.split(/\r\n|\r|\n/);
+/** @type {(s: string) => string} */
 const safeDecode = (s) => {
   try {
     return pctDecode(s);
@@ -77,9 +142,15 @@ const safeDecode = (s) => {
     return s;
   }
 };
+/** @type {(s: unknown) => string} */
 const formDecode = (s) => safeDecode(String(s).replace(/\+/g, ' '));
 
+/**
+ * @param {unknown} q
+ * @returns {Pair[]}
+ */
 function queryParams(q) {
+  /** @type {Pair[]} */
   const out = [];
   for (const pair of String(q || '').split('&')) {
     if (!pair) continue;
@@ -88,6 +159,7 @@ function queryParams(q) {
   }
   return out;
 }
+/** @type {(params: Pair[], ...names: string[]) => string | null} */
 const param = (params, ...names) => {
   for (const n of names) {
     const hit = params.find(([k]) => k.toLowerCase() === n.toLowerCase());
@@ -97,10 +169,18 @@ const param = (params, ...names) => {
 };
 // Every value given for a name, in order: a code that gives the same name twice is read
 // differently by different apps (some take the first, some the last).
+/** @type {(params: Pair[], name: string, options?: { exact?: boolean }) => string[]} */
 const paramsAll = (params, name, { exact = false } = {}) => params.filter(([k]) => (exact ? k === name : k.toLowerCase() === name.toLowerCase())).map(([, v]) => v);
+/** @type {<T>(values: T[]) => T[]} */
 const distinct = (values) => [...new Set(values)];
 
+/** @type {Map<string, Intl.NumberFormat>} */
 const money = new Map();
+/**
+ * @param {string | number | null} amount
+ * @param {string | null | undefined} currency
+ * @returns {string}
+ */
 function amountText(amount, currency) {
   const n = Number(amount);
   if (!Number.isFinite(n)) return `${currency || ''} ${amount}`.trim();
@@ -118,12 +198,24 @@ function amountText(amount, currency) {
 }
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+/** @type {(n: number) => string} */
 const two = (n) => String(n).padStart(2, '0');
+/**
+ * @param {number} y
+ * @param {number} m
+ * @param {number} d
+ * @returns {string | null}
+ */
 function dateText(y, m, d) {
   if (m < 1 || m > 12 || d < 1 || d > 31) return null;
   return `${d} ${MONTHS[m - 1]} ${y}`;
 }
 // An iCalendar date or date-time (20261010, 20261010T180000, 20261010T180000Z) in words.
+/**
+ * @param {string} value
+ * @param {string | null} tzid
+ * @returns {string | null}
+ */
 function icalDate(value, tzid) {
   const m = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/.exec(String(value || '').trim());
   if (!m) return value ? String(value) : null;
@@ -133,6 +225,10 @@ function icalDate(value, tzid) {
   const zone = m[7] ? 'UTC' : tzid ? tzid : 'local time, no time zone given';
   return `${day}, ${m[4]}:${m[5]} (${zone})`;
 }
+/**
+ * @param {number} seconds
+ * @returns {string | null}
+ */
 function unixDate(seconds) {
   const d = new Date(Number(seconds) * 1000);
   if (Number.isNaN(d.getTime())) return null;
@@ -140,7 +236,13 @@ function unixDate(seconds) {
 }
 
 // Text split on a separator that a backslash can escape (MECARD, WIFI, MATMSG).
+/**
+ * @param {string} s
+ * @param {string} sep
+ * @returns {string[]}
+ */
 function splitEscaped(s, sep) {
+  /** @type {string[]} */
   const out = [];
   let cur = '';
   for (let i = 0; i < s.length; i++) {
@@ -156,10 +258,16 @@ function splitEscaped(s, sep) {
   out.push(cur);
   return out;
 }
+/** @type {(s: string) => string} */
 const unescapeDocomo = (s) => s.replace(/\\(.)/g, '$1');
 
 // key:value pairs of a DoCoMo-style body (MECARD, MATMSG, MEBKM, WIFI): [[KEY, value]].
+/**
+ * @param {string} body
+ * @returns {Pair[]}
+ */
 function docomoPairs(body) {
+  /** @type {Pair[]} */
   const out = [];
   for (const part of splitEscaped(body, ';')) {
     if (!part) continue;
@@ -172,7 +280,13 @@ function docomoPairs(body) {
 
 // == phone numbers ==
 
+/**
+ * @param {string} number
+ * @param {{ sms?: boolean }} [options]
+ * @returns {PayloadWarning[]}
+ */
 function phoneNotes(number, { sms = false } = {}) {
+  /** @type {PayloadWarning[]} */
   const out = [];
   const digits = number.replace(/[\s().\-\u00A0]/g, '');
   if (/[*#]/.test(digits)) {
@@ -187,12 +301,18 @@ function phoneNotes(number, { sms = false } = {}) {
 
 // == Wi-Fi ==
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function wifi(text) {
   const body = text.replace(/^WIFI:/i, '');
-  const pairs = splitEscaped(body, ';').filter(Boolean).map((p) => {
+  // filter(Boolean) takes out the nulls, which the type of filter does not follow.
+  const pairs = /** @type {Pair[]} */ (splitEscaped(body, ';').filter(Boolean).map((p) => {
     const c = p.indexOf(':');
     return c <= 0 ? null : [p.slice(0, c).trim().toUpperCase(), p.slice(c + 1)];
-  }).filter(Boolean);
+  }).filter(Boolean));
+  /** @type {(k: string) => string | null} */
   const get = (k) => {
     const hit = pairs.find(([key]) => key === k);
     if (!hit) return null;
@@ -207,6 +327,7 @@ function wifi(text) {
   const hidden = /^true$/i.test(get('H') || '');
   const t = type.toUpperCase();
   let security;
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   if (!t && pass) {
     // No type, yet a password: phones that read this treat it as a protected network.
@@ -248,6 +369,12 @@ function wifi(text) {
 
 // What a contact card or event calls its web address may be something else: a script, or a link
 // that starts an app. Each gets its own label and a warning, never "Web address".
+/**
+ * @param {string} v
+ * @param {string[]} links
+ * @param {PayloadWarning[]} warnings
+ * @returns {PayloadField}
+ */
 function addressField(v, links, warnings) {
   const squeezed = v.trim().replace(/[\t\n\r]/g, '');
   const sch = (SCHEME.exec(squeezed) || [])[1];
@@ -264,10 +391,17 @@ function addressField(v, links, warnings) {
   return field('Web address', v);
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function mecard(text) {
   const pairs = docomoPairs(text.replace(/^MECARD:/i, ''));
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {string[]} */
   const links = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   for (const [k, raw] of pairs) {
     const v = unescapeDocomo(raw);
@@ -289,8 +423,13 @@ function mecard(text) {
 }
 
 // vCard 2.1 to 4.0: folded lines joined, quoted-printable read, escapes undone.
+/**
+ * @param {string} text
+ * @returns {VLine[]}
+ */
 function vcardLines(text) {
   const raw = lines(text);
+  /** @type {string[]} */
   const out = [];
   for (let i = 0; i < raw.length; i++) {
     let line = raw[i];
@@ -299,7 +438,8 @@ function vcardLines(text) {
     if (/^[ \t]/.test(line) && out.length) out[out.length - 1] += line.slice(1);
     else out.push(line);
   }
-  return out.map((l) => {
+  // filter(Boolean) takes out the nulls, which the type of filter does not follow.
+  return /** @type {VLine[]} */ (out.map((l) => {
     const colon = l.indexOf(':');
     if (colon <= 0) return null;
     const head = l.slice(0, colon).split(';');
@@ -311,18 +451,29 @@ function vcardLines(text) {
       value = quotedPrintable(value, cs);
     }
     return { name, params, value };
-  }).filter(Boolean);
+  }).filter(Boolean));
 }
+/** @type {(s: string) => string} */
 const vUnescape = (s) => s.replace(/\\n/gi, '\n').replace(/\\([,;:\\])/g, '$1');
+/** @type {(s: string) => string[]} */
 const vParts = (s) => splitEscaped(s, ';').map(vUnescape);
+/** @type {(params: string[]) => string} */
 const typeOf = (params) => {
   const t = params.flatMap((p) => p.replace(/^TYPE=/, '').split(',')).map((x) => x.toLowerCase()).filter((x) => ['cell', 'mobile', 'home', 'work', 'fax'].includes(x)).map((x) => (x === 'cell' ? 'mobile' : x));
   return t.length ? ` (${[...new Set(t)].join(', ')})` : '';
 };
 
+/** @typedef {{ name: string, params: string[], value: string }} VLine */
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function vcard(text) {
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {string[]} */
   const links = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   let name = null;
   for (const { name: n, params, value } of vcardLines(text)) {
@@ -356,6 +507,13 @@ function vcard(text) {
   return contactPayload(fields, links, 'vCard', warnings);
 }
 
+/**
+ * @param {PayloadField[]} fields
+ * @param {string[]} links
+ * @param {string} scheme
+ * @param {PayloadWarning[]} [warnings]
+ * @returns {Draft}
+ */
 function contactPayload(fields, links, scheme, warnings = []) {
   return {
     kind: 'contact', tier: 'info', title: 'A contact card', scheme,
@@ -366,18 +524,27 @@ function contactPayload(fields, links, scheme, warnings = []) {
 
 // == calendar events ==
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function vevent(text) {
   const all = vcardLines(text);
   const start = all.findIndex((l) => l.name === 'BEGIN' && /^VEVENT$/i.test(l.value.trim()));
   const end = all.findIndex((l, i) => i > start && l.name === 'END' && /^VEVENT$/i.test(l.value.trim()));
   const props = start >= 0 ? all.slice(start + 1, end > start ? end : undefined) : all;
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {string[]} */
   const links = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
+  /** @type {(params: string[]) => string | null} */
   const tz = (params) => {
     const p = params.find((x) => x.startsWith('TZID='));
     return p ? p.slice(5) : null;
   };
+  /** @type {(n: string) => string | null} */
   const tzRaw = (n) => {
     // Time zone names keep their capitals (Europe/Oslo): read them from the text itself.
     const m = new RegExp(`^${n}(?:;[^:]*)?;TZID=([^;:]+)`, 'im').exec(text);
@@ -408,12 +575,18 @@ function vevent(text) {
 
 // == email, phone, text messages ==
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function email(text) {
+  /** @type {string[]} */
   let to = [];
   let cc = null;
   let bcc = null;
   let subject = null;
   let body = null;
+  /** @type {string[]} */
   let attach = [];
   if (/^mailto:/i.test(text)) {
     const rest = text.slice(7);
@@ -421,7 +594,7 @@ function email(text) {
     to = (q < 0 ? rest : rest.slice(0, q)).split(',').map(safeDecode).map((x) => x.trim()).filter(Boolean);
     const params = q < 0 ? [] : String(rest.slice(q + 1)).split('&').map((p) => {
       const eq = p.indexOf('=');
-      return [safeDecode(eq < 0 ? p : p.slice(0, eq)), eq < 0 ? '' : safeDecode(p.slice(eq + 1))];
+      return /** @type {Pair} */ ([safeDecode(eq < 0 ? p : p.slice(0, eq)), eq < 0 ? '' : safeDecode(p.slice(eq + 1))]);
     });
     const extraTo = param(params, 'to');
     if (extraTo) to.push(...extraTo.split(',').map((x) => x.trim()).filter(Boolean));
@@ -434,6 +607,7 @@ function email(text) {
     attach = params.filter(([k]) => /^attach(?:ment)?s?$/i.test(k.trim())).map(([, v]) => v).filter(Boolean);
   } else if (/^MATMSG:/i.test(text)) {
     const pairs = docomoPairs(text.slice(7));
+    /** @type {(k: string) => string | null} */
     const g = (k) => {
       const hit = pairs.find(([key]) => key === k);
       return hit ? unescapeDocomo(hit[1]) : null;
@@ -448,6 +622,7 @@ function email(text) {
     subject = parts[1] || null;
     body = parts.slice(2).join(':') || null;
   }
+  /** @type {PayloadField[]} */
   const fields = [];
   for (const t of to) fields.push(field('To', t, { copy: 'Copy address' }));
   if (cc) fields.push(field('Copy to (cc)', cc));
@@ -456,6 +631,7 @@ function email(text) {
   if (body) fields.push(field('Message', body, { copy: 'Copy message' }));
   for (const a of attach) fields.push(field('File it asks to attach', a, { mono: true }));
   const warnings = [warn('not-sent', 'info', `An email ready to send. ${NOT_SENT}`)];
+  /** @type {Tier} */
   let tier = 'info';
   if (bcc) {
     tier = 'check';
@@ -472,6 +648,10 @@ function email(text) {
   };
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function phone(text) {
   const raw = safeDecode(text.replace(/^tel:/i, ''));
   const number = raw.split(';')[0].trim();
@@ -479,7 +659,7 @@ function phone(text) {
   const fields = [field('Number', number, { copy: 'Copy number' })];
   if (ext) fields.push(field('Extension', ext));
   const notes = phoneNotes(number);
-  const tier = notes.reduce((t, w) => higher(t, w.tier), 'info');
+  const tier = notes.reduce((t, w) => higher(t, w.tier), /** @type {Tier} */ ('info'));
   return {
     kind: 'phone', tier, title: /[*#]/.test(number) ? 'A phone service code' : 'A phone number to call', scheme: 'tel',
     summary: 'A phone number to call. Nothing has been dialled.',
@@ -487,6 +667,10 @@ function phone(text) {
   };
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function sms(text) {
   let number;
   let body = null;
@@ -501,14 +685,14 @@ function sms(text) {
     const query = q < 0 ? '' : rest.slice(q).replace(/^;?\??&?/, '');
     body = param(query.split('&').map((p) => {
       const eq = p.indexOf('=');
-      return [safeDecode(eq < 0 ? p : p.slice(0, eq)), eq < 0 ? '' : safeDecode(p.slice(eq + 1))];
+      return /** @type {Pair} */ ([safeDecode(eq < 0 ? p : p.slice(0, eq)), eq < 0 ? '' : safeDecode(p.slice(eq + 1))]);
     }), 'body');
   }
   const numbers = number.split(',').map((x) => x.trim()).filter(Boolean);
   const fields = numbers.map((n) => field('To', n, { copy: 'Copy number' }));
   if (body) fields.push(field('Message', body, { copy: 'Copy message' }));
   const notes = numbers.flatMap((n) => phoneNotes(n, { sms: true }));
-  const tier = notes.reduce((t, w) => higher(t, w.tier), 'info');
+  const tier = notes.reduce((t, w) => higher(t, w.tier), /** @type {Tier} */ ('info'));
   return {
     kind: 'sms', tier, title: 'A text message to send', scheme: 'sms',
     summary: 'A text message someone has written for you to send: the number and the message. Nothing has been sent.',
@@ -516,6 +700,10 @@ function sms(text) {
   };
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function geo(text) {
   const rest = text.replace(/^geo:/i, '');
   const q = rest.indexOf('?');
@@ -523,10 +711,12 @@ function geo(text) {
   const [coords, ...opts] = head.split(';');
   const [lat, lng, alt] = coords.split(',').map((x) => x.trim());
   const params = queryParams(q < 0 ? '' : rest.slice(q + 1));
+  /** @type {PayloadField[]} */
   const fields = [];
   const nLat = Number(lat);
   const nLng = Number(lng);
   const ok = /^-?\d{1,3}(\.\d+)?$/.test(lat || '') && /^-?\d{1,3}(\.\d+)?$/.test(lng || '') && Math.abs(nLat) <= 90 && Math.abs(nLng) <= 180;
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   if (ok && !(nLat === 0 && nLng === 0)) {
     fields.push(field('Latitude', lat), field('Longitude', lng));
@@ -550,11 +740,20 @@ function geo(text) {
 // == payments ==
 
 // Who gets paid and how much come first in a payment card; the rest keeps its order.
+/** @type {(f: PayloadField) => number} */
 const PAY_ORDER = (f) => (/^Pay to/.test(f.label) ? 0 : /^Amount/.test(f.label) ? 1 : 2);
 
+/**
+ * @param {string} scheme
+ * @param {string} title
+ * @param {PayloadField[]} fields
+ * @param {PayloadWarning[]} warnings
+ * @param {{ amount?: string | null, links?: string[], tier?: Tier }} [options]
+ * @returns {Draft}
+ */
 function paymentPayload(scheme, title, fields, warnings, { amount = null, links = [], tier = 'check' } = {}) {
   const lead = amount ? `A request to pay ${amount}.` : 'A payment request.';
-  const ordered = fields.map((f, i) => [f, i]).sort((a, b) => PAY_ORDER(a[0]) - PAY_ORDER(b[0]) || a[1] - b[1]).map(([f]) => f);
+  const ordered = fields.map((f, i) => /** @type {[PayloadField, number]} */ ([f, i])).sort((a, b) => PAY_ORDER(a[0]) - PAY_ORDER(b[0]) || a[1] - b[1]).map(([f]) => f);
   return {
     kind: 'payment', tier, title, scheme,
     summary: `${lead} ${NEVER_PAID}`,
@@ -565,6 +764,7 @@ function paymentPayload(scheme, title, fields, warnings, { amount = null, links 
 
 // The length of an IBAN in each country (SWIFT's IBAN registry): check digits can pass on a
 // number of the wrong length, so the length is checked too.
+/** @type {Record<string, number>} */
 const IBAN_LENGTH = {
   AD: 24, AE: 23, AL: 28, AT: 20, AZ: 28, BA: 20, BE: 16, BG: 22, BH: 22, BR: 29, BY: 28, CH: 21, CR: 22, CY: 28, CZ: 24, DE: 22, DK: 18,
   DO: 28, EE: 20, EG: 29, ES: 24, FI: 18, FO: 18, FR: 27, GB: 22, GE: 22, GI: 23, GL: 18, GR: 27, GT: 28, HR: 21, HU: 28, IE: 22, IL: 23,
@@ -573,6 +773,11 @@ const IBAN_LENGTH = {
   ST: 25, SV: 28, TL: 23, TN: 24, TR: 26, UA: 29, VA: 22, VG: 24, XK: 20,
 };
 
+/**
+ * @param {string} iban
+ * @param {string} [label]
+ * @returns {[PayloadField, boolean]}
+ */
 function ibanField(iban, label = 'Account (IBAN)') {
   const s = iban.replace(/\s+/g, '').toUpperCase();
   const want = IBAN_LENGTH[s.slice(0, 2)];
@@ -584,10 +789,16 @@ function ibanField(iban, label = 'Account (IBAN)') {
   return [field(label, s.replace(/(.{4})/g, '$1 ').trim(), { copy: 'Copy account number', mono: true, note }), ok];
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function epc(text) {
   const L = lines(text);
   const version = (L[1] || '').trim();
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   const bic = (L[4] || '').trim();
   const name = (L[5] || '').trim();
@@ -618,10 +829,17 @@ function epc(text) {
   return paymentPayload('EPC', 'A SEPA bank transfer (EPC payment code)', fields, warnings, { amount });
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function swissBill(text) {
   const L = lines(text);
+  /** @type {(i: number) => string} */
   const at = (i) => (L[i] || '').trim();
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   if (at(5)) fields.push(field('Pay to', at(5)));
   const addr = [at(6), at(7), [at(8), at(9)].filter(Boolean).join(' '), at(10)].filter(Boolean).join(', ');
@@ -643,17 +861,27 @@ function swissBill(text) {
   return paymentPayload('SPC', 'A Swiss QR-bill', fields, warnings, { amount });
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function czechSpd(text) {
-  const pairs = text.split('*').slice(2).map((p) => {
+  // filter(Boolean) takes out the nulls, which the type of filter does not follow.
+  const pairs = /** @type {Pair[]} */ (text.split('*').slice(2).map((p) => {
     const c = p.indexOf(':');
     return c <= 0 ? null : [p.slice(0, c).toUpperCase(), p.slice(c + 1)];
-  }).filter(Boolean);
+  }).filter(Boolean));
+  /** @type {(k: string) => string | null} */
   const g = (k) => (pairs.find(([key]) => key === k) || [])[1] ?? null;
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   if (g('RN')) fields.push(field('Pay to', g('RN')));
+  // Below, a value read again after a test that it is there is cast to string: g gives the same
+  // answer each time.
   if (g('ACC')) {
-    const [iban, bic] = g('ACC').split('+');
+    const [iban, bic] = /** @type {string} */ (g('ACC')).split('+');
     const [f, ok] = ibanField(iban);
     fields.push(f);
     if (bic) fields.push(field('Bank (BIC)', bic, { mono: true }));
@@ -670,17 +898,24 @@ function czechSpd(text) {
   }
   if (alt.length) warnings.push(warn('alt-account', 'check', 'This code names more than one account. A bank app may pay to any of them, so check them all against the invoice.'));
   let amount = null;
-  if (g('AM') && /^\d+(\.\d{1,2})?$/.test(g('AM'))) {
+  if (g('AM') && /^\d+(\.\d{1,2})?$/.test(/** @type {string} */ (g('AM')))) {
     amount = amountText(g('AM'), /^[A-Z]{3}$/.test(g('CC') || '') ? g('CC') : null);
     fields.push(field('Amount', amount, { copy: 'Copy amount' }));
   }
   if (g('X-VS')) fields.push(field('Variable symbol (reference)', g('X-VS'), { copy: 'Copy reference', mono: true }));
   if (g('MSG')) fields.push(field(`Message (${WRITTEN_BY_MAKER})`, g('MSG')));
-  if (g('DT')) fields.push(field('Due', /^\d{8}$/.test(g('DT')) ? dateText(Number(g('DT').slice(0, 4)), Number(g('DT').slice(4, 6)), Number(g('DT').slice(6))) || g('DT') : g('DT')));
+  if (g('DT')) {
+    const dt = /** @type {string} */ (g('DT'));
+    fields.push(field('Due', /^\d{8}$/.test(dt) ? dateText(Number(dt.slice(0, 4)), Number(dt.slice(4, 6)), Number(dt.slice(6))) || dt : dt));
+  }
   return paymentPayload('SPD', 'A bank transfer (Czech short payment descriptor)', fields, warnings, { amount });
 }
 
 // Bitcoin addresses: base58 (1..., 3..., m/n/2 on test networks) or segwit (bc1...).
+/**
+ * @param {unknown} addr
+ * @returns {{ ok: boolean, network: string | null }}
+ */
 function btcAddress(addr) {
   const a = String(addr || '');
   const seg = /^(bc|tb|bcrt)1/i.test(a) ? segwitDecode(a) : null;
@@ -691,6 +926,10 @@ function btcAddress(addr) {
   return { ok: false, network: null };
 }
 
+/**
+ * @param {string} btc
+ * @returns {string | null}
+ */
 function btcAmount(btc) {
   if (!/^\d{1,8}(\.\d{1,8})?$/.test(btc)) return null;
   const [w, f = ''] = btc.split('.');
@@ -698,13 +937,20 @@ function btcAmount(btc) {
   return `${btc} BTC (${new Intl.NumberFormat('en-GB').format(sats)} sats)`;
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function bitcoin(text) {
   const rest = text.replace(/^bitcoin:/i, '');
   const q = rest.indexOf('?');
   const addr = q < 0 ? rest : rest.slice(0, q);
   const params = queryParams(q < 0 ? '' : rest.slice(q + 1));
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
+  /** @type {string[]} */
   const links = [];
   let amount = null;
   if (addr) {
@@ -715,6 +961,7 @@ function bitcoin(text) {
   // BIP 21: "the rest of the URI is case-sensitive, including the query parameter keys", so
   // AMOUNT= is not the amount. A key given twice is read differently by different wallets
   // (Bitcoin Core takes the last), so every value is shown.
+  /** @type {(name: string) => string | null} */
   const one = (name) => paramsAll(params, name, { exact: true }).at(-1) ?? null;
   const amounts = distinct(paramsAll(params, 'amount', { exact: true }));
   if (amounts.length === 1) {
@@ -745,6 +992,10 @@ function bitcoin(text) {
 
 // BOLT 11 Lightning payment requests: amount, description, times and payee from the request
 // itself (the signature is not checked; CheckLink only describes).
+/**
+ * @param {unknown} raw
+ * @returns {{ fields: PayloadField[], amount: string | null, expired: boolean, network: string, badAmount: boolean } | null}
+ */
 function bolt11(raw) {
   const inv = String(raw || '').trim();
   const d = bech32Decode(inv);
@@ -754,6 +1005,7 @@ function bolt11(raw) {
   const data = d.data;
   let ts = 0;
   for (let i = 0; i < 7; i++) ts = ts * 32 + data[i];
+  /** @type {PayloadField[]} */
   const fields = [];
   let msat = null;
   let badAmount = false;
@@ -790,7 +1042,8 @@ function bolt11(raw) {
     } else if (type === 23) descHash = true;
     i += 3 + len;
   }
-  const network = { bc: 'Bitcoin', tb: 'Bitcoin test network', tbs: 'Bitcoin signet', bcrt: 'Bitcoin regtest', sb: 'Bitcoin simnet' }[m[1]];
+  // The pattern above lets m[1] be only one of these names.
+  const network = /** @type {Record<string, string>} */ ({ bc: 'Bitcoin', tb: 'Bitcoin test network', tbs: 'Bitcoin signet', bcrt: 'Bitcoin regtest', sb: 'Bitcoin simnet' })[m[1]];
   let amount = null;
   if (msat !== null) {
     const sats = msat / 1000n;
@@ -813,6 +1066,10 @@ function bolt11(raw) {
   return { fields, amount, expired, network, badAmount };
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function lightning(text) {
   const raw = text.replace(/^lightning:/i, '').trim();
   const lower = raw.toLowerCase();
@@ -832,12 +1089,17 @@ function lightning(text) {
       warn('unreadable', 'check', 'CheckLink cannot read this as a Lightning payment request: it may be damaged or made up.'),
     ]);
   }
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   if (inv.badAmount) warnings.push(warn('unreadable', 'check', 'The amount in this request is written finer than a payment can be, so a wallet would refuse it.'));
   if (inv.expired) warnings.push(warn('expired', 'info', 'This payment request has expired, so a wallet would refuse it.'));
   return paymentPayload('lightning', 'A Lightning payment request', [...inv.fields, field('Payment request', raw, { copy: 'Copy payment request', mono: true })], warnings, { amount: inv.amount });
 }
 
+/**
+ * @param {string} raw
+ * @returns {Draft}
+ */
 function lnurl(raw) {
   let url = null;
   const lower = raw.toLowerCase();
@@ -861,6 +1123,7 @@ function lnurl(raw) {
   const withdraw = !login && (/[?&]tag=withdrawRequest\b/i.test(url || '') || /^lnurlw:/i.test(raw) || /\/withdraw\b/i.test(url || ''));
   const host = links.length ? safeHost(links[0]) : null;
   if (withdraw) {
+    /** @type {PayloadField[]} */
     const fields = [];
     if (host) fields.push(field('Service', host));
     fields.push(field('Voucher (LNURL)', raw, { secret: true, mono: true, copy: 'Copy voucher' }));
@@ -873,6 +1136,7 @@ function lnurl(raw) {
   }
   const fields = [field('LNURL', raw, { mono: true, copy: 'Copy LNURL' })];
   if (url) fields.push(field('Address inside', url));
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   if (!url) warnings.push(warn('unreadable', 'check', 'CheckLink cannot read the address inside this LNURL.'));
   if (login) {
@@ -889,13 +1153,21 @@ function lnurl(raw) {
   ], { links });
 }
 
+/** @type {Record<string, string>} */
 const CHAINS = { 1: 'Ethereum', 10: 'Optimism', 56: 'BNB Smart Chain', 100: 'Gnosis', 137: 'Polygon', 8453: 'Base', 42161: 'Arbitrum One', 11155111: 'Sepolia (test network)' };
 // Each network's own coin, in which value= is counted (in its smallest unit, 10^-18).
+/** @type {Record<string, string>} */
 const CHAIN_COIN = { 1: 'ETH', 10: 'ETH', 56: 'BNB', 100: 'xDAI', 137: 'POL', 8453: 'ETH', 42161: 'ETH', 11155111: 'Sepolia ETH' };
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function ethereum(text) {
   const m = /^ethereum:(?:pay-)?([^@/?]+)(?:@(\d+))?(?:\/([^?]+))?(?:\?(.*))?$/is.exec(text.trim());
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   if (!m) return paymentPayload('ethereum', 'An Ethereum payment request', [field('Request as written', text, { mono: true })], [warn('unreadable', 'check', 'CheckLink cannot read this Ethereum request.')]);
   const [, target, chain, fn, query] = m;
@@ -906,6 +1178,7 @@ function ethereum(text) {
   const wei = param(params, 'value');
   // No chain given: the wallet's own network, Ethereum by default.
   const coin = chain ? CHAIN_COIN[chain] || null : 'ETH';
+  /** @type {(v: string) => string | null} */
   const ethText = (v) => {
     if (!/^\d+(\.\d+)?(e\d+)?$/i.test(v)) return null;
     const n = Number(v);
@@ -934,16 +1207,25 @@ function ethereum(text) {
 
 // Looked up with a word taken from the code (its scheme), so made with __proto__: null: it holds
 // only its own names, never "constructor", "toString" or another name every plain object inherits.
+/** @type {Names} */
 const CRYPTO = { __proto__: null, litecoin: 'Litecoin', dogecoin: 'Dogecoin', bitcoincash: 'Bitcoin Cash', dash: 'Dash', zcash: 'Zcash', monero: 'Monero', solana: 'Solana', tron: 'TRON', ripple: 'XRP', xrp: 'XRP', cardano: 'Cardano', 'web+cardano': 'Cardano' };
 
+/**
+ * @param {string} text
+ * @param {string} scheme
+ * @returns {Draft}
+ */
 function crypto(text, scheme) {
   const name = CRYPTO[scheme];
   const rest = text.slice(scheme.length + 1);
   const q = rest.indexOf('?');
   const addr = safeDecode(q < 0 ? rest : rest.slice(0, q)).replace(/^\/\//, '');
   const params = queryParams(q < 0 ? '' : rest.slice(q + 1));
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {string[]} */
   const links = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   if (/^https?:\/\//i.test(addr)) {
     // Solana Pay transaction request: the wallet fetches the transaction from this address.
@@ -956,7 +1238,7 @@ function crypto(text, scheme) {
   const token = scheme === 'solana' ? param(params, 'spl-token') : null;
   let amount = null;
   if (am) {
-    const unit = token ? '' : { __proto__: null, litecoin: 'LTC', dogecoin: 'DOGE', bitcoincash: 'BCH', dash: 'DASH', zcash: 'ZEC', monero: 'XMR', solana: 'SOL' }[scheme] || '';
+    const unit = token ? '' : /** @type {Names} */ ({ __proto__: null, litecoin: 'LTC', dogecoin: 'DOGE', bitcoincash: 'BCH', dash: 'DASH', zcash: 'ZEC', monero: 'XMR', solana: 'SOL' })[scheme] || '';
     amount = /^\d+(\.\d+)?$/.test(am) ? (token ? `${am} of the token below, not Solana\u2019s own coin` : `${am} ${unit}`.trim()) : am;
     fields.push(field('Amount', amount));
   }
@@ -969,14 +1251,22 @@ function crypto(text, scheme) {
   return paymentPayload(scheme, `A ${name} payment request`, fields, warnings, { amount, links });
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function upi(text) {
   const q = text.indexOf('?');
   const action = text.slice(6, q < 0 ? undefined : q).replace(/\/$/, '').toLowerCase();
   const params = queryParams(q < 0 ? '' : text.slice(q + 1));
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   // A name given twice is read differently by different payment apps, so every value is shown.
+  /** @type {string[]} */
   const twice = [];
+  /** @type {(name: string) => string[]} */
   const all = (name) => {
     const v = distinct(paramsAll(params, name).filter(Boolean));
     if (v.length > 1) twice.push(name);
@@ -994,13 +1284,14 @@ function upi(text) {
   } else if (am.length > 1) fields.push(field('Amount', am.map((a) => amountText(a, param(params, 'cu') || 'INR')).join(' or ')));
   if (param(params, 'tn')) fields.push(field(`Note (${WRITTEN_BY_MAKER})`, param(params, 'tn')));
   if (twice.length) {
-    const what = twice.map((n) => ({ pa: 'UPI ID', am: 'amount', pn: 'name' }[n])).join(' and ');
+    const what = twice.map((n) => (/** @type {Record<string, string>} */ ({ pa: 'UPI ID', am: 'amount', pn: 'name' })[n])).join(' and ');
     warnings.push(warn('given-twice', 'check', `The ${what} ${twice.length > 1 ? 'are' : 'is'} given more than once, with different values. A payment app may use either one, so check what your app shows before you pay.`));
   }
   if (action === 'mandate') warnings.push(warn('mandate', 'check', 'This sets up repeated payments (a mandate), not a single one.'));
   return paymentPayload('upi', 'A UPI payment request', fields, warnings, { amount });
 }
 
+/** @type {Names} */
 const ISO4217 = {
   __proto__: null, // only its own names (see CRYPTO): the currency field is text from the code
   '032': 'ARS', '036': 'AUD', '050': 'BDT', '104': 'MMK', '116': 'KHR', '124': 'CAD', '144': 'LKR', '152': 'CLP', '156': 'CNY', '170': 'COP',
@@ -1012,7 +1303,12 @@ const ISO4217 = {
 };
 
 // EMVCo merchant-presented codes (Pix, PayNow, PromptPay and others): tag, length, value.
+/**
+ * @param {string} s
+ * @returns {{ id: string, value: string, at: number }[] | null}
+ */
 function tlv(s) {
+  /** @type {{ id: string, value: string, at: number }[]} */
   const out = [];
   let i = 0;
   while (i < s.length) {
@@ -1030,18 +1326,27 @@ function tlv(s) {
 }
 
 // What the parts of a merchant account template hold, for the schemes CheckLink names.
+/** @type {Record<string, Record<string, string>>} */
 const EMV_ACCOUNT = {
   A000000677010111: { '01': 'PromptPay mobile number', '02': 'PromptPay national ID or tax ID', '03': 'PromptPay e-wallet ID' },
   A000000677010112: { '01': 'PromptPay biller ID', '02': 'Reference 1', '03': 'Reference 2' },
   'SG.PAYNOW': { '01': 'PayNow proxy type (0 mobile number, 2 company UEN)', '02': 'PayNow mobile number or UEN', '03': 'Amount can be changed (1 yes, 0 no)', '04': 'Expires' },
 };
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function emv(text) {
   const items = tlv(text);
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
+  /** @type {string[]} */
   const links = [];
   if (!items) return paymentPayload('emv', 'A shop payment code', [field('Code as written', text, { mono: true })], [warn('unreadable', 'check', 'CheckLink cannot read this payment code: it may be damaged.')]);
+  /** @type {(id: string) => string | null} */
   const get = (id) => (items.find((x) => x.id === id) || {}).value ?? null;
   let scheme = null;
   for (const it of items.filter((x) => Number(x.id) >= 26 && Number(x.id) <= 51)) {
@@ -1077,12 +1382,13 @@ function emv(text) {
   if (get('58')) fields.push(field('Country', get('58')));
   let amount = null;
   const code = get('53');
-  const cur = ISO4217[code] || null;
+  // A code with no currency field looks up the name "null", which is not in the table.
+  const cur = ISO4217[/** @type {string} */ (code)] || null;
   if (get('54')) {
     amount = amountText(get('54'), cur) + (!cur && code ? ` (currency number ${code})` : '');
     fields.push(field('Amount', amount, { copy: 'Copy amount' }));
   } else fields.push(field('Amount', 'Not given: you would type it yourself'));
-  const add = get('62') && tlv(get('62'));
+  const add = get('62') && tlv(/** @type {string} */ (get('62')));
   const ref = add && (add.find((x) => x.id === '05') || {}).value;
   if (ref) fields.push(field('Reference', ref, { mono: true }));
   const crc = items.find((x) => x.id === '63');
@@ -1096,8 +1402,13 @@ function emv(text) {
 
 // Swish (Sweden). Two forms are recognised, both labelled "looks like": a prefilled code
 // C<number>;<amount>;<message>;<locks> and the app link swish://payment?data=<JSON>.
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function swishC(text) {
-  const m = /^C(\+?\d{6,15});([\d.,]*);([^;]*);(\d*)$/.exec(text.trim());
+  // classify() calls this only for text that matches the same pattern.
+  const m = /** @type {RegExpExecArray} */ (/^C(\+?\d{6,15});([\d.,]*);([^;]*);(\d*)$/.exec(text.trim()));
   const fields = [field('Swish number', m[1], { mono: true, copy: 'Copy number' })];
   let amount = null;
   if (m[2]) {
@@ -1108,16 +1419,22 @@ function swishC(text) {
   return paymentPayload('swish', 'Looks like a Swish payment code', fields, [warn('swish', 'info', 'This looks like a prefilled Swish payment. The Swish app shows the recipient before you confirm; check it there.')], { amount });
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function swishLink(text) {
   const q = text.indexOf('?');
   const params = queryParams(q < 0 ? '' : text.slice(q + 1));
+  /** @type {PayloadField[]} */
   const fields = [];
   let amount = null;
   const data = param(params, 'data');
   if (data) {
     try {
       const j = JSON.parse(data);
-      const val = (x) => (x && typeof x === 'object' ? x.value : x);
+      /** @type {(x: unknown) => unknown} */
+      const val = (x) => (x && typeof x === 'object' ? /** @type {{ value?: unknown }} */ (x).value : x);
       if (val(j.payee)) fields.push(field('Swish number', String(val(j.payee)), { mono: true }));
       if (val(j.amount) !== undefined && val(j.amount) !== null) {
         amount = amountText(String(val(j.amount)), 'SEK');
@@ -1132,14 +1449,28 @@ function swishLink(text) {
 
 // == secrets and account linking ==
 
+/**
+ * @param {string} scheme
+ * @param {string} title
+ * @param {string} summary
+ * @param {PayloadField[]} fields
+ * @param {PayloadWarning[]} warnings
+ * @param {Partial<Draft>} [extra]
+ * @returns {Draft}
+ */
 function secretPayload(scheme, title, summary, fields, warnings, extra = {}) {
   return { kind: 'secret', tier: 'stop', title, scheme, summary, fields, warnings, links: [], secret: true, ...extra };
 }
 
 const OTP_KEEP = 'Whoever has this code can make the same sign-in codes as you, for as long as this setup stays on the account. Scan it only with your own authenticator app, and never share a picture of it.';
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function otpauth(text) {
   const m = /^otpauth:\/\/(totp|hotp)\/([^?]*)(?:\?(.*))?$/is.exec(text.trim());
+  /** @type {PayloadField[]} */
   const fields = [];
   if (!m) {
     return secretPayload('otpauth', 'A 2FA setup code', 'A two-factor sign-in setup code. It holds a secret.', [field('Code as written', text, { secret: true, mono: true, copy: 'Copy the code' })], [warn('otp-secret', 'stop', OTP_KEEP)]);
@@ -1171,21 +1502,28 @@ function otpauth(text) {
 
 // Google Authenticator's export (otpauth-migration://offline?data=...): a protocol buffer with
 // one entry per account. Only names are shown; the secrets stay hidden.
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function otpMigration(text) {
   const params = queryParams((text.split('?')[1]) || '');
   const bytes = base64Bytes(param(params, 'data') || '');
+  /** @type {PayloadField[]} */
   const fields = [];
   let count = 0;
   const top = bytes ? protoFields(bytes) : null;
   if (top) {
     for (const f of top.filter((x) => x.field === 1 && x.wire === 2)) {
-      const p = protoFields(f.value);
+      // A field with wire type 2 holds bytes.
+      const p = protoFields(/** @type {Uint8Array} */ (f.value));
       if (!p) continue;
       count++;
+      /** @type {(n: number) => string} */
       const str = (n) => {
         const x = p.find((y) => y.field === n && y.wire === 2);
         try {
-          return x ? new TextDecoder('utf-8', { fatal: true }).decode(x.value) : '';
+          return x ? new TextDecoder('utf-8', { fatal: true }).decode(/** @type {Uint8Array} */ (x.value)) : '';
         } catch {
           return '';
         }
@@ -1216,23 +1554,44 @@ function otpMigration(text) {
 // "1 word 2 word" is read past. Not recognised: Monero seeds typed with only the first letters
 // of each word, and Polyseed's 16-word phrases.
 
+/** @type {(w: string) => string} */
 const fold = (w) => w.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
+/** @type {(w: string) => string} */
 const foldKeepingMarks = (w) => w.normalize('NFKD').toLowerCase();
+/** @type {Record<string, string>} */
 const LIST_NAMES = { chinese_simplified: 'Chinese (simplified)', chinese_traditional: 'Chinese (traditional)', english_old: 'English (old)' };
+/** @type {(key: string) => string} */
 const listName = (key) => LIST_NAMES[key] || `${key[0].toUpperCase()}${key.slice(1)}`;
+/**
+ * A word list a recovery phrase can be written in.
+ * @typedef {object} PhraseList
+ * @property {string} id
+ * @property {'bip39' | 'monero' | 'slip39'} kind
+ * @property {string} name
+ * @property {string[]} words
+ * @property {number[]} counts       the phrase lengths it allows
+ * @property {(w: string) => string} fold
+ * @property {Map<string, number>} index
+ * @property {boolean} [keepMarks]
+ * @property {number} [prefix]       Monero: how many first letters the checksum reads
+ */
+/** @type {PhraseList[] | null} */
 let phraseLists = null;
+/** @returns {PhraseList[]} */
 function lists() {
   if (phraseLists) return phraseLists;
+  /** @type {(id: string, kind: PhraseList['kind'], name: string, words: string[], counts: number[], extra?: { keepMarks?: boolean, prefix?: number }) => PhraseList} */
   const make = (id, kind, name, words, counts, extra = {}) => {
     const f = extra.keepMarks ? foldKeepingMarks : fold;
     return { id, kind, name, words, counts, fold: f, index: new Map(words.map((w, i) => [f(w), i])), ...extra };
   };
+/** @type {(key: string) => { keepMarks: boolean }} */
   const japanese = (key) => ({ keepMarks: key === 'japanese' });
   phraseLists = [
     make('bip39-english', 'bip39', 'BIP-39, English', BIP39_ENGLISH, [12, 15, 18, 21, 24]),
     ...Object.entries(BIP39_LISTS).map(([key, words]) => make(`bip39-${key}`, 'bip39', `BIP-39, ${listName(key)}`, words, [12, 15, 18, 21, 24], japanese(key))),
     make('monero-english', 'monero', 'Monero, English', MONERO_ENGLISH, [24, 25], { prefix: MONERO_PREFIX.english }),
-    ...Object.entries(MONERO_LISTS).map(([key, words]) => make(`monero-${key}`, 'monero', `Monero, ${listName(key)}`, words, [24, 25], { prefix: MONERO_PREFIX[key], ...japanese(key) })),
+    ...Object.entries(MONERO_LISTS).map(([key, words]) => make(`monero-${key}`, 'monero', `Monero, ${listName(key)}`, words, [24, 25], { prefix: /** @type {Record<string, number>} */ (MONERO_PREFIX)[key], ...japanese(key) })),
     make('slip39', 'slip39', 'SLIP-39 (Shamir backup)', SLIP39_WORDS, [20, 33]),
   ];
   return phraseLists;
@@ -1245,6 +1604,10 @@ const HAN_RUN = /^\p{Script=Han}{2,}$/u;
 // holds anything else. joined says a run of Chinese characters was read as one word each, as a
 // phrase written without spaces; ordinary Chinese text is written that way too, so such a
 // phrase counts only when its own check passes.
+/**
+ * @param {string} text
+ * @returns {(string[] & { joined?: boolean }) | null}
+ */
 function phraseTokens(text) {
   let joined = false;
   const raw = text.trim().split(/[\s,;\u3001\uFF0C\uFF1B]+/u).filter(Boolean).flatMap((t) => {
@@ -1253,6 +1616,7 @@ function phraseTokens(text) {
     return Array.from(t);
   });
   if (raw.length < 12 || raw.length > 70) return null;
+  /** @type {string[] & { joined?: boolean }} */
   const out = [];
   let next = 1;
   for (const t of raw) {
@@ -1269,6 +1633,10 @@ function phraseTokens(text) {
 }
 
 // Whether a BIP-39 phrase passes its own checksum (the last bits are the start of SHA-256 of the rest).
+/**
+ * @param {number[]} indices
+ * @returns {boolean}
+ */
 function bip39Checksum(indices) {
   const bits = indices.map((i) => i.toString(2).padStart(11, '0')).join('');
   const csLen = bits.length / 33;
@@ -1284,6 +1652,11 @@ function bip39Checksum(indices) {
 // first letters of each of the other 24 as the list writes them (three in English, one in
 // Chinese, four in most others; MONERO_PREFIX), modulo 24. The words are compared without
 // regard to case, as Monero does (German nouns have a capital letter).
+/**
+ * @param {string[]} words
+ * @param {number} prefix
+ * @returns {boolean}
+ */
 function moneroChecksum(words, prefix) {
   const head = words.slice(0, 24).map((w) => Array.from(w).slice(0, prefix).join('')).join('');
   const want = words[crc32(utf8(head)) % 24];
@@ -1293,6 +1666,10 @@ function moneroChecksum(words, prefix) {
 // SLIP-39: an RS1024 checksum over the share, keyed by "shamir" (or "shamir_extendable" when the
 // share says so in its first two words).
 const RS1024_GEN = [0xe0e040, 0x1c1c080, 0x3838100, 0x7070200, 0xe0e0009, 0x1c0c2412, 0x38086c24, 0x3090fc48, 0x21b1f890, 0x3f3f120];
+/**
+ * @param {number[]} indices
+ * @returns {boolean}
+ */
 function slip39Checksum(indices) {
   const ext = ((indices[0] * 1024 + indices[1]) >> 4) & 1;
   let chk = 1;
@@ -1305,18 +1682,23 @@ function slip39Checksum(indices) {
 }
 
 // The phrase a text holds, or null: { list, words (as the list writes them), indices, checksum }.
+/**
+ * @param {string} text
+ * @returns {{ list: PhraseList, words: string[], indices: number[], checksum: boolean | null } | null}
+ */
 function recoveryPhrase(text) {
   const tokens = phraseTokens(text);
   if (!tokens) return null;
   let found = null;
   for (const list of lists()) {
     if (!list.counts.includes(tokens.length)) continue;
-    const indices = tokens.map((w) => list.index.get(list.fold(w)));
+    // A word missing from the list gives undefined, and the next line skips the list.
+    const indices = /** @type {number[]} */ (tokens.map((w) => list.index.get(list.fold(w))));
     if (indices.some((i) => i === undefined)) continue;
     const words = indices.map((i) => list.words[i]);
     let checksum = null;
     if (list.kind === 'bip39') checksum = bip39Checksum(indices);
-    else if (list.kind === 'monero') checksum = words.length === 25 ? moneroChecksum(words, list.prefix) : null;
+    else if (list.kind === 'monero') checksum = words.length === 25 ? moneroChecksum(words, /** @type {number} */ (list.prefix)) : null;
     else if (list.kind === 'slip39') checksum = slip39Checksum(indices);
     const hit = { list, words, indices, checksum };
     if (checksum) return hit;
@@ -1325,6 +1707,10 @@ function recoveryPhrase(text) {
   return found;
 }
 
+/**
+ * @param {Uint8Array} bytes
+ * @returns {string[]}
+ */
 function entropyWords(bytes) {
   const hash = sha256(bytes);
   const bits = Array.from(bytes, (b) => b.toString(2).padStart(8, '0')).join('') + Array.from(hash, (b) => b.toString(2).padStart(8, '0')).join('').slice(0, (bytes.length * 8) / 32);
@@ -1335,6 +1721,13 @@ function entropyWords(bytes) {
 
 const SEED_KEEP = 'Whoever has these words has the wallet: they can take everything in it, from anywhere. A real wallet never asks you to scan or type them anywhere else. Never share a picture of this code.';
 
+/**
+ * @param {string[]} words
+ * @param {string} how
+ * @param {boolean | null} checksum
+ * @param {PhraseList | null} [list]
+ * @returns {Draft}
+ */
 function seedPayload(words, how, checksum, list = null) {
   const fields = [
     field('Words', `${words.length} words`),
@@ -1351,8 +1744,13 @@ function seedPayload(words, how, checksum, list = null) {
   return secretPayload(how, coin, `${coin} (seed words). It is the key to a ${list && list.kind === 'monero' ? 'Monero' : 'crypto'} wallet.`, fields, [warn('seed', 'stop', SEED_KEEP)]);
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft | null}
+ */
 function seedQr(text) {
-  const groups = text.match(/\d{4}/g);
+  // classify() calls this only for 48 or 96 digits, so there are groups.
+  const groups = /** @type {RegExpMatchArray} */ (text.match(/\d{4}/g));
   if (!groups.every((g) => Number(g) < 2048)) return null;
   const idx = groups.map(Number);
   const p = seedPayload(idx.map((i) => BIP39_ENGLISH[i]), 'SeedQR', bip39Checksum(idx));
@@ -1360,6 +1758,12 @@ function seedQr(text) {
   return p;
 }
 
+/**
+ * @param {string} kind
+ * @param {string} text
+ * @param {PayloadField[]} [extra]
+ * @returns {Draft}
+ */
 function privateKey(kind, text, extra = []) {
   return secretPayload('key', `A private key (${kind})`, `A private key (${kind}). Whoever has it controls what it protects.`, [
     field('Kind', kind),
@@ -1369,6 +1773,7 @@ function privateKey(kind, text, extra = []) {
 }
 
 // Tokens and keys with a recognisable shape. Each: [name, pattern].
+/** @type {[string, RegExp][]} */
 const TOKENS = [
   ['AWS access key', /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/],
   ['GitHub token', /\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})\b/],
@@ -1386,6 +1791,11 @@ const TOKENS = [
   ['JWT sign-in token', /\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/],
 ];
 
+/**
+ * @param {string} text
+ * @param {string[]} found
+ * @returns {Draft}
+ */
 function tokenPayload(text, found) {
   return secretPayload('token', found.length === 1 ? `Looks like a secret key (${found[0]})` : 'Looks like secret keys', `This code holds what looks like a secret key or sign-in token (${found.join(', ')}).`, [
     field('Looks like', found.join(', ')),
@@ -1393,6 +1803,15 @@ function tokenPayload(text, found) {
   ], [warn('token', 'stop', 'Whoever has this code has the key: it can be used to get into the account or service it belongs to. If it is yours, treat it as leaked: cancel it and make a new one.')]);
 }
 
+/**
+ * @param {string} scheme
+ * @param {string} title
+ * @param {string} summary
+ * @param {string} text
+ * @param {string} warning
+ * @param {{ fields?: PayloadField[], tier?: Tier, links?: string[] }} [options]
+ * @returns {Draft}
+ */
 function accountLink(scheme, title, summary, text, warning, { fields = [], tier = 'stop', links = [] } = {}) {
   return {
     kind: 'account-link', tier, title, scheme, summary, links,
@@ -1405,8 +1824,14 @@ function accountLink(scheme, title, summary, text, warning, { fields = [], tier 
 
 // A WireGuard configuration, as the WireGuard apps import it from a QR code: its PrivateKey is
 // the device's key to the VPN.
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function wireguard(text) {
+  /** @type {(name: string) => string | null} */
   const get = (name) => (new RegExp(`^\\s*${name}\\s*=\\s*(.+?)\\s*$`, 'im').exec(text) || [])[1] || null;
+  /** @type {PayloadField[]} */
   const fields = [];
   const endpoint = get('Endpoint');
   if (endpoint) fields.push(field('VPN server', endpoint, { mono: true }));
@@ -1429,8 +1854,13 @@ function wireguard(text) {
 // as Umbrel show these to connect a wallet app. The macaroon or rune in them is the right to
 // run the node and spend its money.
 const NODE_SCHEMES = /^(lndconnect|clnrest|c-lightning-rest|cln-grpc|clightning):\/\//i;
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function lightningNode(text) {
-  const scheme = NODE_SCHEMES.exec(text)[1].toLowerCase();
+  // classify() calls this only for text that matches NODE_SCHEMES.
+  const scheme = /** @type {RegExpExecArray} */ (NODE_SCHEMES.exec(text))[1].toLowerCase();
   const rest = text.slice(scheme.length + 3);
   const q = rest.indexOf('?');
   const node = q < 0 ? rest : rest.slice(0, q);
@@ -1445,41 +1875,62 @@ function lightningNode(text) {
 }
 
 // Nextcloud's sign-in code: nc://login/user:<name>&password:<app password>&server:<address>.
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function nextcloud(text) {
   const body = text.replace(/^nc:\/\/login\/?/i, '');
+  /** @type {(k: string) => string | null} */
   const get = (k) => (new RegExp(`(?:^|&)${k}:(.*?)(?=&(?:user|password|server):|$)`, 'i').exec(body) || [])[1] || null;
+  /** @type {PayloadField[]} */
   const fields = [];
-  if (get('server')) fields.push(field('Server', safeDecode(get('server'))));
-  if (get('user')) fields.push(field('User name', safeDecode(get('user'))));
-  if (get('password')) fields.push(field('App password', safeDecode(get('password')), { secret: true, mono: true }));
+  // Each value is read twice: the test above it shows it is not null.
+  if (get('server')) fields.push(field('Server', safeDecode(/** @type {string} */ (get('server')))));
+  if (get('user')) fields.push(field('User name', safeDecode(/** @type {string} */ (get('user')))));
+  if (get('password')) fields.push(field('App password', safeDecode(/** @type {string} */ (get('password'))), { secret: true, mono: true }));
   return accountLink('nc', 'A Nextcloud sign-in code', 'A Nextcloud sign-in code: it holds an app password for the account named below. Nothing has been signed in.', text,
     `Whoever has this code can sign in to this Nextcloud account and read its files. Only scan it with your own Nextcloud app, and ${NEVER_SHARE}.`, { fields });
 }
 
 // Cashu ecash: the token is money itself. cashuA is base64url JSON, cashuB base64url CBOR.
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function cashu(text) {
   const token = text.replace(/^cashu:/i, '').trim();
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {unknown[]} */
   let mints = [];
+  /** @type {number | null} */
   let total = null;
+  /** @type {string | null} */
   let unit = null;
+  /** @type {string | null} */
   let memo = null;
   const bytes = base64Bytes(token.slice(6));
   try {
     if (bytes && token[5] === 'A') {
+      // The shape a cashuA token should have. It is untrusted JSON: anything else makes a line
+      // below throw, and the catch keeps the token hidden with nothing read from it.
+      /** @type {{ token?: ({ mint?: unknown, proofs?: { amount?: unknown }[] } | null)[], unit?: unknown, memo?: unknown }} */
       const j = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
       mints = (j.token || []).map((t) => t && t.mint).filter((m) => typeof m === 'string');
-      total = (j.token || []).flatMap((t) => (t && t.proofs) || []).reduce((a, x) => a + (Number.isSafeInteger(x && x.amount) ? x.amount : 0), 0);
+      total = (j.token || []).flatMap((t) => (t && t.proofs) || []).reduce((a, x) => a + (Number.isSafeInteger(x && x.amount) ? /** @type {number} */ (x.amount) : 0), 0);
       unit = typeof j.unit === 'string' ? j.unit : null;
       memo = typeof j.memo === 'string' ? j.memo : null;
     } else if (bytes && token[5] === 'B') {
       const c = cborDecode(bytes);
       if (c instanceof Map) {
         if (typeof c.get('m') === 'string') mints = [c.get('m')];
-        unit = typeof c.get('u') === 'string' ? c.get('u') : null;
-        memo = typeof c.get('d') === 'string' ? c.get('d') : null;
-        const t = Array.isArray(c.get('t')) ? c.get('t') : [];
-        total = t.flatMap((x) => (x instanceof Map && Array.isArray(x.get('p')) ? x.get('p') : [])).reduce((a, x) => a + (x instanceof Map && Number.isSafeInteger(x.get('a')) ? x.get('a') : 0), 0);
+        // Each value read again after its test is cast to what the test showed: a Map gives the
+        // same answer each time.
+        unit = typeof c.get('u') === 'string' ? /** @type {string} */ (c.get('u')) : null;
+        memo = typeof c.get('d') === 'string' ? /** @type {string} */ (c.get('d')) : null;
+        const t = /** @type {unknown[]} */ (Array.isArray(c.get('t')) ? c.get('t') : []);
+        total = t.flatMap((x) => (x instanceof Map && Array.isArray(x.get('p')) ? x.get('p') : [])).reduce((/** @type {number} */ a, /** @type {unknown} */ x) => a + (x instanceof Map && Number.isSafeInteger(x.get('a')) ? /** @type {number} */ (x.get('a')) : 0), 0);
       }
     }
   } catch { /* not readable: the token is still hidden */ }
@@ -1494,6 +1945,10 @@ function cashu(text) {
 
 // eSIM activation codes (GSMA SGP.22): LPA:1$<server>$<matching ID>[$<OID>[$<1 if a
 // confirmation code is needed>]].
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function esim(text) {
   const parts = text.trim().slice(4).split('$');
   const [, server, matching = '', , confirm] = parts;
@@ -1513,6 +1968,10 @@ function esim(text) {
 
 // A key inside other text: the whole text is hidden, since the key cannot be cut out of it
 // safely (a wallet descriptor, a note with an nsec in it, a key file after a line of text).
+/**
+ * @param {string} text
+ * @returns {string | null}
+ */
 function embeddedKey(text) {
   const nsec = /\bnsec1[02-9ac-hj-np-z]{58}\b/i.exec(text);
   if (nsec) {
@@ -1534,6 +1993,7 @@ function embeddedKey(text) {
 
 // == app launchers ==
 
+/** @type {Names} */
 const APPS = {
   __proto__: null, // only its own names (see CRYPTO): the scheme is text from the code
   whatsapp: 'WhatsApp', tg: 'Telegram', fb: 'Facebook', instagram: 'Instagram', twitter: 'X (Twitter)', snapchat: 'Snapchat', zoommtg: 'Zoom', zoomus: 'Zoom',
@@ -1545,9 +2005,15 @@ const APPS = {
   ftp: 'a file transfer app', smb: 'Windows file sharing', rtsp: 'a video player', magnet: 'a BitTorrent app', ipfs: 'an IPFS app', ipns: 'an IPFS app',
 };
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function intentUri(text) {
   const hash = text.indexOf('#Intent;');
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {string[]} */
   const links = [];
   let pkg = null;
   if (hash >= 0) {
@@ -1578,9 +2044,16 @@ function intentUri(text) {
   };
 }
 
+/**
+ * @param {string} text
+ * @param {string} scheme
+ * @returns {Draft}
+ */
 function appLauncher(text, scheme) {
   const lower = scheme.toLowerCase();
+  /** @type {PayloadField[]} */
   const fields = [];
+  /** @type {PayloadWarning[]} */
   const warnings = [];
   const links = linksIn(text.slice(scheme.length + 1));
   let title = 'Opens an app';
@@ -1630,6 +2103,10 @@ function appLauncher(text, scheme) {
 
 // == other kinds ==
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function boardingPass(text) {
   const s = text;
   const name = s.slice(2, 22).trim();
@@ -1662,6 +2139,10 @@ function boardingPass(text) {
   };
 }
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function nostr(text) {
   const raw = text.replace(/^nostr:/i, '').trim();
   const lower = raw.toLowerCase();
@@ -1674,7 +2155,8 @@ function nostr(text) {
       warn('private-key', 'stop', 'Whoever has this code and guesses the password has the account. Keep it private, as you would the key itself.'),
     ]);
   }
-  const what = { __proto__: null, npub: 'a Nostr profile (public key)', nprofile: 'a Nostr profile', note: 'a Nostr post', nevent: 'a Nostr post or event', naddr: 'a Nostr article or list', nrelay: 'a Nostr relay' }[d && d.hrp] || 'a Nostr address';
+  // d && d.hrp is null for an address that does not decode: the name "null", which is not in the table.
+  const what = /** @type {Names} */ ({ __proto__: null, npub: 'a Nostr profile (public key)', nprofile: 'a Nostr profile', note: 'a Nostr post', nevent: 'a Nostr post or event', naddr: 'a Nostr article or list', nrelay: 'a Nostr relay' })[/** @type {string} */ (d && d.hrp)] || 'a Nostr address';
   return {
     kind: 'nostr', tier: 'info', title: 'A Nostr address', scheme: 'nostr',
     summary: `This is ${what}. It is public by design and holds nothing secret.`,
@@ -1683,6 +2165,11 @@ function nostr(text) {
   };
 }
 
+/**
+ * @param {string} text
+ * @param {string | null} format
+ * @returns {Draft}
+ */
 function product(text, format) {
   const digits = text.trim();
   const book = /^97[89]\d{10}$/.test(digits);
@@ -1695,8 +2182,14 @@ function product(text, format) {
   };
 }
 
+/** @type {Record<string, string>} */
 const GS1_AI = { '00': 'Shipping container code (SSCC)', '01': 'Product number (GTIN)', '02': 'Product number of contents', 10: 'Batch or lot', 11: 'Production date', 13: 'Packaging date', 15: 'Best before', 17: 'Use by or expiry', 21: 'Serial number', 30: 'Count', 37: 'Count of trade items' };
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function gs1Elements(text) {
+  /** @type {PayloadField[]} */
   const fields = [];
   for (const m of text.matchAll(/\((\d{2,4})\)([^(]*)/g)) {
     const label = GS1_AI[m[1]] || `Data (${m[1]})`;
@@ -1713,10 +2206,18 @@ function gs1Elements(text) {
 
 // == helpers that use the link engine ==
 
+/**
+ * @param {unknown} text
+ * @returns {string[]}
+ */
 function linksIn(text) {
   if (!text) return [];
   return findLinks(String(text)).links.map((l) => (l.bare ? `https://${l.link}` : l.link));
 }
+/**
+ * @param {string} link
+ * @returns {string | null}
+ */
 function safeHost(link) {
   try {
     const h = new URL(link).hostname;
@@ -1726,6 +2227,10 @@ function safeHost(link) {
     return null;
   }
 }
+/**
+ * @param {PayloadWarning[]} ws
+ * @returns {PayloadWarning[]}
+ */
 function dedupe(ws) {
   const seen = new Set();
   return ws.filter((w) => {
@@ -1737,7 +2242,12 @@ function dedupe(ws) {
 }
 
 // A web address on a host whose codes are known to lead somewhere only that service decides.
+/**
+ * @param {string} link
+ * @returns {PayloadWarning[]}
+ */
 function webNotes(link) {
+  /** @type {PayloadWarning[]} */
   const out = [];
   let host = '';
   try {
@@ -1757,6 +2267,10 @@ function webNotes(link) {
 
 const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/;
 
+/**
+ * @param {string} text
+ * @returns {Draft}
+ */
 function plainText(text) {
   const links = linksIn(text);
   return {
@@ -1772,8 +2286,14 @@ const SCRIPT = /^(javascript|vbscript|data|file|content|blob|about|chrome|chrome
 const SCHEME = /^([a-z][a-z0-9+.-]{1,40}):/i;
 
 // The article for a scheme said aloud: "an about: link", "an ms-msdt: link", "a file: link".
+/** @type {(scheme: string) => string} */
 const article = (scheme) => (/^(about|ms-)/i.test(scheme) ? 'an' : 'a');
 
+/**
+ * @param {string} text
+ * @param {ClassifyOptions} opts
+ * @returns {Draft}
+ */
 function classify(text, opts) {
   const lead = text.replace(/^[\s\uFEFF\u200B-\u200F\u2060]+/, '');
   const trimmed = lead.trim();
@@ -1884,7 +2404,7 @@ function classify(text, opts) {
   // line breaks anywhere, from an address before reading it, so "java<tab>script:" is a script.
   const squeezed = trimmed.replace(/^[\u0000-\u0020]+/, '').replace(/[\t\n\r]/g, '');
   if (SCRIPT.test(squeezed)) {
-    const scheme = SCRIPT.exec(squeezed)[1].toLowerCase();
+    const scheme = /** @type {RegExpExecArray} */ (SCRIPT.exec(squeezed))[1].toLowerCase();
     return {
       kind: 'script', tier: 'stop', title: 'Not an address: a script or a file on the device', scheme,
       summary: `This is ${article(scheme)} ${scheme}: link. It runs code or opens something on the device instead of going to a web address, so CheckLink never opens it.`,
@@ -1907,6 +2427,7 @@ function classify(text, opts) {
           'Scanning it with the Discord app signs in the computer that showed it, as you. Only scan the code on your own computer\u2019s screen, never one someone sent you.', { links: [] });
       }
     } catch { /* findLinks only returns addresses URL() can read */ }
+    /** @type {PayloadField[]} */
     const fields = [];
     if (/^MEBKM:/i.test(trimmed)) {
       const title = (docomoPairs(trimmed.slice(6)).find(([k]) => k === 'TITLE') || [])[1];
@@ -1914,7 +2435,7 @@ function classify(text, opts) {
     }
     const notes = webNotes(full);
     return {
-      kind: 'web', tier: notes.reduce((t, w) => higher(t, w.tier), 'info'), title: notes.some((w) => w.id === 'vipps') ? 'A Vipps MobilePay payment code' : 'A web address', scheme: bookmark ? 'bookmark' : 'web',
+      kind: 'web', tier: notes.reduce((t, w) => higher(t, w.tier), /** @type {Tier} */ ('info')), title: notes.some((w) => w.id === 'vipps') ? 'A Vipps MobilePay payment code' : 'A web address', scheme: bookmark ? 'bookmark' : 'web',
       summary: 'A web address. Nothing has been opened.',
       fields, links: [link], warnings: notes, secret: false,
     };
@@ -1964,6 +2485,11 @@ function classify(text, opts) {
   return plainText(text);
 }
 
+/**
+ * @param {Uint8Array} bytes
+ * @param {ClassifyOptions} opts
+ * @returns {Draft}
+ */
 function binary(bytes, opts) {
   return {
     kind: 'binary', tier: 'info', title: 'Data that is not text', scheme: null,
@@ -1975,6 +2501,11 @@ function binary(bytes, opts) {
 
 // == the public function ==
 
+/**
+ * @param {unknown} input  the code's text (anything else reads as empty)
+ * @param {InspectOptions} [opts]
+ * @returns {Payload}
+ */
 export function inspect(input, opts = {}) {
   const raw = typeof input === 'string' ? input : '';
   const bytes = opts.bytes instanceof Uint8Array ? opts.bytes : null;
@@ -2016,4 +2547,5 @@ export function inspect(input, opts = {}) {
 }
 
 // For tests and the page: the payload kinds and what each is called.
+/** @type {Kind[]} */
 export const KINDS = ['web', 'text', 'wifi', 'contact', 'event', 'email', 'phone', 'sms', 'geo', 'payment', 'app', 'secret', 'account-link', 'script', 'product', 'boarding-pass', 'health', 'nostr', 'binary', 'empty'];

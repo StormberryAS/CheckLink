@@ -38,8 +38,20 @@
 //   pngScale(size), crc32(bytes), adler32(bytes), QUIET, MODULE_PX, MAX_SIDE, MAX_BYTES, QR_FILE
 
 import qrcodegen from '../vendor/qrcodegen-8329a71/qrcodegen.js';
-import { heldReason, personalReasons, splitLink } from './link-core.js?v=108881e2';
+import { heldReason, personalReasons, splitLink } from './link-core.js?v=d248ac28';
 
+/** @typedef {import('./link-core.js').Analysis} Analysis */
+/** @typedef {import('./link-core.js').IdChoice} IdChoice */
+/** @typedef {keyof typeof QR_REFUSED} RefusalId */
+/** @typedef {{ id: RefusalId, text: string }} Refusal */
+/**
+ * The line above the QR line, when it already gives a reason: which line, and its reason code.
+ * @typedef {{ line: string, reason: string | null }} AboveLine
+ */
+/**
+ * A QR code made by makeQr: its size in modules, and whether each module is dark.
+ * @typedef {{ size: number, version: number, ecc: string, mask: number, eci: boolean, dark: (x: number, y: number) => boolean }} Qr
+ */
 // The picture's file name: neutral, so no address shows up in a gallery, a backup listing or a
 // recent-files list (decision QR-6).
 export const QR_FILE = 'qr-code.png';
@@ -82,6 +94,7 @@ export const QR_SAME_REASON = 'No QR code for this link, for the same reason.';
 // here is not the same reason, and the full refusal line stays. heldReason's 'recipient' (a part
 // that identifies you, kept because the page needs it) and the PD-1 line's 'recipient' (a part
 // that identifies the person it was sent to) are different reasons, with different refusals.
+/** @type {Readonly<Record<string, Readonly<Record<string, RefusalId>>>>} */
 export const QR_SAME_AS = Object.freeze({
   held: Object.freeze({ auth: 'auth', recipient: 'recipient-held' }),
   personal: Object.freeze({
@@ -90,15 +103,31 @@ export const QR_SAME_AS = Object.freeze({
   }),
 });
 
+/**
+ * @param {object} o
+ * @param {unknown} key
+ * @returns {key is string}
+ */
 const own = (o, key) => typeof key === 'string' && Object.prototype.hasOwnProperty.call(o, key);
 
+/**
+ * @param {Refusal | null} refusal
+ * @param {AboveLine | null | undefined} above
+ * @returns {string | null}
+ */
 export function qrNote(refusal, above) {
   if (!refusal) return null;
   const same = above && own(QR_SAME_AS, above.line) ? QR_SAME_AS[above.line] : null;
-  return same && own(same, above.reason) && same[above.reason] === refusal.id ? QR_SAME_REASON : refusal.text;
+  // same is set only when above is.
+  return same && own(same, /** @type {AboveLine} */ (above).reason) && same[/** @type {string} */ (/** @type {AboveLine} */ (above).reason)] === refusal.id ? QR_SAME_REASON : refusal.text;
 }
 
+/**
+ * @param {RefusalId} id
+ * @returns {Refusal}
+ */
 const refused = (id) => ({ id, text: QR_REFUSED[id] });
+/** @param {string} s */
 const utf8 = (s) => new TextEncoder().encode(s);
 
 // Names kept for one device or one local network, which never lead to a site on the internet
@@ -106,6 +135,11 @@ const utf8 = (s) => new TextEncoder().encode(s);
 // 2024). Someone who scans a code of one lands on their own device or router (security review S7).
 const LOCAL_NAME = /(?:^|\.)(?:localhost|local|home\.arpa|internal)\.?$/i;
 
+/**
+ * @param {Analysis | null | undefined} a
+ * @param {IdChoice} removedIds
+ * @returns {Refusal | null}
+ */
 export function qrRefusal(a, removedIds) {
   if (!a || !a.found || a.kind !== 'web') return refused('not-web');
   if (a.shortLink) return refused('short');
@@ -128,6 +162,10 @@ export function qrRefusal(a, removedIds) {
 }
 
 // The host in the ASCII form a browser gives it (xn--), as the address parser computes it.
+/**
+ * @param {string} host
+ * @returns {string | null}
+ */
 function asciiHost(host) {
   try {
     const u = new URL(`https://${host}/`);
@@ -137,6 +175,10 @@ function asciiHost(host) {
   }
 }
 
+/**
+ * @param {string} link
+ * @returns {string | null}
+ */
 function webHost(link) {
   try {
     const u = new URL(link);
@@ -146,6 +188,10 @@ function webHost(link) {
   }
 }
 
+/**
+ * @param {unknown} link
+ * @returns {{ text: string, host: string, ascii: boolean } | null}
+ */
 export function qrText(link) {
   if (typeof link !== 'string' || !/^https?:\/\//i.test(link)) return null;
   const sp = splitLink(link);
@@ -174,6 +220,10 @@ export function qrText(link) {
 // ECI assignment number 26: UTF-8 (ISO/IEC 18004, AIM ECI).
 const ECI_UTF8 = 26;
 
+/**
+ * @param {unknown} text
+ * @returns {Qr | null}
+ */
 export function makeQr(text) {
   const { QrCode, QrSegment } = qrcodegen;
   const bytes = utf8(String(text));
@@ -196,6 +246,10 @@ export function makeQr(text) {
   };
 }
 
+/**
+ * @param {number} size
+ * @returns {number}
+ */
 export const pngScale = (size) => Math.max(1, Math.min(MODULE_PX, Math.floor(MAX_SIDE / (size + 2 * QUIET))));
 
 // == PNG ==
@@ -210,12 +264,22 @@ const CRC_TABLE = (() => {
   return t;
 })();
 
+/**
+ * @param {Uint8Array} bytes
+ * @param {number} [start]
+ * @param {number} [end]
+ * @returns {number}
+ */
 export function crc32(bytes, start = 0, end = bytes.length) {
   let c = 0xffffffff;
   for (let i = start; i < end; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
 
+/**
+ * @param {Uint8Array} bytes
+ * @returns {number}
+ */
 export function adler32(bytes) {
   let a = 1;
   let b = 0;
@@ -232,6 +296,11 @@ export function adler32(bytes) {
   return ((b << 16) | a) >>> 0;
 }
 
+/**
+ * @param {Uint8Array} out
+ * @param {number} at
+ * @param {number} v
+ */
 const put32 = (out, at, v) => {
   out[at] = (v >>> 24) & 0xff;
   out[at + 1] = (v >>> 16) & 0xff;
@@ -240,6 +309,11 @@ const put32 = (out, at, v) => {
 };
 
 // One chunk: length, type, data and the CRC of type and data.
+/**
+ * @param {string} type
+ * @param {Uint8Array} data
+ * @returns {Uint8Array}
+ */
 function chunk(type, data) {
   const out = new Uint8Array(12 + data.length);
   put32(out, 0, data.length);
@@ -251,6 +325,10 @@ function chunk(type, data) {
 
 // A zlib stream (RFC 1950) of stored deflate blocks (RFC 1951, block type 0): the bytes as they
 // are, at most 65,535 to a block, then the Adler-32 of the whole.
+/**
+ * @param {Uint8Array} raw
+ * @returns {Uint8Array}
+ */
 function zlibStored(raw) {
   const blocks = Math.max(1, Math.ceil(raw.length / 65535));
   const out = new Uint8Array(2 + blocks * 5 + raw.length + 4);
@@ -275,6 +353,10 @@ function zlibStored(raw) {
 
 const SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
 
+/**
+ * @param {Qr} qr
+ * @returns {Uint8Array<ArrayBuffer>}
+ */
 export function qrPng(qr) {
   const scale = pngScale(qr.size);
   const side = (qr.size + 2 * QUIET) * scale;
@@ -313,7 +395,12 @@ export function qrPng(qr) {
 
 // Each run of dark modules in a row as one rectangle, all in one path: a version 40 code has
 // 31,329 modules, too many for one element each on an old phone.
+/**
+ * @param {Qr} qr
+ * @returns {string}
+ */
 export function qrPath(qr) {
+  /** @type {string[]} */
   const out = [];
   for (let y = 0; y < qr.size; y += 1) {
     for (let x = 0; x < qr.size;) {

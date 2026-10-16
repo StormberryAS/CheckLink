@@ -83,19 +83,59 @@
 
 import { CONFUSABLES } from './confusables.js?v=01615527';
 import { BRANDS, LURES, REAL_NAMES } from './brands.js?v=a389c3ea';
-import { domainInfo, publicSuffix } from './domain.js?v=e177a464';
+import { domainInfo, publicSuffix } from './domain.js?v=f1bcd492';
 
+/**
+ * The letters finding: a name mixing alphabets, or written in another one with letters that look Latin.
+ * @typedef {{ scripts: string[], whole: boolean, ordinary: boolean, reads: string | null,
+ *   foreign: { char: string, script: string }[], host: string }} LettersFinding
+ */
+/**
+ * The symbol finding: characters inside a name that look like punctuation.
+ * @typedef {{ chars: { char: string, code: string, looks: string }[], reads: string, host: string }} SymbolFinding
+ */
+/** @typedef {'letters' | 'ascii' | 'hyphen' | 'typo' | 'combo' | 'free-host' | 'written' | 'mentions'} BrandHow */
+/**
+ * The brand finding. how is kind, except under a free hosting name, where it is 'free-host'.
+ * @typedef {{ brand: string, own: string, mark: string | null, how: BrandHow, kind: BrandHow, detail: string | null,
+ *   domain: string, suffix: string, private: boolean, host: string, written: string | null, shown?: string }} BrandFinding
+ */
+/** @typedef {(typeof BRANDS)[number]} Brand */
+/**
+ * One mark of a brand in the index: its label, the label without hyphens, its skeleton and its parts.
+ * @typedef {{ brand: Brand, label: string, flat: string, kind: string, own: string, skel: string,
+ *   parts: string[], tails: string[][] }} Mark
+ */
+/**
+ * One of a brand's own domains as skeleton labels, with the mark its first label is, if any.
+ * @typedef {{ brand: Brand, domain: string, labels: string[], mark?: Mark | null }} Run
+ */
+/**
+ * The brands, their marks and the lure words, prepared once (brandIndex).
+ * @typedef {{ official: Map<string, Brand>, platforms: string[], marks: Mark[], runs: Run[], exact: Set<string>,
+ *   strong: Set<string>, weak: Set<string>, concat: string[], realWords: Set<string>, realDomains: Set<string> }} BrandIndex
+ */
+
+/**
+ * @param {unknown} h
+ * @returns {string}
+ */
 const norm = (h) => String(h || '').toLowerCase().replace(/\.$/, '');
 
 // == punycode ==
 
 // RFC 3492 decoding of one xn-- label (without the xn--), enough to read it back as the letters
 // it stands for; null when it is not valid.
+/**
+ * @param {string} text
+ * @returns {string | null}
+ */
 export function punyDecode(text) {
   const base = 36;
   const tMin = 1;
   const tMax = 26;
   const input = String(text).toLowerCase();
+  /** @type {number[]} */
   const out = [];
   const d = input.lastIndexOf('-');
   for (const ch of d > 0 ? input.slice(0, d) : '') {
@@ -142,12 +182,20 @@ export function punyDecode(text) {
   }
 }
 
+/**
+ * @param {string} label
+ * @returns {string}
+ */
 export function decodeLabel(label) {
   if (!label.startsWith('xn--')) return label;
   const text = punyDecode(label.slice(4));
   return text || label;
 }
 
+/**
+ * @param {unknown} host
+ * @returns {string}
+ */
 export const decodeHost = (host) => norm(host).split('.').map(decodeLabel).join('.');
 
 // == what a name looks like ==
@@ -156,8 +204,16 @@ const MARK = /\p{M}/u;
 const IGNORABLE = /\p{Default_Ignorable_Code_Point}/u;
 
 // One character as the ASCII it can pass for, or itself.
-const looksAs = (ch) => CONFUSABLES[ch.codePointAt(0)] ?? ch;
+/**
+ * @param {string} ch
+ * @returns {string}
+ */
+const looksAs = (ch) => /** @type {Record<number, string | undefined>} */ (CONFUSABLES)[/** @type {number} */ (ch.codePointAt(0))] ?? ch;
 
+/**
+ * @param {unknown} text
+ * @returns {string}
+ */
 export function skeleton(text) {
   let out = '';
   for (const ch of String(text).toLowerCase().normalize('NFD')) {
@@ -169,7 +225,9 @@ export function skeleton(text) {
 
 // The digits that stand in for letters in look-alike names, beyond the two (0 and 1) that
 // Unicode's confusables already give. 1 can stand for l (skeleton) or i (here).
+/** @type {Record<string, string>} */
 const DIGIT_FOR = { 0: 'o', 1: 'i', 2: 'z', 3: 'e', 4: 'a', 5: 's', 6: 'b', 7: 't', 8: 'b', 9: 'g' };
+/** @param {string} s */
 const digitsRead = (s) => s.replace(/[0-9]/g, (d) => DIGIT_FOR[d]);
 // Plain letters that pass for another letter in many typefaces, beyond rn for m, which Unicode's
 // confusables already give: vv for w, cl for d and q for g (vvhatsapp, cliscord, gooqle).
@@ -177,14 +235,22 @@ const digitsRead = (s) => s.replace(/[0-9]/g, (d) => DIGIT_FOR[d]);
 // a whole name, a name next to a lure word or a name before the brand's own ending
 // (gooqle.com.evil.io), never inside a longer word (decision L2 of 11 October 2026, accepted
 // after a run over the Tranco top million and the real names found no new false alarm).
+/** @type {[string, string][]} */
 const LETTERS_FOR = [['vv', 'w'], ['cl', 'd'], ['q', 'g']];
 const LETTER_PAIR = /vv|cl|q/;
+/** @param {string} s */
 const lettersRead = (s) => LETTERS_FOR.reduce((out, [from, to]) => out.split(from).join(to), s);
 // A name read with both: digits for letters, then these letters for the one they pass for.
+/** @param {string} s */
 const looksRead = (s) => lettersRead(digitsRead(s));
 // Whether name t is mark m's name with digits (vipp5, only for a mark with none), these letters
 // (gooqle), or both (g00qle) put in. The digits alone are tried first, so a mark that has cl, q
 // or vv itself (icloud) is still found behind digits (1cloud).
+/**
+ * @param {string} t
+ * @param {Mark} m
+ * @returns {boolean}
+ */
 function readsAs(t, m) {
   if (m.flat.length < 4) return false;
   const digits = /\d/.test(t);
@@ -198,32 +264,51 @@ function readsAs(t, m) {
 // the Chinese upright line and the Hangul i (written as U+1175). The katakana no (a slash) and
 // U+4E36 (a backslash) are in the table already. They count only inside a name that is otherwise
 // plain Latin letters and digits (norsk<U+30FC>tipping.no); in a Japanese word they are spelling.
+/** @type {Record<string, string>} */
 const CJK_LOOKS = {
   '\u30FC': '-', '\u4E00': '-', '\u3161': '-', '\u1173': '-',
   '\u4E28': 'l', '\u3163': 'l', '\u1175': 'l',
   '\u30CE': '/', '\u4E36': '\\',
 };
+/**
+ * @param {string} ch
+ * @returns {string | null}
+ */
 const cjkLook = (ch) => CJK_LOOKS[ch] ?? null;
 // Every character of the label is plain ASCII (letters, digits, hyphen, underscore) or one of
 // the characters above, and at least one is a Latin letter.
+/** @param {string[]} arr */
 const plainWith = (arr) => arr.some((c) => /[a-z]/.test(c)) && arr.every((c) => /[a-z0-9_-]/.test(c) || cjkLook(c) !== null);
 // A label read with those characters as what they look like, when it is a plain Latin name with
 // them in it (norsk<U+30FC>tipping -> norsk-tipping, paypa<U+4E28> -> paypal); otherwise as it is.
+/**
+ * @param {string} label
+ * @returns {string}
+ */
 function latinised(label) {
   const arr = Array.from(label);
   if (!arr.some((c) => cjkLook(c) !== null) || !plainWith(arr)) return label;
-  return arr.map((c) => (cjkLook(c) && /^[a-z-]$/.test(cjkLook(c)) ? cjkLook(c) : c)).join('');
+  return arr.map((c) => (cjkLook(c) && /^[a-z-]$/.test(/** @type {string} */ (cjkLook(c))) ? /** @type {string} */ (cjkLook(c)) : c)).join('');
 }
 
 // == alphabets ==
 
 const SCRIPT_NAMES = ['Latin', 'Cyrillic', 'Greek', 'Armenian', 'Georgian', 'Cherokee', 'Han', 'Hiragana', 'Katakana', 'Hangul', 'Bopomofo', 'Arabic', 'Hebrew', 'Thai', 'Lao', 'Devanagari', 'Bengali', 'Gurmukhi', 'Gujarati', 'Oriya', 'Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Sinhala', 'Tibetan', 'Myanmar', 'Khmer', 'Ethiopic', 'Mongolian', 'Coptic', 'Canadian_Aboriginal', 'Tifinagh', 'Glagolitic', 'Runic', 'Ogham', 'Nko', 'Vai', 'Lisu', 'Syriac', 'Thaana', 'Adlam', 'Osage', 'Deseret', 'Yi', 'Javanese', 'Balinese', 'Sundanese', 'Old_Italic', 'Gothic'];
-const SCRIPTS = SCRIPT_NAMES.map((n) => [n, new RegExp(`\\p{Script=${n}}`, 'u')]);
+const SCRIPTS = SCRIPT_NAMES.map((n) => /** @type {[string, RegExp]} */ ([n, new RegExp(`\\p{Script=${n}}`, 'u')]));
+/** @type {Record<string, string>} */
 const SHOWN_SCRIPT = { Han: 'Chinese', Canadian_Aboriginal: 'Canadian syllabics', Nko: "N'Ko", Old_Italic: 'Old Italic', Other: 'another alphabet' };
+/**
+ * @param {string} s
+ * @returns {string}
+ */
 const scriptWord = (s) => SHOWN_SCRIPT[s] || s;
 const LETTER = /\p{L}/u;
 // Letters shared by several alphabets (the katakana long vowel mark, for one) belong to none.
 const SHARED = /[\p{Script=Common}\p{Script=Inherited}]/u;
+/**
+ * @param {string} ch
+ * @returns {string | null}
+ */
 const scriptOf = (ch) => {
   if (!LETTER.test(ch) || SHARED.test(ch)) return null;
   for (const [n, rx] of SCRIPTS) if (rx.test(ch)) return n;
@@ -232,30 +317,42 @@ const scriptOf = (ch) => {
 // The mixes that Japanese, Chinese and Korean names use, with or without Latin (UTS #39,
 // "highly restrictive").
 const MIXES = [['Latin', 'Han', 'Hiragana', 'Katakana'], ['Latin', 'Han', 'Bopomofo'], ['Latin', 'Han', 'Hangul']];
+/** @param {Set<string>} set */
 const allowedMix = (set) => set.size <= 1 || MIXES.some((m) => [...set].every((s) => m.includes(s)));
 const CJK = new Set(['Han', 'Hiragana', 'Katakana', 'Hangul', 'Bopomofo']);
 
 // Whether one character passes for a plain small Latin letter or digit.
+/** @param {string} ch */
 const passesLatin = (ch) => /^[a-z0-9]+$/.test(skeleton(ch));
 
 // How many labels at the end of a host are its public suffix (com, co.uk, the Cyrillic .rf): those are the
 // registries' own names, never a look-alike made by whoever owns the address.
+/**
+ * @param {string} host
+ * @returns {number}
+ */
 function suffixLabels(host) {
   const ps = publicSuffix(host);
   return ps ? ps.suffix.split('.').length : 1;
 }
 
+/**
+ * @param {unknown} host
+ * @returns {LettersFinding | null}
+ */
 export function lettersFinding(host) {
   const labels = norm(host).split('.');
   const decoded = labels.map(decodeLabel);
   const own = labels.length - suffixLabels(norm(host));
   const tld = decoded[decoded.length - 1];
   const tldScripts = new Set(Array.from(tld, scriptOf).filter(Boolean));
+  /** @type {{ i: number, scripts: string[], mixed: boolean, lookLatin: boolean, sameEnding?: boolean }[]} */
   const hits = [];
   decoded.forEach((label, i) => {
     if (label === labels[i] || i >= own) return; // plain ASCII, an xn-- label that does not decode, or the ending
     const letters = Array.from(label).filter((ch) => scriptOf(ch));
-    const scripts = new Set(letters.map(scriptOf));
+    // letters holds only characters that have an alphabet, so none of these is null.
+    const scripts = new Set(/** @type {string[]} */ (letters.map(scriptOf)));
     if (!allowedMix(scripts)) {
       const foreign = letters.filter((ch) => scriptOf(ch) !== 'Latin');
       hits.push({ i, scripts: [...scripts].filter((s) => s !== 'Latin'), mixed: true, lookLatin: foreign.every(passesLatin) });
@@ -271,6 +368,7 @@ export function lettersFinding(host) {
   if (!hits.length) return null;
   const names = [...new Set(hits.flatMap((x) => x.scripts))].filter((s) => s !== 'Latin');
   const allLook = hits.every((x) => x.lookLatin);
+  /** @type {{ char: string, script: string }[]} */
   const foreign = [];
   for (const x of hits) {
     for (const ch of decoded[x.i]) {
@@ -297,22 +395,29 @@ export function lettersFinding(host) {
 const DOTS = new Set(['\u00B7', '\u0387', '\u2022', '\u2024', '\u2027', '\u2219', '\u22C5', '\u30FB', '\uFF65', '\u16EB', '\u2E31', '\u1427', '\u0701', '\u0702', '\uA4F8', '\u05C5', '\u02D9']);
 const ASCII_PUNCT = /^[!-/:-@[-`{-~]+$/;
 const PD = /\p{Pd}/u;
+/** @type {Record<string, string>} */
 const SYMBOL_WORDS = { '-': 'a hyphen', '.': 'a full stop', '/': 'a slash', '\\': 'a backslash', ':': 'a colon', '@': 'an at sign', _: 'an underscore', "'": 'an apostrophe', ',': 'a comma' };
 
+/**
+ * @param {unknown} host
+ * @returns {SymbolFinding | null}
+ */
 export function symbolFinding(host) {
   const labels = norm(host).split('.');
   const decoded = labels.map(decodeLabel);
   const own = labels.length - suffixLabels(norm(host));
+  /** @type {SymbolFinding['chars']} */
   const chars = [];
   const readsLabels = decoded.map((label, i) => {
     if (label === labels[i] || i >= own) return label;
     const arr = Array.from(label);
     const latin = arr.some((ch) => scriptOf(ch) === 'Latin');
-    const japanese = arr.some((ch) => ['Han', 'Hiragana', 'Katakana'].includes(scriptOf(ch)));
+    const japanese = arr.some((ch) => ['Han', 'Hiragana', 'Katakana'].includes(/** @type {string} */ (scriptOf(ch))));
     const plain = plainWith(arr);
     return arr.map((ch, j) => {
       if (/[\x00-\x7f]/.test(ch) || MARK.test(ch) || /\p{N}/u.test(ch)) return ch;
-      const t = CONFUSABLES[ch.codePointAt(0)];
+      const t = /** @type {Record<number, string | undefined>} */ (CONFUSABLES)[/** @type {number} */ (ch.codePointAt(0))];
+      /** @type {string | null} */
       let looks = null;
       const cjk = cjkLook(ch);
       if (cjk !== null) {
@@ -331,7 +436,7 @@ export function symbolFinding(host) {
       if ((ch === '\u30FB' || ch === '\uFF65') && japanese) return ch;
       // In a name with no Latin letters, only what can split it (a hyphen, dot or slash) counts.
       if (!latin && !['-', '.', '/'].includes(looks[0])) return ch;
-      chars.push({ char: ch, code: `U+${ch.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`, looks });
+      chars.push({ char: ch, code: `U+${/** @type {number} */ (ch.codePointAt(0)).toString(16).toUpperCase().padStart(4, '0')}`, looks });
       return looks;
     }).join('');
   });
@@ -341,12 +446,18 @@ export function symbolFinding(host) {
 
 // == brands ==
 
+/** @type {BrandIndex | null} */
 let index = null;
+/** @returns {BrandIndex} */
 function brandIndex() {
   if (index) return index;
+  /** @type {Map<string, Brand>} */
   const official = new Map();
+  /** @type {string[]} */
   const platforms = [];
+  /** @type {Mark[]} */
   const marks = [];
+  /** @type {Run[]} */
   const runs = [];
   for (const b of BRANDS) {
     for (const d of b.domains) {
@@ -387,8 +498,13 @@ function brandIndex() {
 }
 
 const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+/** @type {Record<string, [number, number]>} */
 const KEY = {};
 ROWS.forEach((row, y) => Array.from(row).forEach((c, x) => { KEY[c] = [x + y * 0.5, y]; }));
+/**
+ * @param {string} a
+ * @param {string} b
+ */
 const neighbours = (a, b) => {
   const p = KEY[a];
   const q = KEY[b];
@@ -396,6 +512,11 @@ const neighbours = (a, b) => {
 };
 
 // The one typing slip that turns mark m into name c, or null.
+/**
+ * @param {string} c
+ * @param {string} m
+ * @returns {'doubled' | 'missing' | 'swapped' | 'neighbour' | 'l-for-i' | 'i-for-l' | null}
+ */
 export function typoKind(c, m) {
   if (c === m) return null;
   if (c.length === m.length + 1) {
@@ -428,12 +549,18 @@ const LOOK_PAIR = new Set(['li', 'il']);
 
 // What was swapped in, for an ASCII look-alike: "the digit 1 in place of the letter l", "vv in
 // place of the letter w".
+/**
+ * @param {string} label
+ * @param {string} mark
+ * @returns {string}
+ */
 function asciiDetail(label, mark) {
   if (label.length !== mark.length) {
     const pairs = [['rn', 'm'], ...LETTERS_FOR.filter(([from]) => from.length > 1)].filter(([from, to]) => label.includes(from) && mark.includes(to) && !mark.includes(from));
     if (pairs.length && looksRead(label.split('rn').join('m')) === mark) return pairs.map(([from, to]) => (from === 'rn' ? 'rn in place of m' : `${from} in place of the letter ${to}`)).join(' and ');
   }
   if (label.length === mark.length) {
+    /** @type {string[]} */
     const pairs = [];
     for (let i = 0; i < label.length; i++) {
       if (label[i] === mark[i]) continue;
@@ -451,10 +578,16 @@ function asciiDetail(label, mark) {
 // letters were: "ø in place of o" (to a Norwegian reader ø does not look like o, so
 // the note says which letter it is), "the Cyrillic letter а in place of a". Null when more
 // were swapped, or the lengths differ.
+/**
+ * @param {string} written
+ * @param {string} mark
+ * @returns {string | null}
+ */
 function letterPairs(written, mark) {
   const a = Array.from(written.normalize('NFC'));
   const b = Array.from(mark);
   if (a.length !== b.length) return null;
+  /** @type {string[]} */
   const pairs = [];
   for (let i = 0; i < a.length; i++) {
     if (a[i] === b[i]) continue;
@@ -467,6 +600,11 @@ function letterPairs(written, mark) {
 }
 
 // Where the run of skeleton labels `want` sits inside `labels`, or -1.
+/**
+ * @param {string[]} labels
+ * @param {string[]} want
+ * @returns {number}
+ */
 function runAt(labels, want) {
   for (let i = 0; i + want.length <= labels.length; i++) {
     if (want.every((w, k) => labels[i + k] === w)) return i;
@@ -477,6 +615,11 @@ function runAt(labels, want) {
 // Whether a token stands for a single-word mark with a slip: digits or look-alike letters for
 // letters (vipp5, n3tflix, vvhatsapp), or one typing slip from a distinct mark of five letters or
 // more (paypall).
+/**
+ * @param {string} t
+ * @param {Mark} m
+ * @returns {boolean}
+ */
 function slipFor(t, m) {
   if (m.parts.length !== 1 || t === m.skel) return false;
   if (readsAs(t, m)) return true;
@@ -488,12 +631,20 @@ function slipFor(t, m) {
 const VANITY = new Set(['tv', 'me', 'io', 'ai', 'co', 'fm', 'am', 'to', 'ly', 'gg', 'cc', 'ws', 'la', 'is', 'it', 'in', 'us', 'so', 'do', 'be', 'im', 'at', 'by', 'my', 'id', 'ac', 'sh', 'vc', 'ms', 'tk', 'gs', 'nu', 'cx', 'st', 're']);
 // Labels that together are exactly a public suffix from the list's ICANN section (de, co.uk,
 // com.br), or null.
+/**
+ * @param {string[]} labels
+ * @returns {string | null}
+ */
 function icannSuffix(labels) {
   const cand = labels.join('.');
   const ps = publicSuffix(cand);
   return ps && ps.known && !ps.private && ps.suffix === cand ? cand : null;
 }
 
+/**
+ * @param {unknown} host
+ * @returns {BrandFinding | null}
+ */
 export function brandMatch(host) {
   const h = norm(host);
   if (!h || h.startsWith('[') || /^\d{1,3}(?:\.\d{1,3}){3}$/.test(h)) return null;
@@ -516,6 +667,13 @@ export function brandMatch(host) {
   const realWord = ix.realWords.has(label) || ix.realWords.has(sk);
   const sub = h.length > reg.length ? h.slice(0, h.length - reg.length - 1).split('.') : [];
   const base = { domain: reg, suffix: info.suffix, private: info.private, host: h, written: unicode ? decodeHost(h) : null };
+  /**
+   * @param {Mark} m
+   * @param {BrandHow} how
+   * @param {string | null} [detail]
+   * @param {{ shown?: string }} [extra]
+   * @returns {BrandFinding}
+   */
   const found = (m, how, detail = null, extra = {}) => ({ brand: m.brand.name, own: m.own, mark: m.label, how: info.private ? 'free-host' : how, kind: how, detail, ...base, ...extra });
 
   // 1. The registrable name, whole.
@@ -592,9 +750,16 @@ export function brandMatch(host) {
   // 4. The part before the registrable name: a brand's own domain written into it, or its name.
   if (sub.length) {
     const subSk = sub.map((l) => skeleton(latinised(decodeLabel(l))));
+    /** @param {string} l */
     const split = (l) => l.split(/[-_]/).filter(Boolean);
     // A hyphen or an underscore can stand in for the dot (paypal-com.evil.io, www.paypal_com.evil.io).
     const dotted = subSk.flatMap(split);
+    /**
+     * @param {Run} r
+     * @param {number} at
+     * @param {{ shown?: string }} [extra]
+     * @returns {BrandFinding}
+     */
     const written = (r, at, extra = {}) => {
       const m = ix.marks.find((x) => x.brand === r.brand && x.own === r.domain) || ix.marks.find((x) => x.brand === r.brand);
       return { brand: r.brand.name, own: r.domain, mark: m ? m.label : null, how: 'written', kind: 'written', detail: at === 0 ? 'start' : 'inside', ...base, ...extra };
@@ -660,6 +825,10 @@ export function brandMatch(host) {
   return null;
 }
 
+/**
+ * @param {unknown} host
+ * @returns {{ letters: LettersFinding | null, symbol: SymbolFinding | null, brand: BrandFinding | null }}
+ */
 export function lookAlike(host) {
   const h = norm(host);
   const brand = brandMatch(h);
@@ -673,10 +842,15 @@ export function lookAlike(host) {
 // == the sentences ==
 
 // British style: the possessive of a name ending in s takes 's too (Vipps's, Threads's).
+/** @param {string} name */
 const possessive = (name) => `${name}'s`;
 
 // A host as a person reads it, with the form the browser uses after it when that differs:
 // "p<Cyrillic a>ypal.com (in the browser's form, xn--pypal-4ve.com)".
+/**
+ * @param {unknown} host
+ * @returns {string}
+ */
 export function bothForms(host) {
   const h = norm(host);
   const shown = decodeHost(h);
@@ -686,6 +860,10 @@ export function bothForms(host) {
 // A host as a person reads it, with every run of letters from another alphabet in the owner's
 // part of the name (not the ending) named in brackets: p[Cyrillic а]ypal.com. Such a name
 // looks exactly like the real one on screen; named, it no longer does.
+/**
+ * @param {unknown} host
+ * @returns {string}
+ */
 export function markedHost(host) {
   const h = norm(host);
   const labels = h.split('.');
@@ -695,6 +873,7 @@ export function markedHost(host) {
     if (d === l || i >= own) return d;
     let out = '';
     let run = '';
+    /** @type {string | null} */
     let runScript = null;
     const flush = () => {
       if (run) out += `[${runScript} ${run}]`;
@@ -721,6 +900,10 @@ export function markedHost(host) {
 
 // The same with the browser's form after it: "p[Cyrillic а]ypal.com (in the browser's form,
 // xn--pypal-4ve.com)".
+/**
+ * @param {string} host
+ * @returns {string}
+ */
 function markedForms(host) {
   const h = norm(host);
   const shown = markedHost(h);
@@ -729,6 +912,11 @@ function markedForms(host) {
 
 // The registrable domain, decoded, with the full name after it when the host is longer, and the
 // browser's form when the name is international.
+/**
+ * @param {BrandFinding} f
+ * @param {(host: string) => string} placeName
+ * @returns {string}
+ */
 function ownerText(f, placeName) {
   if (!f.written) return f.host === `www.${f.domain}` ? f.domain : placeName(f.host);
   const reg = decodeHost(f.domain);
@@ -737,6 +925,7 @@ function ownerText(f, placeName) {
   return `${both}, in the browser's form ${f.host}`;
 }
 
+/** @type {Record<string, string>} */
 const TYPO = {
   doubled: 'with a letter doubled',
   missing: 'with a letter left out',
@@ -746,6 +935,11 @@ const TYPO = {
   'i-for-l': 'with an i in place of a small l',
 };
 
+/**
+ * @param {BrandFinding} f
+ * @param {(host: string) => string} placeName
+ * @returns {string}
+ */
 export function brandText(f, placeName) {
   const own = `${possessive(f.brand)} own address is ${f.own}.`;
   const owner = ownerText(f, placeName);
@@ -753,7 +947,7 @@ export function brandText(f, placeName) {
     case 'letters': return `This address is made to look like ${f.own}, ${f.detail ? `with ${f.detail}` : 'using letters that only look the same'}: it is ${owner}. ${own}`;
     case 'ascii': return `This address is made to look like ${f.own}, with ${f.detail}: it is ${owner}. ${own}`;
     case 'hyphen': return `This address is made to look like ${f.own}, with a hyphen put in: it is ${owner}. ${own}`;
-    case 'typo': return `This address is one slip away from ${f.own}, ${TYPO[f.detail]}: it is ${owner}. ${own}`;
+    case 'typo': return `This address is one slip away from ${f.own}, ${TYPO[/** @type {string} */ (f.detail)]}: it is ${owner}. ${own}`;
     case 'combo': return `This address mentions ${f.brand}, but it belongs to ${owner}, which is not one of ${possessive(f.brand)} addresses that CheckLink knows. ${own}`;
     case 'free-host': return `This address mentions ${f.brand}, but it belongs to ${owner}, a name under ${f.suffix} that anyone can create. ${own}`;
     case 'written': return `This address has ${f.shown || f.own} written ${f.detail === 'start' ? 'at its start' : 'inside it'}, but it belongs to ${owner}. ${own}`;
@@ -763,6 +957,10 @@ export function brandText(f, placeName) {
 }
 
 // One short sentence for the first screen and for screen readers; the full note says the rest.
+/**
+ * @param {BrandFinding} f
+ * @returns {string}
+ */
 export function brandShort(f) {
   switch (f.how) {
     case 'letters':
@@ -777,8 +975,17 @@ export function brandShort(f) {
   }
 }
 
+/**
+ * @param {string[]} xs
+ * @returns {string}
+ */
 const listWords = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
 
+/**
+ * @param {LettersFinding} f
+ * @param {BrandFinding | null} [brand]
+ * @returns {string}
+ */
 export function lettersText(f, brand = null) {
   const scripts = listWords(f.scripts.map(scriptWord));
   const shown = markedForms(f.host);
@@ -789,14 +996,25 @@ export function lettersText(f, brand = null) {
   return `${lead}${tail}`;
 }
 
+/**
+ * @param {LettersFinding} f
+ * @param {BrandFinding | null} [brand]
+ * @returns {string}
+ */
 export function lettersShort(f, brand = null) {
   if (brand && brand.kind === 'letters') return `This address is made to look like ${brand.own}.`;
   if (f.reads !== null) return `This address uses letters from another alphabet to look like ${f.reads}.`;
   return 'This address mixes letters from different alphabets in one name.';
 }
 
+/** @param {SymbolFinding} f */
 const symbolKinds = (f) => [...new Set(f.chars.map((c) => SYMBOL_WORDS[c.looks] || `"${c.looks}"`))];
 
+/**
+ * @param {SymbolFinding} f
+ * @param {BrandFinding | null} [brand]
+ * @returns {string}
+ */
 export function symbolText(f, brand = null) {
   const kinds = symbolKinds(f);
   const codes = [...new Set(f.chars.map((c) => c.code))];
@@ -808,10 +1026,15 @@ export function symbolText(f, brand = null) {
   const tail = brand && brand.kind === 'letters' ? ` It is made to look like ${possessive(brand.brand)} own address, ${brand.own}.` : '';
   // The look-alike character is shown by its code, since on screen it cannot be told apart.
   const flagged = new Set(f.chars.map((c) => c.char));
-  const marked = Array.from(decodeHost(f.host), (ch) => (flagged.has(ch) ? `[${f.chars.find((c) => c.char === ch).code}]` : ch)).join('');
+  const marked = Array.from(decodeHost(f.host), (ch) => (flagged.has(ch) ? `[${/** @type {{ code: string }} */ (f.chars.find((c) => c.char === ch)).code}]` : ch)).join('');
   return `This address has a character that looks like ${listWords(kinds)} but is not one (${codes.join(', ')}), inside the name. It reads like ${f.reads}, but it is a different address: ${marked} (in the browser's form, ${f.host}).${goes}${tail}`;
 }
 
+/**
+ * @param {SymbolFinding} f
+ * @param {BrandFinding | null} [brand]
+ * @returns {string}
+ */
 export function symbolShort(f, brand = null) {
   if (brand && brand.kind === 'letters') return `This address is made to look like ${brand.own}.`;
   return `This address has a character that only looks like ${listWords(symbolKinds(f))}, so it reads like ${f.reads}.`;

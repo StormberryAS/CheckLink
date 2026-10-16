@@ -13,15 +13,21 @@
 //   worker -> page  { type: 'error', id, code, detail }     code as in src/qr-decode.js
 
 import './worker-lockdown.js?v=dd7a164b';
-import { DecodeError, decodeFrame, decodePicture, wasmAllowed } from './qr-decode.js?v=88ce72fb';
+import { DecodeError, decodeFrame, decodePicture, wasmAllowed } from './qr-decode.js?v=33d581a1';
+
+/**
+ * A message from the page.
+ * @typedef {{ type: 'decode', id: number, buffer: ArrayBuffer, mime?: string } | { type: 'frame', id: number, width: number, height: number, buffer: ArrayBuffer }} WorkerRequest
+ */
 
 postMessage({ type: 'ready', wasm: wasmAllowed() });
 
-const bitmap = typeof createImageBitmap === 'function' ? (blob) => createImageBitmap(blob) : null;
+const bitmap = typeof createImageBitmap === 'function' ? (/** @type {Blob} */ blob) => createImageBitmap(blob) : null;
 
 let queue = Promise.resolve();
 onmessage = (event) => {
-  const msg = event.data || {};
+  // Anything else the page might send is let through by the type and dropped by the test below.
+  const msg = /** @type {WorkerRequest} */ (event.data || {});
   if (msg.type !== 'decode' && msg.type !== 'frame') return;
   queue = queue.then(async () => {
     try {
