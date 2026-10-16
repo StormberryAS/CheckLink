@@ -228,15 +228,16 @@ test('the toasts approved on 2026-10-11 (Q4) and the new ones of stage 4b, word 
   for (const text of Object.values(strings)) assert.ok(!/\b(safe|verified|trusted)\b/i.test(text) && !/clean QR code/i.test(text), text);
 });
 
-test('the web-only Zapstore section: hidden until stage 5, and its permission line', () => {
+test('the web-only Zapstore section: shown on the website since the 0.0.1 release, and its permission line', () => {
   const html = read('index.html');
   const section = html.match(/<section class="android-app"[^>]*>[\s\S]*?<\/section>/);
   assert.ok(section, 'no android-app section');
-  assert.match(section[0], /^<section class="android-app" id="android-app" aria-labelledby="android-app-title" data-web-only hidden>/);
+  assert.match(section[0], /^<section class="android-app" id="android-app" aria-labelledby="android-app-title" data-web-only>/);
   assert.ok(section[0].includes('<p>One permission: the camera, used only while you scan. No internet access.</p>'));
   assert.ok(section[0].includes('href="https://zapstore.dev/apps/no.stormberry.checklink"'));
   const before = html.slice(0, section.index);
-  assert.ok(before.slice(-600).includes('STAGE 5: remove hidden at release'));
+  assert.ok(before.slice(-600).includes('Shown on the website since 0.0.1 is on Zapstore'));
+  assert.ok(!html.includes('STAGE 5:'), 'the stage 5 placeholder comment is still there');
   assert.ok(!html.includes('STAGE 4:'), 'the stage 4 placeholder comment is still there');
   // Hidden on the website; in the app it belongs to the refusal message above it.
   assert.match(html, /<button type="button" class="btn btn-secondary cl-btn-small cl-settings-btn" id="cam-settings" aria-describedby="pic-status" hidden>/);

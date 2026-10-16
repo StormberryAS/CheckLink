@@ -425,7 +425,7 @@ try {
       goHelp: document.getElementById('go-help').textContent,
       bridgeTag: [...document.scripts].some((s) => /android-bridge/.test(s.src)),
     })`);
-    check('website: no window.CLAndroid, no bridge script, the Zapstore section hidden (STAGE 5 removes hidden), no settings button, Go to help unchanged', st.api === 'undefined' && !st.bridgeTag && st.zap && st.settings && st.goHelp === 'Opens in a new tab, in this browser.', st);
+    check('website: no window.CLAndroid, no bridge script, the Zapstore section shown (since the 0.0.1 release), no settings button, Go to help unchanged', st.api === 'undefined' && !st.bridgeTag && !st.zap && st.settings && st.goHelp === 'Opens in a new tab, in this browser.', st);
     await p.type(LINK);
     await p.click('#copy-btn');
     const page = await p.ev('({ clips: window.__clip.calls, share: !document.getElementById("share-btn").hidden })');
