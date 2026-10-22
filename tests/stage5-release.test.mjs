@@ -266,7 +266,7 @@ const PINNED = {
   'gate.js': '650fd78266fe0339b97be9db7e8b03aa212f0dca390f1c199725205b8441a7ac',
   'gate.css': 'cca16ec21b8442969f81f4cfa5d90a026b67521f9a0353643224d7d22ad191fe',
   'disclaimer.css': '14d0ec8be6482608350697244ba5e86255478a1d93170897015685f06697d159',
-  'disclaimer.html': 'd67836b9d4cec08653dbaa357f11c3ff1ee6c4f196933daa17df4f3b66a7583a',
+  'disclaimer.html': '4a464676a6c8e87148015a617a58f0ea5ff840e5d94f1f87c8a53e2cf7c1f883',
 };
 
 test('the generators\' CheckLink output is pinned by hash', () => {
@@ -296,6 +296,7 @@ assert m.NEW_WHAT in md
 assert "CheckLink" in m.APPS and "CheckLink" in m.EXTERNAL_STYLE
 page = m.PAGE.replace("@@BODY@@", m.to_html(md)).replace("@@APP@@", "CheckLink")
 page = page.replace('<a href="https://stormberry.as/privacy.html">Privacy</a></footer>', '<a href="privacy.html">Privacy</a></footer>', 1)
+page = page.replace(m.TITLE_END, m.TITLE_END + m.TOUCH_ICON, 1)
 page, css = m.split_style(page)
 sys.stdout.write(page + "\\x00" + css)`, join(ROOT, 'DISCLAIMER.md'));
   const [html, dcss] = page.split('\0');

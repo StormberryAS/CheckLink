@@ -265,7 +265,7 @@ jobs:
           # exactly that set; each file must equal the commit's copy, index.html apart from
           # the one injected bridge line, and android-bridge.js must equal android/web-overlay.
           shopt -s globstar nullglob
-          EXPECTED_WEB=$(cd .. && for f in index.html app.js style.css favicon.svg \
+          EXPECTED_WEB=$(cd .. && for f in index.html app.js style.css favicon.svg apple-touch-icon.png \
                                          privacy.html disclaimer.html disclaimer.css gate.js gate.css \
                                          src/**/*.js vendor/**/*.js \
                                          fonts/**/*.css fonts/**/*.woff2 \

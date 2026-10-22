@@ -264,6 +264,9 @@ object WebAssets {
     // reference checks above and by loading the app on the emulator.
     //   index.html, app.js, style.css  the page, its module and its style sheet
     //   favicon.svg                    the page's icon and the picture beside the title
+    //   apple-touch-icon.png           the iPhone and iPad Home Screen icon (2026-10-21); no
+    //                                  meaning in the app, bundled because every page links it
+    //                                  relatively and the reference check must find it
     //   src/**/*.js                    the engine, the QR inspector, the decoder worker and
     //                                  (stage 4b) qr-make.js, which makes a QR code of the
     //                                  clean link and its PNG
@@ -284,7 +287,7 @@ object WebAssets {
     // third_party/ are not part of the website at all (_config.yml), and neither are
     // DISCLAIMER.md (the source of disclaimer.html), README.md and the store files.
     val INCLUDES = listOf(
-        "index.html", "app.js", "style.css", "favicon.svg",
+        "index.html", "app.js", "style.css", "favicon.svg", "apple-touch-icon.png",
         "privacy.html", "disclaimer.html", "disclaimer.css", "gate.js", "gate.css",
         "src/**/*.js", "vendor/**/*.js",
         "fonts/**/*.css", "fonts/**/*.woff2",
