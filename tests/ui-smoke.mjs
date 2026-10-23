@@ -1044,7 +1044,7 @@ try {
     // decoder, all loaded with the page.
     const OWN = ['/', '/app.js', '/style.css', '/favicon.svg', '/fonts/inter/inter.css', '/fonts/inter/InterVariable.woff2', '/src/link-core.js', '/src/rules.js', '/src/row-words.js',
       '/src/domain.js', '/src/psl.js', '/src/qr-inspect.js', '/src/payload-codecs.js', '/src/bip39.js', '/src/wordlists.js', '/src/image-check.js', '/src/qr-worker.js', '/src/worker-lockdown.js', '/src/qr-decode.js',
-      '/vendor/zxing-wasm-3.1.4/es/reader/index.js', '/vendor/zxing-wasm-3.1.4/es/share.js', '/vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js',
+      '/vendor/zxing-wasm-3.1.6/es/reader/index.js', '/vendor/zxing-wasm-3.1.6/es/share.js', '/vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js',
       // Stage 3: the look-alike checks and their two tables.
       '/src/lookalike.js', '/src/confusables.js', '/src/brands.js',
       // Stage 4b: the QR code of the clean link and its encoder, loaded with the page.
@@ -1052,7 +1052,7 @@ try {
       // Stage 5: the first-run notice.
       '/gate.js', '/gate.css'];
     check(`${tag} only the page's own files were requested`, fetched.every((f) => OWN.includes(f) || /^\/switcher-icons\/[a-z]+\.svg$/.test(f)), fetched);
-    check(`${tag} the decoder worker's own files were recorded (its session is watched too)`, fetched.includes('/vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js'), fetched);
+    check(`${tag} the decoder worker's own files were recorded (its session is watched too)`, fetched.includes('/vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js'), fetched);
     const scripted = p.log.requests.filter((r) => ['Fetch', 'XHR', 'EventSource', 'WebSocket', 'Ping'].includes(r.type));
     check(`${tag} no fetch, XHR, beacon or socket`, !scripted.length, scripted);
     await p.shot(`${tag}-6-final`);

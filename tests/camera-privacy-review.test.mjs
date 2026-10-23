@@ -48,7 +48,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { decodeFrame, decodePicture } from '../src/qr-decode.js';
-import { prepareZXingModule } from '../vendor/zxing-wasm-3.1.4/es/reader/index.js';
+import { prepareZXingModule } from '../vendor/zxing-wasm-3.1.6/es/reader/index.js';
 import { frameWith } from './png-pixels.mjs';
 import { CAMERA_STATE, TEXT, cameraStub } from './share-stub.mjs';
 
@@ -64,7 +64,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const LIVE_ZONE_PERMISSIONS = 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), serial=(), bluetooth=(), accelerometer=(), gyroscope=(), magnetometer=(), interest-cohort=(), browsing-topics=(), join-ad-interest-group=(), run-ad-auction=(), private-state-token-redemption=(), private-state-token-issuance=(), attribution-reporting=()';
 
 // The greyscale copy zxing-wasm makes of an RGBA frame before it hands it to the decoder
-// (the formula in vendor/zxing-wasm-3.1.4/es/share.js).
+// (the formula in vendor/zxing-wasm-3.1.6/es/share.js).
 function luminance({ data, width, height }) {
   const out = new Uint8Array(width * height);
   for (let i = 0; i < out.length; i++) {

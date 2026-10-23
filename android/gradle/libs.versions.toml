@@ -1,12 +1,20 @@
 [versions]
 # Pinned deliberately, every one an exact version, and kept the same as the template app's
-# release 0.0.2 (see the CheckLink spec, sections 5 and 7), so both apps move together. A
-# bump is a deliberate, reviewed act: check the release is at least 14 days old.
+# release 0.0.2 (see the CheckLink spec, sections 5 and 7), so both apps move together; webkit
+# is one step ahead since CheckLink 0.0.2 (see its line). A bump is a deliberate, reviewed act.
+# Release-age rule (Marcos, since 2026-10-22, replacing the 14-day rule): stable releases only;
+# a routine update waits until the release is 3 days old; a security fix that reaches this app
+# goes in at once.
 agp = "9.3.1"            # AGP 9.3.x: Gradle 9.5.0, JDK 17 minimum, built-in Kotlin 2.2.10
 activity = "1.13.0"      # the release the template app and UsernameGenerator ship
 coreKtx = "1.19.0"       # the release the template app and UsernameGenerator ship
-webkit = "1.17.0"        # 2026-08-12, as the template app. 1.17.1 (2026-09-23) passed the 14-day rule
-                         # on 2026-10-07; left for the next dependency review of both apps
+webkit = "1.17.1"        # released 2026-09-23, applied 2026-10-22 for CheckLink 0.0.2 (DEP-1). Its
+                         # one change: Kotlin removed from the library, so kotlin-stdlib now comes
+                         # only through core-ktx and activity. The template app, GDPRLetterBuilder
+                         # and EclipseTracker are still on 1.17.0 (checked 2026-10-23) and should
+                         # follow at their next release, so the apps move together. 1.18.0
+                         # (2026-10-21, new APIs, no security fix) is 3 days old from 2026-10-24:
+                         # for the next review
 junit = "4.13.2"
 
 [libraries]

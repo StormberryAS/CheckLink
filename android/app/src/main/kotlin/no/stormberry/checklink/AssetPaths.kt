@@ -27,7 +27,7 @@ object AssetPaths {
         "txt" to "text/plain",
         "json" to "application/json",
         // WebAssembly.instantiateStreaming refuses anything else. CheckLink ships its decoder
-        // as a JavaScript module (vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js), so the APK holds
+        // as a JavaScript module (vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js), so the APK holds
         // no .wasm file today; the type is here so a future one is served correctly.
         "wasm" to "application/wasm",
     )

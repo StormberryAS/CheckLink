@@ -43,7 +43,7 @@ What it does NOT touch, deliberately:
   * tests/ - test files are not published and import the engine without stamps
   * vendor/ and third_party/ - third-party files stay byte for byte as published upstream, or as
     their recorded conversion (tools/vendor.mjs checks them against tools/upstream.lock.json); a
-    vendored package sits in a folder named with its version (vendor/zxing-wasm-3.1.4/), or with
+    vendored package sits in a folder named with its version (vendor/zxing-wasm-3.1.6/), or with
     the commit it is pinned to (vendor/qrcodegen-8329a71/), so a new version is a new address
 
 Usage:  python3 bump_assets.py [--check]

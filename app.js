@@ -1573,7 +1573,7 @@ function makeWorker() {
   let resolveReady = () => {};
   w.ready = new Promise((r) => { resolveReady = r; });
   try {
-    const worker = new Worker(new URL('./src/qr-worker.js?v=9c788617', import.meta.url), { type: 'module' });
+    const worker = new Worker(new URL('./src/qr-worker.js?v=e34f7e04', import.meta.url), { type: 'module' });
     worker.addEventListener('message', (ev) => {
       const msg = ev.data || {};
       if (msg.type === 'ready') {

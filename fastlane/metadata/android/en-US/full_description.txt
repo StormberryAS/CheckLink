@@ -22,4 +22,4 @@ The app runs CheckLink's web page from inside the APK, offline. The build checks
 
 The privacy page and the full disclaimer open from the app's footer.
 
-This is a functioning prototype from Stormberry AS, MIT licensed, and 0.0.1 is its first, early release.
+This is a functioning prototype from Stormberry AS, MIT licensed, so expect gaps and changes.

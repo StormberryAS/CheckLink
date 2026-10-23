@@ -374,10 +374,10 @@ test('repository-only files stay out of the APK and off the website, and the web
     assert.ok(excludes.includes(f), `${f} is not in APK_EXCLUDES`);
   }
   const includes = gradle.match(/val INCLUDES = listOf\(([\s\S]*?)\)/)[1];
-  assert.ok(!/README|DISCLAIMER\.md|zapstore|fastlane|og-image|\*\.png|\*\.md|\*\.yaml/.test(includes), 'the include list must not reach a repository-only file');
+  assert.ok(!/README|CHANGELOG|DISCLAIMER\.md|zapstore|fastlane|og-image|\*\.png|\*\.md|\*\.yaml/.test(includes), 'the include list must not reach a repository-only file');
   const config = read('_config.yml').replace(/#[^\n]*/g, '');
   const ex = [...config.matchAll(/^ {2}- (\S+)$/gm)].map((m) => m[1]);
-  for (const f of ['README.md', 'DISCLAIMER.md', 'LICENSE', 'NOTICE', 'fastlane/', 'zapstore.yaml', 'android/', 'tests/', 'tools/',
+  for (const f of ['README.md', 'CHANGELOG.md', 'DISCLAIMER.md', 'LICENSE', 'NOTICE', 'fastlane/', 'zapstore.yaml', 'android/', 'tests/', 'tools/',
     'package.json', 'package-lock.json', 'node_modules/', 'jsconfig.json', 'jsconfig.worker.json', 'types/']) assert.ok(ex.includes(f), `_config.yml does not exclude ${f}`);
   for (const f of ['privacy.html', 'disclaimer.html', 'disclaimer.css', 'gate.js', 'gate.css', 'og-image.png', 'favicon.svg']) assert.ok(!ex.some((e) => f === e || f.startsWith(e)), `_config.yml must not exclude ${f}`);
 });
@@ -388,13 +388,13 @@ test('README.md: the release certificate, the real asset name, how to verify, th
   const md = read('README.md');
   const wf = read('.github/workflows/android-release.yml');
   const version = read('android/app/build.gradle.kts').match(/versionName = "([^"]+)"/)[1];
-  // The workflow names the asset checklink-<tag without "android-">.apk, so android-v0.0.1 gives checklink-v0.0.1.apk.
+  // The workflow names the asset checklink-<tag without "android-">.apk, so android-v0.0.2 gives checklink-v0.0.2.apk.
   assert.ok(wf.includes('VERSION="${GITHUB_REF_NAME#android-}"') && wf.includes('"checklink-${VERSION}.apk"'));
   const asset = `checklink-v${version}.apk`;
-  assert.equal(asset, 'checklink-v0.0.1.apk');
+  assert.equal(asset, 'checklink-v0.0.2.apk');
   assert.ok(md.includes(`**Signing certificate SHA-256:** \`${CERT}\``));
   assert.ok(wf.includes(`EXPECTED_CERT=${CERT}`));
-  for (const line of [`gh attestation verify ${asset} -R StormberryAS/CheckLink`, `apksigner verify --print-certs ${asset}`, `sha256sum -c ${asset}.sha256`, `aapt dump permissions ${asset}`, 'git checkout android-v0.0.1']) {
+  for (const line of [`gh attestation verify ${asset} -R StormberryAS/CheckLink`, `apksigner verify --print-certs ${asset}`, `sha256sum -c ${asset}.sha256`, `aapt dump permissions ${asset}`, 'git checkout android-v0.0.2']) {
     assert.ok(md.includes(line), line);
   }
   const perms = read('android/expected-permissions.txt').trim().split('\n').map((l) => `# ${l}`).join('\n');
@@ -417,7 +417,7 @@ test('README.md: the JIT-1 and WST-1 lines, and no claim that a website is live'
 });
 
 test('the new public files follow the writing rules: no em or en dashes, and no double hyphen used as a dash', () => {
-  const files = ['README.md', 'DISCLAIMER.md', 'privacy.html', 'gate.js', 'disclaimer.html', 'android/tools/make_icons.py', 'android/tools/build-store-icon.py', 'android/tools/apk-without-signature.py', 'tests/legal-pages.mjs', 'tests/stage5-release.test.mjs'];
+  const files = ['README.md', 'CHANGELOG.md', 'DISCLAIMER.md', 'privacy.html', 'gate.js', 'disclaimer.html', 'android/tools/make_icons.py', 'android/tools/build-store-icon.py', 'android/tools/apk-without-signature.py', 'tests/legal-pages.mjs', 'tests/stage5-release.test.mjs'];
   for (const f of files) {
     const text = read(f).replace(/<!--|-->/g, '').replace(/^---$/m, '');
     assert.ok(!/[\u2013\u2014]/.test(text), `${f} has an em or en dash`);
@@ -437,10 +437,32 @@ test('the store texts: the JIT-1 line in the Zapstore description too, zapstore.
   const desc = yaml.slice(start, yaml.indexOf('\ntags:\n'));
   const norm = (t) => t.replace(/\s+/g, ' ').trim();
   assert.equal(norm(desc), norm(fd), 'zapstore.yaml\'s description is full_description.txt, rewrapped');
-  for (const f of ['title.txt', 'short_description.txt', 'full_description.txt', 'changelogs/1.txt']) {
+  for (const f of ['title.txt', 'short_description.txt', 'full_description.txt', 'changelogs/1.txt', 'changelogs/2.txt']) {
     const t = norm(read(`fastlane/metadata/android/en-US/${f}`));
     assert.deepEqual(copyProblems(t), [], f);
     assert.ok(!/safer QR scanner|check\.stormberry\.as/i.test(t), f);
+  }
+});
+
+test('the release note rule: one note per versionCode, this release only, under 500 characters, ending with the link to the full log in CHANGELOG.md', () => {
+  const gradle = read('android/app/build.gradle.kts');
+  const code = gradle.match(/versionCode = (\d+)/)[1];
+  const name = gradle.match(/versionName = "([^"]+)"/)[1];
+  const note = read(`fastlane/metadata/android/en-US/changelogs/${code}.txt`).trim();
+  assert.ok([...note].length < 500, `changelogs/${code}.txt is ${[...note].length} characters, not under 500`);
+  assert.ok(note.startsWith(`${name} `), `the note for code ${code} must open with the version ${name}`);
+  assert.ok(note.endsWith('Full release log: https://github.com/StormberryAS/CheckLink/blob/main/CHANGELOG.md'), 'the note ends with the link to the full release log');
+  // A note describes its own release; the long-lived descriptions below never describe a version.
+  assert.ok(!/first release|first, early/i.test(note), 'a note is not a first-release text after the first release');
+  assert.ok(read('zapstore.yaml').includes(`release_notes: ./fastlane/metadata/android/en-US/changelogs/${code}.txt`), 'zapstore.yaml names this release\'s note');
+  const log = read('CHANGELOG.md');
+  const versions = [...log.matchAll(/^## (\d+\.\d+\.\d+) \(versionCode (\d+)\)/gm)].map((m) => [m[1], m[2]]);
+  assert.deepEqual(versions[0], [name, code], 'CHANGELOG.md lists this release first');
+  for (let c = 1; c <= Number(code); c += 1) assert.ok(existsSync(join(ROOT, `fastlane/metadata/android/en-US/changelogs/${c}.txt`)), `changelogs/${c}.txt`);
+  assert.equal(versions.length, Number(code), 'CHANGELOG.md has one entry per released versionCode');
+  // The long-lived descriptions describe the app, never one version.
+  for (const f of ['README.md', 'fastlane/metadata/android/en-US/full_description.txt', 'fastlane/metadata/android/en-US/short_description.txt', 'zapstore.yaml']) {
+    assert.ok(!/\bfirst (early )?release\b|\b0\.0\.1 is\b/i.test(read(f)), `${f} describes a version`);
   }
 });
 

@@ -37,6 +37,10 @@
 # bundles the web files from this root at build time; nothing in those folders is part of the
 # website. (.github/ needs no entry: Jekyll never publishes dot folders.)
 #
+# CHANGELOG.md (2026-10-23) is the full release log the store notes link to on GitHub. It is a
+# repository document like README.md, so it is excluded here, and the APK's include list never
+# reaches it.
+#
 # Type checking (2026-10-16): package.json, package-lock.json and node_modules/ hold the
 # TypeScript compiler, which only checks the JavaScript and writes nothing; jsconfig.json and
 # jsconfig.worker.json configure it, and types/ holds its declaration files. None of them is
@@ -45,6 +49,7 @@ exclude:
   - LICENSE
   - NOTICE
   - README.md
+  - CHANGELOG.md
   - DISCLAIMER.md
   - bump_assets.py
   - rules/

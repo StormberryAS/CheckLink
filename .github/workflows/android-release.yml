@@ -66,7 +66,8 @@ jobs:
     # here: it installs an init script into every later Gradle run. To update a pin, resolve
     # the new release with
     #   git ls-remote https://github.com/<owner>/<repo>.git 'refs/tags/<tag>*'
-    # and take the ^{} line for an annotated tag. A new release must be at least 14 days old.
+    # and take the ^{} line for an annotated tag. Only a stable release, and only once it is 3 days
+    # old, unless it fixes a security problem that reaches this workflow (rule since 2026-10-22).
     steps:
       # No credentials are left in .git/config for the build to find. Only HEAD is needed (the
       # release check compares the bundled web files with the committed ones), so no history.
@@ -246,8 +247,8 @@ jobs:
                    web/src/link-core.js web/src/rules.js web/src/psl.js web/src/qr-inspect.js \
                    web/src/qr-worker.js web/src/qr-decode.js web/src/worker-lockdown.js \
                    web/src/qr-make.js web/vendor/qrcodegen-8329a71/qrcodegen.js \
-                   web/vendor/zxing-wasm-3.1.4/es/reader/index.js web/vendor/zxing-wasm-3.1.4/es/share.js \
-                   web/vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js web/fonts/inter/inter.css \
+                   web/vendor/zxing-wasm-3.1.6/es/reader/index.js web/vendor/zxing-wasm-3.1.6/es/share.js \
+                   web/vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js web/fonts/inter/inter.css \
                    licences/Apache-2.0.txt licences/CheckLink-MIT.txt licences/THIRD-PARTY.txt; do
             unzip -l "$APK" "assets/$f" > /dev/null || { echo "::error::assets/$f missing from the APK"; exit 1; }
           done

@@ -1,9 +1,9 @@
-// Hand-written declarations for the parts of the vendored zxing-wasm 3.1.4 reader that
+// Hand-written declarations for the parts of the vendored zxing-wasm 3.1.6 reader that
 // src/qr-decode.js uses. Type checking only: never served, never bundled. The vendored files
 // themselves are not type-checked (the configurations use noResolve, so the compiler never reads
-// vendor/). Checked against vendor/zxing-wasm-3.1.4/es/reader/index.js and es/share.js.
+// vendor/). Checked against vendor/zxing-wasm-3.1.6/es/reader/index.js and es/share.js.
 
-declare module '*/vendor/zxing-wasm-3.1.4/es/reader/index.js' {
+declare module '*/vendor/zxing-wasm-3.1.6/es/reader/index.js' {
   /** The Emscripten module, as far as qr-decode.js reaches into it to clear freed memory. */
   export interface ZXingModule {
     _malloc(size: number): number;
@@ -70,7 +70,7 @@ declare module '*/vendor/zxing-wasm-3.1.4/es/reader/index.js' {
   export function readBarcodes(input: Uint8Array | Blob | PixelsInput, options?: ReaderOptions): Promise<ReadResult[]>;
 }
 
-declare module '*/vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js' {
+declare module '*/vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js' {
   /** The decoder's WebAssembly, base64 encoded. */
   const WASM_BASE64: string;
   export default WASM_BASE64;

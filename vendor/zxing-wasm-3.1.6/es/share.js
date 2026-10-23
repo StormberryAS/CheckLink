@@ -565,7 +565,8 @@ var B = {
 	addQuietZones: !0,
 	options: ""
 };
-function V(e = B) {
+function V() {
+	let e = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : B;
 	var t, n;
 	let { format: r = B.format, sizeHint: i = B.sizeHint, readerInit: a = B.readerInit, forceSquareDataMatrix: o = B.forceSquareDataMatrix, ecLevel: s = B.ecLevel, withHRT: c, withQuietZones: l, addHRT: u, addQuietZones: d, options: f = B.options, scale: p, rotate: m = B.rotate, invert: h = B.invert } = e, g = f.split(",").map((e) => e.trim()).filter(Boolean), _ = (e) => {
 		let t = e.split("=")[0];
@@ -584,74 +585,84 @@ function V(e = B) {
 	};
 }
 //#endregion
-//#region src/share.ts
-var H = "3.1.4", U = "0b2d9a8fc81f420f369928c24331091ff0525976", W = { locateFile: (e, t) => {
-	let n = e.match(/_(.+?)\.wasm$/);
-	return n ? `https://fastly.jsdelivr.net/npm/zxing-wasm@3.1.4/dist/${n[1]}/${e}` : t + e;
-} }, G = /* @__PURE__ */ new WeakMap();
-function K(e, t) {
-	return Object.is(e, t) || Object.keys(e).length === Object.keys(t).length && Object.keys(e).every((n) => Object.hasOwn(t, n) && e[n] === t[n]);
-}
-function q(e, { overrides: t, equalityFn: n = K, fireImmediately: r = !1 } = {}) {
-	var i, a;
-	let [o, s] = (i = G.get(e)) == null ? [W] : i, c = t == null ? o : t, l;
-	if (r) {
-		if (s && (l = n(o, c))) return s;
-		let t = e({ ...c });
-		return G.set(e, [c, t]), t;
+//#region src/grayscale.ts
+function H(e, t) {
+	let n = e.byteLength >> 2;
+	for (let r = 0; r < n; r += 1024) {
+		let i = Math.min(r + 1024, n);
+		for (let n = r; n < i; n++) {
+			let r = n << 2;
+			t[n] = 306 * e[r] + 601 * e[r + 1] + 117 * e[r + 2] + 512 >> 10;
+		}
 	}
-	((a = l) == null ? n(o, c) : a) || G.set(e, [c]);
+}
+//#endregion
+//#region src/share.ts
+var U = "3.1.6", W = "2c3dcfeffa7878950a58c1703c86774a428b0c91", G = { locateFile: (e, t) => {
+	let n = e.match(/_(.+?)\.wasm$/);
+	return n ? `https://fastly.jsdelivr.net/npm/zxing-wasm@3.1.6/dist/${n[1]}/${e}` : t + e;
+} }, K = /* @__PURE__ */ new WeakMap();
+function q(e, t) {
+	return Object.is(e, t) || Object.keys(e).length === Object.keys(t).length && Object.keys(e).every((n) => Object.prototype.hasOwnProperty.call(t, n) && e[n] === t[n]);
 }
 function J(e) {
-	G.delete(e);
+	let { overrides: t, equalityFn: n = q, fireImmediately: r = !1 } = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
+	var i;
+	let [a, o] = (i = K.get(e)) == null ? [G] : i, s = t == null ? a : t, c;
+	if (r) {
+		if (o && (c = n(a, s))) return o;
+		let t = e({ ...s });
+		return K.set(e, [s, t]), t;
+	}
+	(c == null ? n(a, s) : c) || K.set(e, [s]);
 }
 function Y(e) {
-	let t = e.byteLength >> 2, n = new Uint8Array(t);
-	for (let r = 0; r < t; r++) {
-		let t = r << 2;
-		n[r] = 306 * e[t] + 601 * e[t + 1] + 117 * e[t + 2] + 512 >> 10;
-	}
-	return n;
+	K.delete(e);
 }
-async function X(e, t, n = I) {
-	let r = {
+async function X(e, t) {
+	let n = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : I, r = {
 		...I,
 		...n
-	}, i = await q(e, { fireImmediately: !0 }), a, o;
+	}, i = await J(e, { fireImmediately: !0 }), a, o = L(r);
 	if ("width" in t && "height" in t && "data" in t) {
-		let { data: e, width: n, height: s } = t, c = Y(e), l = c.byteLength;
-		if (o = i._malloc(l), !o) throw Error(`Failed to allocate ${l} bytes in WASM memory`);
+		let { width: e, height: n } = t, r = t.data.buffer === i.HEAPU8.buffer ? t.data.slice() : t.data, s = r.byteLength / 4, c = i._malloc(s);
+		if (!c) throw Error(`Failed to allocate ${s} bytes in WASM memory`);
 		try {
-			i.HEAPU8.set(c, o), a = i.readBarcodesFromPixmap(o, n, s, L(r));
+			H(r, i.HEAPU8.subarray(c, c + s)), a = i.readBarcodesFromPixmap(c, e, n, o);
 		} finally {
-			i._free(o);
+			i._free(c);
 		}
 	} else {
-		let e, n;
-		if ("buffer" in t) [e, n] = [t.byteLength, t];
-		else if ("byteLength" in t) [e, n] = [t.byteLength, new Uint8Array(t)];
-		else if ("size" in t) [e, n] = [t.size, new Uint8Array(await t.arrayBuffer())];
+		let e;
+		if ("buffer" in t) e = t;
+		else if ("byteLength" in t) e = new Uint8Array(t);
+		else if ("size" in t) e = new Uint8Array(await t.arrayBuffer());
 		else throw TypeError("Invalid input type");
-		if (o = i._malloc(e), !o) throw Error(`Failed to allocate ${e} bytes in WASM memory`);
+		let n = i._malloc(e.byteLength);
+		if (!n) throw Error(`Failed to allocate ${e.byteLength} bytes in WASM memory`);
 		try {
-			i.HEAPU8.set(n, o), a = i.readBarcodesFromImage(o, e, L(r));
+			i.HEAPU8.set(e, n), a = i.readBarcodesFromImage(n, e.byteLength, o);
 		} finally {
-			i._free(o);
+			i._free(n);
 		}
 	}
-	let s = [];
-	for (let e = 0; e < a.size(); ++e) s.push(R(a.get(e)));
-	return s;
-}
-async function Z(e, t, n = B) {
-	let r = V(n), i = await q(e, { fireImmediately: !0 });
-	if (typeof t == "string") return z(i.writeBarcodeFromText(t, r));
-	let { byteLength: a } = t, o = i._malloc(a);
-	if (!o) throw Error(`Failed to allocate ${a} bytes in WASM memory`);
 	try {
-		return i.HEAPU8.set(t, o), z(i.writeBarcodeFromBytes(o, a, r));
+		let e = [], t = a.size();
+		for (let n = 0; n < t; ++n) e.push(R(a.get(n)));
+		return e;
 	} finally {
-		i._free(o);
+		a.delete();
+	}
+}
+async function Z(e, t) {
+	let n = V(arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : B), r = await J(e, { fireImmediately: !0 });
+	if (typeof t == "string") return z(r.writeBarcodeFromText(t, n));
+	let { byteLength: i } = t, a = r._malloc(i);
+	if (!a) throw Error(`Failed to allocate ${i} bytes in WASM memory`);
+	try {
+		return r.HEAPU8.set(t, a), z(r.writeBarcodeFromBytes(a, i, n));
+	} finally {
+		r._free(a);
 	}
 }
 //#endregion
@@ -661,4 +672,4 @@ var Q = {
 	formats: [...I.formats]
 }, $ = { ...B };
 //#endregion
-export { a as A, f as C, l as D, s as E, c as F, u as I, g as L, b as M, v as N, d as O, _ as P, o as S, h as T, x as _, q as a, n as b, Z as c, A as d, j as f, T as g, w as h, H as i, y as j, m as k, N as l, O as m, Q as n, J as o, D as p, U as r, X as s, $ as t, P as u, S as v, p as w, r as x, i as y };
+export { a as A, f as C, l as D, s as E, c as F, u as I, g as L, b as M, v as N, d as O, _ as P, o as S, h as T, x as _, J as a, n as b, Z as c, A as d, j as f, T as g, w as h, U as i, y as j, m as k, N as l, O as m, Q as n, Y as o, D as p, W as r, X as s, $ as t, P as u, S as v, p as w, r as x, i as y };

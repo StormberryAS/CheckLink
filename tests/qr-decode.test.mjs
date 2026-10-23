@@ -1,4 +1,4 @@
-// Stage 2: the vendored decoder (zxing-wasm 3.1.4) run in Node on real pictures made with
+// Stage 2: the vendored decoder (zxing-wasm 3.1.6) run in Node on real pictures made with
 // qrencode and ImageMagick (tests/fixtures/make-fixtures.sh), the picture header reader, and
 // broken, hostile and oversized files. The browser runs the same src/qr-decode.js in its worker.
 
@@ -27,15 +27,15 @@ const fails = async (bytes, code) => {
 
 describe('the vendored decoder', () => {
   test('the shipped wasm module is the pinned zxing_reader.wasm, byte for byte', () => {
-    const src = readFileSync(new URL('../vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js', import.meta.url), 'utf8');
+    const src = readFileSync(new URL('../vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js', import.meta.url), 'utf8');
     const b64 = /^export default '([A-Za-z0-9+/=]+)';$/m.exec(src)[1];
     const wasm = Buffer.from(b64, 'base64');
-    assert.equal(wasm.length, 953527);
-    assert.equal(createHash('sha256').update(wasm).digest('hex'), 'e8af31edb56d0522f4de74495839385ef019ba8bc90d38e5ecb2f18795d86fb2');
+    assert.equal(wasm.length, 946860);
+    assert.equal(createHash('sha256').update(wasm).digest('hex'), '5003fb4b88c4fbd1fd518a2fd8c8ad365c519e183a08c03a322dddfea3cea84e');
     const lock = JSON.parse(readFileSync(new URL('../tools/upstream.lock.json', import.meta.url), 'utf8'));
     const z = lock.vendored.find((v) => v.id === 'zxing-wasm');
-    assert.equal(z.version, '3.1.4');
-    assert.equal(z.integrity, 'sha512-1+v8p7sauddySVNG+ye7GD/0TS95BG2ycdkrC+EnBrFBFkHeIghzUt2yVjtx3NucJeNrQnhT8yGAIz60Vx9o0w==');
+    assert.equal(z.version, '3.1.6');
+    assert.equal(z.integrity, 'sha512-mU7UNuvl+hOT+nlSOQTMHZ2tM8lRMsbjDIp5IO/+HmBl/FOq77q0OSZPJ3cm42A9c1MKU6Uve67FiGdkhsrT9g==');
   });
   test('WebAssembly is allowed here, and the decoder reads every format it was asked for', () => {
     assert.equal(wasmAllowed(), true);

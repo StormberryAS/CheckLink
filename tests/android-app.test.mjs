@@ -116,7 +116,7 @@ test('names: CheckLink everywhere, nothing left of the template', () => {
   }
   assert.match(read('android/app/build.gradle.kts'), /namespace = "no\.stormberry\.checklink"/);
   assert.match(read('android/app/build.gradle.kts'), /applicationId = "no\.stormberry\.checklink"/);
-  assert.match(read('android/app/build.gradle.kts'), /versionCode = 1\s+versionName = "0\.0\.1"/);
+  assert.match(read('android/app/build.gradle.kts'), /versionCode = 2\s+versionName = "0\.0\.2"/);
   assert.match(read('android/app/build.gradle.kts'), /minSdk = 24\s+targetSdk = 36/);
   assert.match(read('android/app/src/main/res/values/themes.xml'), /name="Theme\.CheckLink"/);
 });
@@ -444,7 +444,8 @@ test('SEC-6: the release workflow builds unsigned without secrets and signs in a
   assert.match(wf, /4\. In the release environment, "Required reviewers"/);
   assert.match(wf, /5\. Rules, Rulesets, New tag ruleset, for tags matching android-v\*/);
   assert.ok(release.indexOf('attest-build-provenance') < release.indexOf('gh release create'));
-  // Every action is pinned to a full commit, and the artifact actions are the 14-day-old releases.
+  // Every action is pinned to a full commit, and the artifact actions are the releases that had
+  // passed the release-age rule when they were pinned.
   const uses = [...code.matchAll(/uses: ([^\s]+)/g)].map((m) => m[1]);
   assert.deepEqual(uses.map((u) => u.split('@')[0]), ['actions/checkout', 'actions/setup-java', 'gradle/actions/setup-gradle', 'actions/upload-artifact',
     'actions/checkout', 'actions/setup-java', 'actions/download-artifact', 'actions/attest-build-provenance']);

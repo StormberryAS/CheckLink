@@ -1,7 +1,7 @@
 // Reads the QR codes and barcodes in one picture with the vendored zxing-wasm decoder. Used by
 // the decoder worker (src/qr-worker.js) in the browser and by the tests in Node. It never makes
 // a network request: the decoder's WebAssembly comes from a module on the page's own site
-// (vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js) and is handed over as wasmBinary, and
+// (vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js) and is handed over as wasmBinary, and
 // locateFile is replaced, so the decoder's default address (a CDN) is never used.
 //
 //   decodePicture(bytes, { mime, createBitmap })  ->  { image, codes }
@@ -23,11 +23,11 @@
 //                  'wasm-unsafe-eval', iOS Lockdown Mode or Tor Browser's Safer level say no)
 //   LIMITS
 
-import { prepareZXingModule, readBarcodes } from '../vendor/zxing-wasm-3.1.4/es/reader/index.js';
-import WASM_BASE64 from '../vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js';
+import { prepareZXingModule, readBarcodes } from '../vendor/zxing-wasm-3.1.6/es/reader/index.js';
+import WASM_BASE64 from '../vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js';
 import { DECODES_DIRECTLY, sniffImage } from './image-check.js?v=8ceb003a';
 
-/** @import { ReadResult, ZXingPosition } from '../vendor/zxing-wasm-3.1.4/es/reader/index.js' */
+/** @import { ReadResult, ZXingPosition } from '../vendor/zxing-wasm-3.1.6/es/reader/index.js' */
 /** @typedef {import('./image-check.js').ImageInfo} ImageInfo */
 /** @typedef {'not-image' | 'too-large' | 'too-many-pixels' | 'unsupported' | 'no-wasm' | 'failed'} DecodeCode */
 /**

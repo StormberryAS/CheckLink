@@ -13,7 +13,7 @@
 //   worker -> page  { type: 'error', id, code, detail }     code as in src/qr-decode.js
 
 import './worker-lockdown.js?v=dd7a164b';
-import { DecodeError, decodeFrame, decodePicture, wasmAllowed } from './qr-decode.js?v=33d581a1';
+import { DecodeError, decodeFrame, decodePicture, wasmAllowed } from './qr-decode.js?v=a660a3d5';
 
 /**
  * A message from the page.

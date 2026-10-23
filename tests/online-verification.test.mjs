@@ -194,15 +194,17 @@ describe('tools/upstream.lock.json', () => {
     }
   });
 
-  test('zxing-wasm carries an npm sha512 integrity for the shipped version and for the next one, and the lock names no local or temporary path', () => {
+  test('zxing-wasm carries an npm sha512 integrity for the shipped version, records that no newer one was waiting, and the lock names no local or temporary path', () => {
     const z = LOCK.vendored.find((v) => v.id === 'zxing-wasm');
-    for (const c of [z, z.next_candidate]) {
-      assert.match(c.integrity, /^sha512-[A-Za-z0-9+/]{86}==$/, c.version);
-      assert.equal(c.tarball, `https://registry.npmjs.org/zxing-wasm/-/zxing-wasm-${c.version}.tgz`);
+    assert.match(z.integrity, /^sha512-[A-Za-z0-9+/]{86}==$/, z.version);
+    assert.equal(z.tarball, `https://registry.npmjs.org/zxing-wasm/-/zxing-wasm-${z.version}.tgz`);
+    assert.equal(z.version, '3.1.6');
+    // 3.1.6 was npm's latest when it was vendored (2026-10-22), so there is no next candidate to record.
+    assert.equal(z.next_candidate, null);
+    assert.match(z.next_candidate_checked, /^2026-10-22: 3\.1\.6 is npm's latest/);
+    for (const old of ['3.1.4', '3.1.5']) {
+      assert.equal(existsSync(new URL(`vendor/zxing-wasm-${old}/`, root)), false, `${old} was replaced, not kept beside 3.1.6`);
     }
-    assert.equal(z.version, '3.1.4');
-    assert.equal(z.next_candidate.version, '3.1.5');
-    assert.equal(existsSync(new URL('vendor/zxing-wasm-3.1.5/', root)), false, '3.1.5 is recorded, not shipped');
     assert.doesNotMatch(JSON.stringify(LOCK), /\/tmp\/|scratchpad|\/home\/|\/mnt\//);
   });
 

@@ -23,7 +23,7 @@
 
     Stage 2 added two things to it, and nothing else:
       * 'wasm-unsafe-eval' in script-src, so the QR decoder (zxing-wasm,
-        vendored in vendor/zxing-wasm-3.1.4/) can compile its WebAssembly.
+        vendored in vendor/zxing-wasm-3.1.6/) can compile its WebAssembly.
         It allows WebAssembly only, not eval() or new Function().
       * worker-src 'self', so the decoder runs in a Web Worker started
         from this site's own src/qr-worker.js.
@@ -581,6 +581,6 @@
     </div>
   </footer>
 
-  <script type="module" src="app.js?v=d8b1f56d"></script>
+  <script type="module" src="app.js?v=a18fcdf6"></script>
 </body>
 </html>

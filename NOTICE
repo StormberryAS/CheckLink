@@ -26,29 +26,31 @@ ship in licences/, which is.
 
 -------------------
 
-zxing-wasm 3.1.4 (vendor/zxing-wasm-3.1.4/)
+zxing-wasm 3.1.6 (vendor/zxing-wasm-3.1.6/)
   What:      the QR code and barcode decoder: zxing-cpp compiled to
              WebAssembly, reader build only. Runs in a Web Worker
              (src/qr-worker.js); pictures never leave the device.
   Author:    Ze-Zheng Wu (zxing-wasm)
-  Source:    https://github.com/Sec-ant/zxing-wasm, tag v3.1.4
-             (commit ba54ad0bba3f2e230c0f0a503d8d71065ef39c30), built from
-             zxing-cpp commit 0b2d9a8fc81f420f369928c24331091ff0525976
-  Package:   https://registry.npmjs.org/zxing-wasm/-/zxing-wasm-3.1.4.tgz
-  Integrity: sha512-1+v8p7sauddySVNG+ye7GD/0TS95BG2ycdkrC+EnBrFBFkHeIghzUt2yVjtx3NucJeNrQnhT8yGAIz60Vx9o0w==
+  Source:    https://github.com/Sec-ant/zxing-wasm, tag v3.1.6
+             (commit 354547ec9c1c1816d666fe0a6e2695f75a4cdc89), built from
+             zxing-cpp commit 2c3dcfeffa7878950a58c1703c86774a428b0c91
+  Package:   https://registry.npmjs.org/zxing-wasm/-/zxing-wasm-3.1.6.tgz
+  Integrity: sha512-mU7UNuvl+hOT+nlSOQTMHZ2tM8lRMsbjDIp5IO/+HmBl/FOq77q0OSZPJ3cm42A9c1MKU6Uve67FiGdkhsrT9g==
              (the tarball was downloaded and checked against the registry
-             on 11 October 2026; sha256 of the tarball
-             2416232a155533bdcfa098a22ec9087734b34640ffa2a7add90bc36e145f6da0)
+             on 22 October 2026; sha256 of the tarball
+             188321a7680275ce7ab73c7c13fac9f6c4181b5da7ed65af64ba34d1fd416ea5)
   Files:     es/reader/index.js, es/share.js and LICENSE are the package's
              dist/es/reader/index.js, dist/es/share.js and LICENSE,
              unchanged. zxing_reader.wasm.js is the package's
-             dist/reader/zxing_reader.wasm (953,527 bytes, sha256
-             e8af31edb56d0522f4de74495839385ef019ba8bc90d38e5ecb2f18795d86fb2)
+             dist/reader/zxing_reader.wasm (946,860 bytes, sha256
+             5003fb4b88c4fbd1fd518a2fd8c8ad365c519e183a08c03a322dddfea3cea84e)
              written as base64 in a JavaScript module, so the page never
              needs a network fetch; it decodes back to those exact bytes.
-  Version:   3.1.4 is the newest release that meets the 14-day age rule on
-             11 October 2026. 3.1.5 (6 October 2026, with upstream decoding
-             and security fixes) meets it from 20 October 2026.
+  Version:   3.1.6 (19 October 2026: an out-of-bounds memory fix, memory
+             leak fixes, Emscripten 6.0.12) replaced 3.1.4 on 22 October
+             2026, for CheckLink 0.0.2, once it was 3 days old (the
+             release-age rule since 22 October 2026: stable releases only,
+             routine updates wait 3 days, security fixes go in at once).
   Licences:  The wrapper and its JavaScript: MIT (licences/zxing-wasm-MIT.txt).
              Compiled into the .wasm:
                zxing-cpp and the zxing-wasm C++ binding: Apache-2.0

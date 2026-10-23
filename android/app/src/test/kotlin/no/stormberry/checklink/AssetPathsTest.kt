@@ -10,7 +10,7 @@ class AssetPathsTest {
         assertEquals("web/index.html", AssetPaths.resolve(""))
         assertEquals("web/index.html", AssetPaths.resolve("index.html"))
         assertEquals("web/src/qr-worker.js", AssetPaths.resolve("src/qr-worker.js"))
-        assertEquals("web/vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js", AssetPaths.resolve("vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js"))
+        assertEquals("web/vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js", AssetPaths.resolve("vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js"))
         assertEquals("web/switcher-icons/check.svg", AssetPaths.resolve("switcher-icons/check.svg"))
         assertEquals("web/licences/zxing-wasm-MIT.txt", AssetPaths.resolve("licences/zxing-wasm-MIT.txt"))
         assertEquals("web/fonts/inter/index.html", AssetPaths.resolve("fonts/inter/"))
@@ -31,7 +31,7 @@ class AssetPathsTest {
 
     @Test fun onlyKnownTypesAreServed() {
         assertNull(AssetPaths.resolve("dexopt/baseline.prof"))
-        assertNull(AssetPaths.resolve("vendor/zxing-wasm-3.1.4/LICENSE"))
+        assertNull(AssetPaths.resolve("vendor/zxing-wasm-3.1.6/LICENSE"))
         assertNull(AssetPaths.resolve("README"))
         assertNull(AssetPaths.resolve("tools/vendor.mjs.bak"))
     }

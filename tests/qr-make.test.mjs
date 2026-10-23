@@ -88,7 +88,7 @@ describe('the vendored encoder: Nayuki’s QR Code generator', () => {
     assert.equal(blob, entry.git_blob);
   });
 
-  test('the pin is an exact commit, said plainly to be untagged, past the 14-day rule', () => {
+  test('the pin is an exact commit, said plainly to be untagged, past the release-age rule (14 days when it was pinned on 2026-10-11, stricter than today\'s 3 days)', () => {
     assert.match(entry.commit, /^[0-9a-f]{40}$/);
     assert.equal(entry.commit, '8329a7108fc22be3e1eec0a9f9318978579e3621');
     assert.ok(entry.source.includes(entry.commit));

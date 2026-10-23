@@ -588,7 +588,7 @@ const published = (url) => {
   if (u.pathname === '/cdn-cgi/speculation') return true;
   const rel = decodeURIComponent(u.pathname).replace(/^\//, '') || 'index.html';
   const file = join(ROOT, rel.endsWith('/') ? `${rel}index.html` : rel);
-  return file.startsWith(ROOT) && existsSync(file) && statSync(file).isFile() && !/^(tests|rules|tools|third_party|README|LICENSE|NOTICE|bump_assets|_config)/.test(rel);
+  return file.startsWith(ROOT) && existsSync(file) && statSync(file).isFile() && !/^(tests|rules|tools|third_party|README|LICENSE|NOTICE|CHANGELOG|bump_assets|_config)/.test(rel);
 };
 
 // No attribute anywhere on the page may carry an analysed link or its clean form. The one
@@ -1649,7 +1649,7 @@ try {
   currentFlow = 'published files';
   console.log('\n# published files');
   const want200 = ['/', '/app.js', '/style.css', '/favicon.svg', '/src/link-core.js', '/src/rules.js', '/src/row-words.js', '/fonts/inter/inter.css', '/robots.txt',
-    '/src/domain.js', '/src/psl.js', '/src/qr-inspect.js', '/src/qr-worker.js', '/src/qr-decode.js', '/src/worker-lockdown.js', '/vendor/zxing-wasm-3.1.4/es/reader/index.js', '/vendor/zxing-wasm-3.1.4/zxing_reader.wasm.js', '/licences/zxing-wasm-MIT.txt', '/licences/Public-Suffix-List-MPL-2.0.txt',
+    '/src/domain.js', '/src/psl.js', '/src/qr-inspect.js', '/src/qr-worker.js', '/src/qr-decode.js', '/src/worker-lockdown.js', '/vendor/zxing-wasm-3.1.6/es/reader/index.js', '/vendor/zxing-wasm-3.1.6/zxing_reader.wasm.js', '/licences/zxing-wasm-MIT.txt', '/licences/Public-Suffix-List-MPL-2.0.txt',
     '/src/wordlists.js', '/licences/Monero-BSD-3-Clause.txt', '/licences/SLIP-0039-wordlist-MIT.txt', '/licences/Inter-OFL-1.1.txt',
     '/src/lookalike.js', '/src/confusables.js', '/src/brands.js', '/licences/Unicode-3.0.txt',
     '/src/qr-make.js', '/vendor/qrcodegen-8329a71/qrcodegen.js', '/licences/QR-Code-generator-MIT.txt',
@@ -1659,7 +1659,7 @@ try {
     '/third_party/bip39/spanish.txt', '/third_party/monero/english.h', '/third_party/slip39/wordlist.txt',
     '/third_party/unicode/confusables.txt', '/rules/brands.json', '/rules/brands-verified.json', '/tools/brands.mjs', '/tests/fixtures/real-domains.txt', '/tests/png-pixels.mjs',
     '/third_party/qrcodegen/qrcodegen.ts', '/tests/qr-make.test.mjs',
-    '/DISCLAIMER.md', '/README.md', '/fastlane/metadata/android/en-US/images/icon.png', '/android/tools/make_icons.py', '/tests/legal-pages.mjs',
+    '/DISCLAIMER.md', '/README.md', '/CHANGELOG.md', '/fastlane/metadata/android/en-US/images/icon.png', '/android/tools/make_icons.py', '/tests/legal-pages.mjs',
     // The type checking's tooling (2026-10-16).
     '/package.json', '/package-lock.json', '/jsconfig.json', '/jsconfig.worker.json', '/types/page.d.ts', '/tools/typecheck-stamps.mjs'];
   const got = {};
@@ -1740,12 +1740,12 @@ const serverLines = existsSync(serveLog) ? readFileSync(serveLog, 'utf8').trim()
 const browserLines = serverLines.filter((l) => l.method === 'GET');
 const serverBad = browserLines.filter((l) => (l.status >= 400 && !(l.path === '/favicon.ico' && l.status === 404 && faviconProbes.length)) || l.host.split(':')[0] !== HOST);
 check(`the server saw only good requests for ${HOST} from the browser (${browserLines.length} requests)`, browserLines.length > 0 && !serverBad.length, serverBad);
-// A vendored package sits in a folder named with its version (vendor/zxing-wasm-3.1.4/): a new
+// A vendored package sits in a folder named with its version (vendor/zxing-wasm-3.1.6/): a new
 // version is a new address, and its files stay byte for byte as published, so they carry no stamp.
 // (Stage 4b: the QR encoder is pinned by commit, so its folder is named with the commit.)
 const unstamped = loadSet.filter((x) => /\.(js|css)$/.test(x) && !/^\/vendor\/[a-z0-9-]+-(?:\d+\.\d+\.\d+|[0-9a-f]{7,40})\//.test(x)).filter((x) => !web.some((r) => new URL(r.url).pathname === x && /[?&]v=/.test(r.url)));
 check('every script and stylesheet is fetched with a ?v= cache stamp (bump_assets.py), or from a versioned vendor folder', !unstamped.length, unstamped);
-check('the decoder worker started in every flow, and its own files were recorded', record.workers.length > 0 && web.some((r) => r.worker && /\/vendor\/zxing-wasm-3\.1\.4\/zxing_reader\.wasm\.js$/.test(new URL(r.url).pathname)), { workers: record.workers.length });
+check('the decoder worker started in every flow, and its own files were recorded', record.workers.length > 0 && web.some((r) => r.worker && /\/vendor\/zxing-wasm-3\.1\.6\/zxing_reader\.wasm\.js$/.test(new URL(r.url).pathname)), { workers: record.workers.length });
 
 const cspIssues = record.issues.filter((i) => i.code === 'ContentSecurityPolicyIssue');
 const cspLogs = record.logs.filter((l) => /Content Security Policy|Refused to/i.test(l.text));
