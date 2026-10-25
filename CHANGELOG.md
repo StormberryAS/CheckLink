@@ -6,7 +6,21 @@ here. The APK, its `.sha256` file and its build provenance attestation are on th
 [releases page](https://github.com/StormberryAS/CheckLink/releases). Every release is signed with
 the same key, certificate SHA-256 `12dec5ac5eda5500ec233bd10f58515fd99d9a82480ed56445418b164f28a5d5`.
 
-## 0.0.2 (versionCode 2)
+## 0.0.3 (versionCode 3)
+
+A credits release. How CheckLink works does not change: still one permission, the camera, used
+only while you scan, and no internet access.
+
+- **Footer credits:** the footer, on the website and in the app, now names only the third-party
+  projects and data CheckLink's function is built on, each with a link and its licence: zxing-cpp
+  through zxing-wasm, the QR Code generator, the Public Suffix List, the BIP-39, SLIP-39 and Monero
+  word lists, Unicode's confusables data and the tracking query params registry. It no longer says
+  "the open-source parts listed in NOTICE".
+- **Documentation:** icons (Lucide, with the Nostr and Tor marks), the Inter typeface and the
+  programming languages and platform libraries (Kotlin, AndroidX) are credited in `NOTICE` and the
+  README only. Lucide's licence text is new in `licences/` and ships with the page and the app.
+
+## 0.0.2 (versionCode 2), 23 October 2026
 
 A maintenance release. How CheckLink works does not change: still one permission, the camera, used
 only while you scan, and no internet access.

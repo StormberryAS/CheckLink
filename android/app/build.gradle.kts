@@ -119,9 +119,13 @@ android {
         // through the app, Scan with camera with the one CAMERA permission. Released on
         // Zapstore on 15 October 2026.
         // 0.0.2 (code 2): the QR decoder moves to zxing-wasm 3.1.6 (ZX-1) and androidx.webkit
-        // to 1.17.1 (DEP-1), 22 October 2026; still exactly CAMERA, no internet.
-        versionCode = 2
-        versionName = "0.0.2"
+        // to 1.17.1 (DEP-1), 22 October 2026; still exactly CAMERA, no internet. Released on
+        // 23 October 2026.
+        // 0.0.3 (code 3): the footer credits only the projects and data CheckLink's function is
+        // built on; icons, the typeface and the languages and libraries move to NOTICE and the
+        // README (24 October 2026); still exactly CAMERA, no internet.
+        versionCode = 3
+        versionName = "0.0.3"
 
         // Density PNGs generated from vectors are a source of build nondeterminism, and the
         // app ships vector icons only.

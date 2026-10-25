@@ -48,7 +48,7 @@ The Android app (package `no.stormberry.checklink`) runs the same files as the w
 ### One permission: the camera
 
 ```bash
-aapt dump permissions checklink-v0.0.2.apk
+aapt dump permissions checklink-v0.0.3.apk
 # package: no.stormberry.checklink
 # uses-permission: name='android.permission.CAMERA'
 ```
@@ -62,9 +62,9 @@ If you turn off JIT (the fast compiler) for CheckLink, for example in GrapheneOS
 ### Verify a release
 
 ```bash
-sha256sum -c checklink-v0.0.2.apk.sha256
-apksigner verify --print-certs checklink-v0.0.2.apk
-gh attestation verify checklink-v0.0.2.apk -R StormberryAS/CheckLink
+sha256sum -c checklink-v0.0.3.apk.sha256
+apksigner verify --print-certs checklink-v0.0.3.apk
+gh attestation verify checklink-v0.0.3.apk -R StormberryAS/CheckLink
 ```
 
 **Signing certificate SHA-256:** `12dec5ac5eda5500ec233bd10f58515fd99d9a82480ed56445418b164f28a5d5`
@@ -77,7 +77,7 @@ The build is reproducible: the same commit gives the same APK, byte for byte. To
 
 ```bash
 git clone https://github.com/StormberryAS/CheckLink.git
-cd CheckLink && git checkout android-v0.0.2
+cd CheckLink && git checkout android-v0.0.3
 cd android && ./gradlew --no-daemon -PunsignedRelease=true :app:assembleRelease
 BT="$ANDROID_HOME/build-tools/36.0.0"
 "$BT/zipalign" -f 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
@@ -86,7 +86,7 @@ keytool -genkeypair -keystore mine.p12 -storetype PKCS12 -alias mine -keyalg RSA
   --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled true --v4-signing-enabled false \
   --out mine.apk aligned.apk
 python3 tools/apk-without-signature.py mine.apk
-python3 tools/apk-without-signature.py /path/to/checklink-v0.0.2.apk
+python3 tools/apk-without-signature.py /path/to/checklink-v0.0.3.apk
 ```
 
 The two lines must show the same SHA-256. Sign with apksigner rather than only align: apksigner places some files a few bytes differently from zipalign, so an unsigned build does not compare directly. Use JDK 21, as the workflow does (Temurin 21).
@@ -170,4 +170,6 @@ Full terms: [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Licence
 
-Published under the MIT licence, see `LICENSE`. Third-party notices are in `NOTICE`: the QR decoder (zxing-wasm), the QR code generator, the Public Suffix List, the recovery-phrase word lists, Unicode's look-alike data and the Inter typeface. Their licence texts are in `licences/`, which ships with the page and with the app.
+Published under the MIT licence, see `LICENSE`. Third-party notices are in `NOTICE`: the QR decoder (zxing-wasm and zxing-cpp), the QR code generator, the Public Suffix List, the recovery-phrase word lists, Unicode's look-alike data, the tracking query params registry the rules were seeded from, the Lucide icons, the Nostr and Tor marks, the Inter typeface, and the Kotlin and AndroidX libraries of the Android app. Their licence texts are in `licences/`, which ships with the page and with the app.
+
+**What the footer credits.** The page footer, which the Android app shows too, credits only the projects and data CheckLink's function is built on, each with a link and its licence: zxing-cpp through zxing-wasm, the QR Code generator, the Public Suffix List, the BIP-39, SLIP-39 and Monero word lists, Unicode's confusables data and the tracking query params registry. Icons, the typeface, programming languages and platform libraries are credited here and in `NOTICE` only.

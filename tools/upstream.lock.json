@@ -707,6 +707,13 @@
       "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
     },
     {
+      "path": "licences/Lucide-ISC.txt",
+      "covers": "the Lucide LinkedIn and GitHub marks drawn as inline SVG in the page footer (index.html, privacy.html), added to the documentation on 2026-10-24 when the footer credits were narrowed to the projects the app's function is built on",
+      "licence": "ISC, with portions under the MIT License (Feather)",
+      "from": "LICENSE of the npm package lucide-react 0.525.0 (https://github.com/lucide-icons/lucide), unchanged",
+      "sha256": "1e7290b35280a048667bbf0ebabac1c7fd52a75300e8b2946ac165715997f2bc"
+    },
+    {
       "path": "licences/Monero-BSD-3-Clause.txt",
       "covers": "the Monero English seed word list (third_party/monero/english.h, compiled into src/wordlists.js)",
       "licence": "BSD-3-Clause",

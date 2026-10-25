@@ -627,7 +627,9 @@ describe('what the page does with it (app.js, index.html and style.css read as t
     assert.match(app, /hidden: 'The camera stopped because you left this page\. Press Scan with camera to start it again\.',/);
     assert.match(app, /stopCamera\(inApp\(\) \? CAM\.hiddenApp : CAM\.hidden, \{ focus: true \}\)/);
     assert.match(app, /'clandroid:camera-stop', \(\) => \{\n {4}if \(cameraOn\(\)\) stopCamera\(CAM\.hiddenApp, \{ focus: true \}\);/);
-    assert.match(html, /<p>Runs entirely on your device: our own code and the open-source parts listed in NOTICE\. Nothing is sent\.<\/p>/);
+    // 0.0.3: the footer sentence credits the projects the function is built on (tests/footer-credits.test.mjs pins it).
+    assert.match(html, /<p>Runs entirely on your device: our own code, <a href="https:\/\/github\.com\/zxing-cpp\/zxing-cpp"[\s\S]*? Nothing is sent\.<\/p>/);
+    assert.ok(!html.includes('listed in NOTICE'));
     assert.ok(!html.includes('Powered by your own browser'));
   });
 });

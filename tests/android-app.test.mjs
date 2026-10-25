@@ -116,7 +116,7 @@ test('names: CheckLink everywhere, nothing left of the template', () => {
   }
   assert.match(read('android/app/build.gradle.kts'), /namespace = "no\.stormberry\.checklink"/);
   assert.match(read('android/app/build.gradle.kts'), /applicationId = "no\.stormberry\.checklink"/);
-  assert.match(read('android/app/build.gradle.kts'), /versionCode = 2\s+versionName = "0\.0\.2"/);
+  assert.match(read('android/app/build.gradle.kts'), /versionCode = 3\s+versionName = "0\.0\.3"/);
   assert.match(read('android/app/build.gradle.kts'), /minSdk = 24\s+targetSdk = 36/);
   assert.match(read('android/app/src/main/res/values/themes.xml'), /name="Theme\.CheckLink"/);
 });

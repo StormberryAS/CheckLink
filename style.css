@@ -506,6 +506,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
   line-height: 1.6;
 }
 
+/* The credits sentence names a dozen projects, so its column is wider than the old one-line
+   note's. A licence label (Apache 2.0, BSD 3-Clause) never breaks across two lines. */
+.footer-powered { flex: 1 1 18rem; }
+.footer-powered p { max-width: 24rem; margin-left: auto; }
+.nb { white-space: nowrap; }
+
 .footer-bottom {
   max-width: 680px;
   margin: 0 auto;

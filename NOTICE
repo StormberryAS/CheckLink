@@ -24,6 +24,17 @@ sha512 integrity as the registry publishes it) and its licence, and
 NOTICE is not published with the site or the app, so the licence texts also
 ship in licences/, which is.
 
+What the page footer credits (changed 24 October 2026, for CheckLink 0.0.3):
+the footer, which the Android app shows too, names only the third-party
+projects and data CheckLink's function is built on, each with a link and its
+licence: zxing-cpp through zxing-wasm (the QR code reader), the QR Code
+generator, the Public Suffix List, the BIP-39, SLIP-39 and Monero word lists,
+Unicode's confusables data and the tracking query params registry. The
+footer no longer points here. Everything else is credited in this file and in
+README.md only: the Lucide icons, the Nostr and Tor marks, the Inter
+typeface, and the programming languages and platform libraries of the
+Android app (Kotlin and the AndroidX libraries, in the Android app section).
+
 -------------------
 
 zxing-wasm 3.1.6 (vendor/zxing-wasm-3.1.6/)
@@ -215,6 +226,43 @@ Inter (fonts/inter/)
   Full licence text: licences/Inter-OFL-1.1.txt, copied unchanged from the
   release's LICENSE.txt (sha256
   262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a).
+
+-------------------
+
+Lucide icons (the LinkedIn and GitHub marks in the page footer, inline SVG
+in index.html and privacy.html)
+  Licence:   ISC, with portions under the MIT License (Feather)
+             (licences/Lucide-ISC.txt, the LICENSE file of the lucide-react
+             0.525.0 package, unchanged)
+  Author:    Lucide Contributors; portions by Cole Bemis (Feather)
+  Source:    https://github.com/lucide-icons/lucide
+  Copyright: Copyright (c) for portions of Lucide are held by Cole Bemis
+             2013-2022 as part of Feather (MIT). All other copyright (c) for
+             Lucide are held by Lucide Contributors 2022.
+  Changes:   none to the drawing; the marks are drawn at 24 by 24 pixels with
+             the page's own colours.
+  The same two marks are in every Stormberry website footer.
+
+-------------------
+
+Nostr ostrich mark (the Nostr icon in the page footer, inline SVG)
+  Source:    the Stormberry AS website, where the outline entered the
+             Stormberry repositories on 17 March 2026 (the website's first
+             commit) and has been copied unchanged into every Stormberry
+             footer since.
+  Author and licence: not recorded. That commit names no author, licence or
+             origin for the outline, and this project has not identified one.
+             It is the community's running-ostrich mark for Nostr, used here
+             only to link to Stormberry AS's own Nostr identity. If its
+             author asks for it to be removed or credited, it will be.
+
+-------------------
+
+Tor onion mark (the Tor icon in the page footer, inline SVG)
+  Source:    drawn for Stormberry AS in June 2026 as a plain two-shape onion
+             and first put in the Stormberry footers on 4 June 2026. It is
+             not the Tor Project's logo and uses no Tor Project artwork.
+  Licence:   the same MIT licence as the rest of this project (see LICENSE).
 
 -------------------
 

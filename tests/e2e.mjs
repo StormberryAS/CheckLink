@@ -612,10 +612,13 @@ async function noLinkTo(p, where, links) {
     const m = readMailto(a.href);
     return a.href.startsWith(REPORT_PREFIX) && !!m && m.to === 'info@stormberry.as' && J(m.params) === J(['subject', 'body']);
   };
+  // (0.0.3: the footer's credits sentence links the nine projects and data CheckLink's function is built
+  // on, https only, each pinned in tests/footer-credits.test.mjs.)
+  const FOOTER_CREDITS = ['https://github.com/zxing-cpp/zxing-cpp', 'https://github.com/Sec-ant/zxing-wasm', 'https://github.com/nayuki/QR-Code-generator', 'https://publicsuffix.org/list/', 'https://github.com/bitcoin/bips/tree/master/bip-0039', 'https://github.com/trezor/python-shamir-mnemonic', 'https://github.com/monero-project/monero/tree/master/src/mnemonics', 'https://www.unicode.org/Public/security/latest/confusables.txt', 'https://github.com/mpchadwick/tracking-query-params-registry'];
   // (Links to Stormberry's own sites, the ecosystem carousel's among them, are part of the page,
   // and so, from stage 4, is the web-only section's link to CheckLink's own Zapstore listing, and
   // from stage 5 the footer's two links to the privacy page and the disclaimer.)
-  const foreign = anchors.filter((a) => !isReport(a) && a.href !== 'privacy.html' && a.href !== 'disclaimer.html' && !/^(https:\/\/((?:[a-z]+\.)?stormberry\.as(?:\/|$)|linkedin\.com\/company\/StormberryAS|github\.com\/StormberryAS|virksomhet\.brreg\.no\/|zapstore\.dev\/apps\/no\.stormberry\.checklink$)|nostr:npub1|http:\/\/stormberry\w+\.onion)/.test(a.href));
+  const foreign = anchors.filter((a) => !isReport(a) && a.href !== 'privacy.html' && a.href !== 'disclaimer.html' && !/^(https:\/\/((?:[a-z]+\.)?stormberry\.as(?:\/|$)|linkedin\.com\/company\/StormberryAS|github\.com\/StormberryAS|virksomhet\.brreg\.no\/|zapstore\.dev\/apps\/no\.stormberry\.checklink$)|nostr:npub1|http:\/\/stormberry\w+\.onion)/.test(a.href) && !FOOTER_CREDITS.includes(a.href));
   const mailtos = anchors.filter((a) => /^mailto:/i.test(a.href));
   check(`${p.view.label} ${where}: no anchor or other element points at the analysed link (${anchors.length} anchors: the footer links and the one report mailto:)`, !bad.length && !foreign.length && mailtos.length === 1 && isReport(mailtos[0]), { bad, foreign, mailtos });
 }
