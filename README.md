@@ -48,7 +48,7 @@ The Android app (package `no.stormberry.checklink`) runs the same files as the w
 ### One permission: the camera
 
 ```bash
-aapt dump permissions checklink-v0.0.3.apk
+aapt dump permissions checklink-v0.0.4.apk
 # package: no.stormberry.checklink
 # uses-permission: name='android.permission.CAMERA'
 ```
@@ -62,9 +62,9 @@ If you turn off JIT (the fast compiler) for CheckLink, for example in GrapheneOS
 ### Verify a release
 
 ```bash
-sha256sum -c checklink-v0.0.3.apk.sha256
-apksigner verify --print-certs checklink-v0.0.3.apk
-gh attestation verify checklink-v0.0.3.apk -R StormberryAS/CheckLink
+sha256sum -c checklink-v0.0.4.apk.sha256
+apksigner verify --print-certs checklink-v0.0.4.apk
+gh attestation verify checklink-v0.0.4.apk -R StormberryAS/CheckLink
 ```
 
 **Signing certificate SHA-256:** `12dec5ac5eda5500ec233bd10f58515fd99d9a82480ed56445418b164f28a5d5`
@@ -77,7 +77,7 @@ The build is reproducible: the same commit gives the same APK, byte for byte. To
 
 ```bash
 git clone https://github.com/StormberryAS/CheckLink.git
-cd CheckLink && git checkout android-v0.0.3
+cd CheckLink && git checkout android-v0.0.4
 cd android && ./gradlew --no-daemon -PunsignedRelease=true :app:assembleRelease
 BT="$ANDROID_HOME/build-tools/36.0.0"
 "$BT/zipalign" -f 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
@@ -86,10 +86,37 @@ keytool -genkeypair -keystore mine.p12 -storetype PKCS12 -alias mine -keyalg RSA
   --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled true --v4-signing-enabled false \
   --out mine.apk aligned.apk
 python3 tools/apk-without-signature.py mine.apk
-python3 tools/apk-without-signature.py /path/to/checklink-v0.0.3.apk
+python3 tools/apk-without-signature.py /path/to/checklink-v0.0.4.apk
 ```
 
 The two lines must show the same SHA-256. Sign with apksigner rather than only align: apksigner places some files a few bytes differently from zipalign, so an unsigned build does not compare directly. Use JDK 21, as the workflow does (Temurin 21).
+
+### Google Play
+
+Google Play gets its own package, `no.stormberry.checklink.play`, built from the same source with one switch. To Android the two are different apps: they install side by side, neither can update the other, and nothing that happens on Play can reach an install from Zapstore or from this repository's releases page. Both have the same features, the same bundled web files and exactly the same one permission, the camera.
+
+| Package | Where it comes from | Signed by |
+| :- | :- | :- |
+| `no.stormberry.checklink` | Zapstore and this repository's releases page | the release key (certificate above) |
+| `no.stormberry.checklink.play` | Google Play | Google, under Play App Signing, from a bundle we sign with a separate upload key |
+
+Play takes a bundle, not an APK. From `android/`, with the upload key set up as below:
+
+```bash
+./gradlew --no-daemon --no-build-cache --no-configuration-cache :app:bundleRelease -PplayBuild=true
+# app/build/outputs/bundle/release/checklink-play-release.aab
+```
+
+- **The switch changes three things and nothing else:** the application ID, the version code and the key. The sovereign APK is byte for byte the same with or without this code in the build file, and the release workflow never sets the switch.
+- **The upload key** is a different key from the release key and must stay different. It signs the bundle so Play can tell who uploaded it, never anything a person installs. `android/keystore.properties` (not committed) names it with `playUploadStoreFile`, `playUploadStoreType` and `playUploadKeyAlias`; the passwords come from `PLAY_UPLOAD_STORE_PASSWORD` and `PLAY_UPLOAD_KEY_PASSWORD`, and the build refuses to start if either keystore file is the other one or a copy of it. Losing the upload key means an upload key reset in the Play Console; losing the release key ends updates for the Zapstore app.
+- **Three checks stop the wrong artefact, decided on the resolved task graph and not on the command line** (the command line misses `build`, `assemble` and `bR`): a release bundle without `-PplayBuild=true` fails, because it would carry the sovereign ID signed with the release key and uploading it would claim that package on Play for good; a release APK with the switch fails, because an installable `.play` APK has no destination; and the switch together with `-PunsignedRelease=true` fails.
+- **No product flavours.** A flavour's signing configuration is overridden by the build type's, and a flavour dimension renames every Gradle task, which breaks the workflow's APK paths.
+
+**One visible version, two code lines.** The Play build shows the same version name as the sovereign build, and its version code is 1000 plus the sovereign code. Every Play upload is built from a tag that shipped on GitHub Releases, with Temurin 21 as in the section above.
+
+| Sovereign tag | Sovereign version (code) | Play version (code) |
+| :- | :- | :- |
+| `android-v0.0.4` | 0.0.4 (4) | 0.0.4 (1004) |
 
 ### Build from source
 

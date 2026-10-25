@@ -115,8 +115,8 @@ test('names: CheckLink everywhere, nothing left of the template', () => {
     assert.ok(!/MetadataScrubber|metadatascrubber|MSBridge|MSAndroid|Theme\.Metadata/.test(text), `${f} still names the template`);
   }
   assert.match(read('android/app/build.gradle.kts'), /namespace = "no\.stormberry\.checklink"/);
-  assert.match(read('android/app/build.gradle.kts'), /applicationId = "no\.stormberry\.checklink"/);
-  assert.match(read('android/app/build.gradle.kts'), /versionCode = 3\s+versionName = "0\.0\.3"/);
+  assert.match(read('android/app/build.gradle.kts'), /applicationId = if \(playBuild\) "no\.stormberry\.checklink\.play" else "no\.stormberry\.checklink"/);
+  assert.match(read('android/app/build.gradle.kts'), /versionCode = 4\s+versionName = "0\.0\.4"/);
   assert.match(read('android/app/build.gradle.kts'), /minSdk = 24\s+targetSdk = 36/);
   assert.match(read('android/app/src/main/res/values/themes.xml'), /name="Theme\.CheckLink"/);
 });
@@ -470,6 +470,44 @@ test('the build refuses an unsigned release unless asked for, and the switch nex
   const gradle = read('android/app/build.gradle.kts');
   assert.match(gradle, /val unsignedRelease = providers\.gradleProperty\("unsignedRelease"\)\.orNull == "true"/);
   assert.match(gradle, /if \(unsignedRelease && \(releaseStorePassword != null \|\| releaseKeyPassword != null\)\) \{\n    error\(/);
-  assert.match(gradle, /if \(!signed && !unsigned\) \{\n            error\(/);
-  assert.match(gradle, /if \(canSignRelease && !unsignedRelease\) signingConfig = signingConfigs\.getByName\("release"\)/);
+  assert.match(gradle, /if \(!isBundle && !play && !signed && !unsigned\) \{\n            error\(/);
+  assert.match(gradle, /\} else if \(canSignRelease && !unsignedRelease\) \{\n                signingConfig = signingConfigs\.getByName\("release"\)/);
+});
+
+// 0.0.4 (25 October 2026): the Google Play switch. A separate package, a separate upload key, and
+// nothing that can move the sovereign build.
+test('the Play switch: its own package, version line and upload key; guards on the task graph; no flavours', () => {
+  const gradle = read('android/app/build.gradle.kts');
+  // The switch, and what it changes.
+  assert.match(gradle, /val playBuild = when \(providers\.gradleProperty\("playBuild"\)\.orNull\?\.lowercase\(\)\) \{\n    null -> false/);
+  assert.match(gradle, /"", "true", "1", "yes" -> true\n    "false", "0", "no" -> false\n    else -> error\(/);
+  assert.match(gradle, /applicationId = if \(playBuild\) "no\.stormberry\.checklink\.play" else "no\.stormberry\.checklink"/);
+  assert.match(gradle, /val playVersionCodeOffset = 1000/);
+  assert.match(gradle, /if \(playBuild\) \{\n            versionCode = playVersionCodeOffset \+ versionCode!!\n        \}/);
+  assert.match(gradle, /if \(playBuild\) \{\n    base \{ archivesName = "checklink-play" \}\n\}/);
+  // The namespace is the R class package and must not move with the flag.
+  assert.match(gradle, /namespace = "no\.stormberry\.checklink"/);
+  // The upload key: its own properties, its own signing config, v1 on (a bundle is signed like a JAR), and never the release key.
+  for (const k of ['playUploadStoreFile', 'playUploadStoreType', 'playUploadStorePassword', 'playUploadKeyAlias', 'playUploadKeyPassword'])
+    assert.ok(gradle.includes(`signingValue("${k}"`), k);
+  assert.match(gradle, /create\("playUpload"\) \{[\s\S]*?enableV1Signing = true\n                enableV2Signing = true\n                enableV3Signing = true\n                enableV4Signing = false/);
+  assert.match(gradle, /if \(playBuild\) \{\n                if \(canSignPlayUpload\) signingConfig = signingConfigs\.getByName\("playUpload"\)\n            \} else if/);
+  assert.match(gradle, /rel\.canonicalFile == upl\.canonicalFile \|\| rel\.readBytes\(\)\.contentEquals\(upl\.readBytes\(\)\)/);
+  // The guards sit on the two tasks that consume a signing config, not on the command line.
+  assert.match(gradle, /tasks\.matching \{ it\.name == "packageRelease" \|\| it\.name == "signReleaseBundle" \}\.configureEach/);
+  assert.match(gradle, /if \(isBundle && !play\) \{\n            error\(/);
+  assert.match(gradle, /if \(!isBundle && play\) \{\n            error\(/);
+  assert.match(gradle, /if \(isBundle && play && !haveUploadKey\) \{\n            error\(/);
+  assert.match(gradle, /if \(unsignedRelease && playBuild\) \{\n    error\(/);
+  assert.ok(!/it\.name\.contains|gradle\.startParameter\.taskNames/.test(gradle), 'a guard that reads command-line strings misses build, assemble and bR');
+  // The configuration cache must not keep any password, upload passwords included.
+  assert.match(gradle, /uploadStorePassword != null \|\| uploadKeyPassword != null/);
+  // Product flavours are banned: a flavour's signingConfig is overridden by the build type's, and a flavour dimension renames every task.
+  assert.ok(!/productFlavors|flavorDimensions/.test(gradle), 'no product flavours');
+  // The workflow never sets the switch: the release APK is the sovereign one.
+  assert.ok(!/playBuild|PLAY_UPLOAD/.test(read('.github/workflows/android-release.yml')), 'the release workflow knows nothing of Play');
+  // The permissions do not depend on the package: the manifest has no hard-coded package name and the permission list is the same.
+  const manifest = read('android/app/src/main/AndroidManifest.xml').replace(/<!--[\s\S]*?-->/g, '');
+  assert.ok(!/no\.stormberry\.checklink/.test(manifest), 'the manifest names the package only through ${applicationId}');
+  assert.match(manifest, /android:authorities="\$\{applicationId\}\.outgoing"/);
 });

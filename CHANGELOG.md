@@ -6,7 +6,18 @@ here. The APK, its `.sha256` file and its build provenance attestation are on th
 [releases page](https://github.com/StormberryAS/CheckLink/releases). Every release is signed with
 the same key, certificate SHA-256 `12dec5ac5eda5500ec233bd10f58515fd99d9a82480ed56445418b164f28a5d5`.
 
-## 0.0.3 (versionCode 3)
+## 0.0.4 (versionCode 4)
+
+A build release. How CheckLink works does not change: still one permission, the camera, used only
+while you scan, and no internet access. The app, its web files and its permissions are the same as
+in 0.0.3.
+
+- **Google Play:** the build can now make a separate package for Google Play,
+  `no.stormberry.checklink.play`, with one switch. It installs beside this app and neither can
+  update the other, so nothing on Play reaches an install from Zapstore or GitHub. The Zapstore and
+  GitHub app is still `no.stormberry.checklink`, signed with the same key as before.
+
+## 0.0.3 (versionCode 3), 25 October 2026
 
 A credits release. How CheckLink works does not change: still one permission, the camera, used
 only while you scan, and no internet access.

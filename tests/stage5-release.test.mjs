@@ -388,13 +388,13 @@ test('README.md: the release certificate, the real asset name, how to verify, th
   const md = read('README.md');
   const wf = read('.github/workflows/android-release.yml');
   const version = read('android/app/build.gradle.kts').match(/versionName = "([^"]+)"/)[1];
-  // The workflow names the asset checklink-<tag without "android-">.apk, so android-v0.0.3 gives checklink-v0.0.3.apk.
+  // The workflow names the asset checklink-<tag without "android-">.apk, so android-v0.0.4 gives checklink-v0.0.4.apk.
   assert.ok(wf.includes('VERSION="${GITHUB_REF_NAME#android-}"') && wf.includes('"checklink-${VERSION}.apk"'));
   const asset = `checklink-v${version}.apk`;
-  assert.equal(asset, 'checklink-v0.0.3.apk');
+  assert.equal(asset, 'checklink-v0.0.4.apk');
   assert.ok(md.includes(`**Signing certificate SHA-256:** \`${CERT}\``));
   assert.ok(wf.includes(`EXPECTED_CERT=${CERT}`));
-  for (const line of [`gh attestation verify ${asset} -R StormberryAS/CheckLink`, `apksigner verify --print-certs ${asset}`, `sha256sum -c ${asset}.sha256`, `aapt dump permissions ${asset}`, 'git checkout android-v0.0.3']) {
+  for (const line of [`gh attestation verify ${asset} -R StormberryAS/CheckLink`, `apksigner verify --print-certs ${asset}`, `sha256sum -c ${asset}.sha256`, `aapt dump permissions ${asset}`, 'git checkout android-v0.0.4']) {
     assert.ok(md.includes(line), line);
   }
   const perms = read('android/expected-permissions.txt').trim().split('\n').map((l) => `# ${l}`).join('\n');
@@ -437,7 +437,7 @@ test('the store texts: the JIT-1 line in the Zapstore description too, zapstore.
   const desc = yaml.slice(start, yaml.indexOf('\ntags:\n'));
   const norm = (t) => t.replace(/\s+/g, ' ').trim();
   assert.equal(norm(desc), norm(fd), 'zapstore.yaml\'s description is full_description.txt, rewrapped');
-  for (const f of ['title.txt', 'short_description.txt', 'full_description.txt', 'changelogs/1.txt', 'changelogs/2.txt', 'changelogs/3.txt']) {
+  for (const f of ['title.txt', 'short_description.txt', 'full_description.txt', 'changelogs/1.txt', 'changelogs/2.txt', 'changelogs/3.txt', 'changelogs/4.txt']) {
     const t = norm(read(`fastlane/metadata/android/en-US/${f}`));
     assert.deepEqual(copyProblems(t), [], f);
     assert.ok(!/safer QR scanner|check\.stormberry\.as/i.test(t), f);

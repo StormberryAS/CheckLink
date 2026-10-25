@@ -1,0 +1,1 @@
+0.0.4 changes the build, not the app. CheckLink can now also be built as a separate package for Google Play, which installs beside this one and never updates it. This app is unchanged: one permission, the camera, and no internet access. Full release log: https://github.com/StormberryAS/CheckLink/blob/main/CHANGELOG.md
