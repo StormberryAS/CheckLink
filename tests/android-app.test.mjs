@@ -235,6 +235,9 @@ test('the web-only Zapstore section: shown on the website since the 0.0.1 releas
   assert.match(section[0], /^<section class="android-app" id="android-app" aria-labelledby="android-app-title" data-web-only>/);
   assert.ok(section[0].includes('<p>One permission: the camera, used only while you scan. No internet access.</p>'));
   assert.ok(section[0].includes('href="https://zapstore.dev/apps/no.stormberry.checklink"'));
+  // Since 2026-10-30, beside it in one row, the Google Play listing of the Play edition.
+  assert.ok(section[0].includes('<a class="btn btn-secondary" href="https://play.google.com/store/apps/details?id=no.stormberry.checklink.play" target="_blank" rel="noopener">Get the Android app on Google Play<span class="visually-hidden"> (opens in a new tab)</span></a>'));
+  assert.match(section[0], /<div class="store-links">\s*<a [^>]*zapstore[^>]*>[^\n]*<\/a>\s*<a [^>]*play\.google\.com[^>]*>[^\n]*<\/a>\s*<\/div>/);
   const before = html.slice(0, section.index);
   assert.ok(before.slice(-600).includes('Shown on the website since 0.0.1 is on Zapstore'));
   assert.ok(!html.includes('STAGE 5:'), 'the stage 5 placeholder comment is still there');

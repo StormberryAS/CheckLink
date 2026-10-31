@@ -316,7 +316,7 @@ test('privacy.html: the page\'s own policy word for word, no scripts, no inline 
   for (const [f, v] of sheets) assert.equal(v, sha256(bytes(f)).slice(0, 8), `${f} stamp`);
 });
 
-test('privacy.html covers spec section 6, made true for 0.0.1: offline, the camera, Copy and Share, the notice\'s flag, no history, Zapstore, rights, a date', () => {
+test('privacy.html covers spec section 6, made true for 0.0.1: offline, the camera, Copy and Share, the notice\'s flag, no history, Zapstore, the website and its hosting, rights, a date', () => {
   const text = htmlText(read('privacy.html'));
   for (const part of [
     'Nothing you check is sent anywhere', 'never opens the link it checks', 'no internet access at all',
@@ -325,11 +325,21 @@ test('privacy.html covers spec section 6, made true for 0.0.1: offline, the came
     'keeps the screen out of screenshots', 'Copy puts the clean link', 'Share hands it to the app you choose', 'Go to opens the clean link in your own browser',
     'when you close the first-run notice, the app stores the date and time in its local storage', 'keeps no history',
     'keeps all its data out of Android\'s backups', 'info@stormberry.as', 'the message reaches us only if you send it',
-    'Zapstore', 'Norwegian Data Protection Authority (Datatilsynet', 'Norwegian Personal Data Act (personopplysningsloven)',
-    'Last updated: 12 October 2026',
+    'Zapstore', 'If you install the app from Google Play', 'Norwegian Data Protection Authority (Datatilsynet', 'Norwegian Personal Data Act (personopplysningsloven)',
+    'CheckLink is also a website, at check.stormberry.as', 'no cookies, no analytics and no third-party scripts or frames',
+    'everything you check happens in your browser and stays there', 'your browser stores the date and time in its local storage',
+    'Clearing your browser\'s data for check.stormberry.as removes it',
+    'GitHub Pages stores the site and keeps its own logs; Cloudflare delivers it on our behalf and keeps short-lived logs.',
+    'Last updated: 31 October 2026',
   ]) assert.ok(text.includes(part), `privacy.html does not say: ${part}`);
-  // Nothing that implies a live website: no site address, no hosting, no store but Zapstore.
-  assert.ok(!/check\.stormberry\.as|GitHub Pages|Cloudflare|Google Play|Play Store/i.test(text), (text.match(/.{0,50}(check\.stormberry\.as|GitHub Pages|Cloudflare|Google Play|Play Store).{0,50}/i) || [])[0]);
+  // The website (31 October 2026, CL-NA-1): one section, The web version, before Where you got the app as on the
+  // house pages, pointing to sections 4 and 11 of the company policy. It names the address and never says
+  // "this site", because the app shows the same file.
+  const html = read('privacy.html');
+  const web = html.indexOf('<h2>The web version</h2>');
+  assert.ok(web > 0 && web < html.indexOf('<h2>Where you got the app</h2>'), 'The web version comes before Where you got the app');
+  assert.ok(html.includes('<a href="https://stormberry.as/privacy#labs" target="_blank" rel="noopener noreferrer">company privacy policy</a>, sections 4 and 11.'));
+  assert.ok(!/this site/i.test(text), 'privacy.html says "this site", which is wrong inside the app');
   assert.deepEqual(copyProblems(text), []);
   assert.ok(!/safer QR scanner/i.test(text));
 });

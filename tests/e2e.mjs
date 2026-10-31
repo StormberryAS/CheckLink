@@ -616,9 +616,10 @@ async function noLinkTo(p, where, links) {
   // on, https only, each pinned in tests/footer-credits.test.mjs.)
   const FOOTER_CREDITS = ['https://github.com/zxing-cpp/zxing-cpp', 'https://github.com/Sec-ant/zxing-wasm', 'https://github.com/nayuki/QR-Code-generator', 'https://publicsuffix.org/list/', 'https://github.com/bitcoin/bips/tree/master/bip-0039', 'https://github.com/trezor/python-shamir-mnemonic', 'https://github.com/monero-project/monero/tree/master/src/mnemonics', 'https://www.unicode.org/Public/security/latest/confusables.txt', 'https://github.com/mpchadwick/tracking-query-params-registry'];
   // (Links to Stormberry's own sites, the ecosystem carousel's among them, are part of the page,
-  // and so, from stage 4, is the web-only section's link to CheckLink's own Zapstore listing, and
+  // and so, from stage 4, is the web-only section's link to CheckLink's own Zapstore listing (and
+  // since 2026-10-30 its link to the Google Play listing), and
   // from stage 5 the footer's two links to the privacy page and the disclaimer.)
-  const foreign = anchors.filter((a) => !isReport(a) && a.href !== 'privacy.html' && a.href !== 'disclaimer.html' && !/^(https:\/\/((?:[a-z]+\.)?stormberry\.as(?:\/|$)|linkedin\.com\/company\/StormberryAS|github\.com\/StormberryAS|virksomhet\.brreg\.no\/|zapstore\.dev\/apps\/no\.stormberry\.checklink$)|nostr:npub1|http:\/\/stormberry\w+\.onion)/.test(a.href) && !FOOTER_CREDITS.includes(a.href));
+  const foreign = anchors.filter((a) => !isReport(a) && a.href !== 'privacy.html' && a.href !== 'disclaimer.html' && !/^(https:\/\/((?:[a-z]+\.)?stormberry\.as(?:\/|$)|linkedin\.com\/company\/StormberryAS|github\.com\/StormberryAS|virksomhet\.brreg\.no\/|zapstore\.dev\/apps\/no\.stormberry\.checklink$|play\.google\.com\/store\/apps\/details\?id=no\.stormberry\.checklink\.play$)|nostr:npub1|http:\/\/stormberry\w+\.onion)/.test(a.href) && !FOOTER_CREDITS.includes(a.href));
   const mailtos = anchors.filter((a) => /^mailto:/i.test(a.href));
   check(`${p.view.label} ${where}: no anchor or other element points at the analysed link (${anchors.length} anchors: the footer links and the one report mailto:)`, !bad.length && !foreign.length && mailtos.length === 1 && isReport(mailtos[0]), { bad, foreign, mailtos });
 }
@@ -1335,7 +1336,7 @@ flow('legal-pages', DESKTOP, async (p) => {
   check('legal: Privacy opens privacy.html, with no first-run notice there', arrived && st.h1 === 'Privacy' && !st.gate, { arrived, path: st.path });
   check('legal: privacy.html carries exactly the page\'s policy, no scripts and no inline styles', st.csp === indexCsp && st.scripts === 0 && st.styleElements === 0 && st.styleAttrs === 0, st);
   check('legal: privacy.html says what the 0.0.1 app does: on the device, one permission (the camera), no internet access, Zapstore, the notice\'s flag, rights and a date', ['one permission, the camera', 'no internet access', 'Zapstore', 'first-run notice', 'Datatilsynet', 'keeps no history', 'Last updated:'].every((x) => st.text.includes(x)), st.text.slice(0, 300));
-  check('legal: privacy.html says nothing about a website being live', !/check\.stormberry\.as|GitHub Pages|Cloudflare/.test(st.text), (st.text.match(/.{0,40}(check\.stormberry\.as|GitHub Pages|Cloudflare).{0,40}/) || [])[0]);
+  check('legal: privacy.html says how the website is hosted (The web version, 31 October 2026)', ['CheckLink is also a website, at check.stormberry.as', 'GitHub Pages stores the site and keeps its own logs; Cloudflare delivers it on our behalf and keeps short-lived logs.'].every((x) => st.text.includes(x)) && !/this site/i.test(st.text), (st.text.match(/.{0,40}(check\.stormberry\.as|GitHub Pages|Cloudflare|this site).{0,40}/i) || [])[0]);
   const pw = copyProblems(st.text);
   check('legal: privacy.html is plain British English, no dashes, never "safe" or "verified"', !pw.length, pw);
   await p.layout('privacy');
